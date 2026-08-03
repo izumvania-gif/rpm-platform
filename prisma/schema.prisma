@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Пользователи
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  products     Product[]
+  researches   Research[]
+  segments     Segment[]
+}
+
+// Продукты
+model Product {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  stage       Stage      @default(IDEA)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  researches  Research[]
+  segments    Segment[]
+}
+
+enum Stage {
+  IDEA
+  MVP
+  GROWTH
+  SCALE
+}
+
+// Исследования
+model Research {
+  id          String         @id @default(cuid())
+  number      Int            @default(autoincrement())
+  title       String
+  description String?        @db.Text
+  date        DateTime       @default(now())
+  status      ResearchStatus @default(IN_PROGRESS)
+  type        ResearchType
+  tags        String[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  productId   String
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ResearchStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ResearchType {
+  QUALITATIVE
+  SURVEY
+  ANALYTICS
+  DESK_RESEARCH
+  MANUAL
+  QUANTITATIVE
+  USABILITY_TESTING
+}
+
+// Сегменты
+model Segment {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String
+  audienceShare Float?   // процент от 0 до 100
+  color         String   @default("#3B82F6")
+  description   String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, slug])
+}

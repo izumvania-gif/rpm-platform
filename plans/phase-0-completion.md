@@ -10,11 +10,13 @@
 ### ✅ 1. Инициализация Next.js проекта с TypeScript
 
 **Созданные файлы:**
+
 - [`package.json`](../package.json) - конфигурация проекта и зависимости
 - [`tsconfig.json`](../tsconfig.json) - конфигурация TypeScript
 - [`next.config.js`](../next.config.js) - конфигурация Next.js
 
 **Установленные зависимости:**
+
 - Next.js 14.2.0
 - React 18.3.0
 - TypeScript 5.4.0
@@ -22,20 +24,24 @@
 ### ✅ 2. Настройка Prisma + PostgreSQL
 
 **Созданные файлы:**
+
 - [`prisma/schema.prisma`](../prisma/schema.prisma) - схема базы данных
 
 **Модели базы данных:**
+
 - `User` - пользователи системы
 - `Product` - продукты
 - `Research` - исследования
 - `Segment` - сегменты клиентов
 
 **Enums:**
+
 - `Stage` - стадии продукта (IDEA, MVP, GROWTH, SCALE)
 - `ResearchStatus` - статусы исследований (IN_PROGRESS, COMPLETED)
 - `ResearchType` - типы исследований (QUALITATIVE, SURVEY, ANALYTICS, и др.)
 
 **Команды:**
+
 ```bash
 npm run db:generate  # Генерация Prisma Client
 npm run db:push      # Синхронизация схемы с БД
@@ -46,12 +52,14 @@ npm run db:migrate   # Создание миграций
 ### ✅ 3. Настройка TailwindCSS + shadcn/ui
 
 **Созданные файлы:**
+
 - [`tailwind.config.ts`](../tailwind.config.ts) - конфигурация Tailwind
 - [`postcss.config.js`](../postcss.config.js) - конфигурация PostCSS
 - [`app/globals.css`](../app/globals.css) - глобальные стили с CSS переменными
 - [`components.json`](../components.json) - конфигурация shadcn/ui
 
 **Установленные пакеты:**
+
 - tailwindcss 3.4.0
 - tailwindcss-animate
 - class-variance-authority
@@ -59,6 +67,7 @@ npm run db:migrate   # Создание миграций
 - tailwind-merge
 
 **Готово к использованию:**
+
 - Система дизайн-токенов (цвета, радиусы, тени)
 - Поддержка темной темы
 - Утилита `cn()` для объединения классов
@@ -66,14 +75,17 @@ npm run db:migrate   # Создание миграций
 ### ✅ 4. Настройка NextAuth.js для аутентификации
 
 **Созданные файлы:**
+
 - [`lib/auth.ts`](../lib/auth.ts) - конфигурация NextAuth
 - [`app/api/auth/[...nextauth]/route.ts`](../app/api/auth/[...nextauth]/route.ts) - API маршрут
 - [`types/next-auth.d.ts`](../types/next-auth.d.ts) - типы TypeScript для NextAuth
 
 **Настроенные провайдеры:**
+
 - CredentialsProvider (email + password)
 
 **Функции:**
+
 - JWT стратегия сессий
 - Хеширование паролей с bcryptjs
 - Кастомная страница входа `/login`
@@ -82,15 +94,18 @@ npm run db:migrate   # Создание миграций
 ### ✅ 5. Настройка ESLint + Prettier
 
 **Созданные файлы:**
+
 - [`.eslintrc.json`](../.eslintrc.json) - правила ESLint
 - [`.prettierrc`](../.prettierrc) - правила форматирования
 
 **Правила:**
+
 - Строгий TypeScript (no-explicit-any)
 - Next.js best practices
 - Автоформатирование кода
 
 **Команды:**
+
 ```bash
 npm run lint     # Проверка кода
 npm run format   # Форматирование кода
@@ -99,6 +114,7 @@ npm run format   # Форматирование кода
 ### ✅ 6. Создание базовой структуры проекта
 
 **Структура директорий:**
+
 ```
 rpm-platform/
 ├── app/                          # Next.js App Router
@@ -127,11 +143,13 @@ rpm-platform/
 ### ✅ 7. Создание конфигурационных файлов окружения
 
 **Созданные файлы:**
+
 - [`.env.example`](../.env.example) - пример переменных окружения
 - `.env.local` - локальные переменные (не в git)
 - [`.gitignore`](../.gitignore) - исключения для git
 
 **Переменные окружения:**
+
 ```env
 DATABASE_URL          # Подключение к PostgreSQL
 NEXTAUTH_URL          # URL приложения
@@ -142,9 +160,11 @@ NODE_ENV              # Окружение (development/production)
 ### ✅ 8. Обновление документации
 
 **Обновленные файлы:**
+
 - [`README.md`](../README.md) - главная документация проекта
 
 **Добавлено:**
+
 - Инструкции по установке
 - Описание команд
 - Структура проекта
@@ -156,6 +176,7 @@ NODE_ENV              # Окружение (development/production)
 ## Установленные пакеты
 
 ### Dependencies (Production)
+
 ```json
 {
   "next": "^14.2.0",
@@ -178,6 +199,7 @@ NODE_ENV              # Окружение (development/production)
 ```
 
 ### DevDependencies (Development)
+
 ```json
 {
   "typescript": "^5.4.0",
@@ -204,6 +226,7 @@ NODE_ENV              # Окружение (development/production)
 ### Фаза 1: Аутентификация и базовый UI
 
 **Задачи:**
+
 1. Создать страницы регистрации и входа
 2. Реализовать формы с валидацией
 3. Создать базовый layout приложения
@@ -211,6 +234,7 @@ NODE_ENV              # Окружение (development/production)
 5. Настроить защищенные маршруты
 
 **Компоненты для создания:**
+
 - `LoginForm` - форма входа
 - `RegisterForm` - форма регистрации
 - `DashboardLayout` - основной layout
@@ -218,6 +242,7 @@ NODE_ENV              # Окружение (development/production)
 - `Header` - шапка с профилем
 
 **API endpoints:**
+
 - `POST /api/auth/register` - регистрация пользователя
 
 ---
@@ -238,6 +263,7 @@ NODE_ENV              # Окружение (development/production)
 ### 🧪 Тестирование
 
 **Команды для проверки:**
+
 ```bash
 # Проверка TypeScript
 npx tsc --noEmit
@@ -265,19 +291,25 @@ npm run dev
 ## Технические заметки
 
 ### Prisma Client
+
 Prisma Client генерируется автоматически при установке зависимостей. Для регенерации:
+
 ```bash
 npm run db:generate
 ```
 
 ### Переменные окружения
+
 Файл `.env.local` не включен в git. Для локальной разработки скопируйте `.env.example`:
+
 ```bash
 cp .env.example .env.local
 ```
 
 ### shadcn/ui компоненты
+
 Для добавления новых компонентов используйте:
+
 ```bash
 npx shadcn@latest add button
 npx shadcn@latest add input
@@ -290,6 +322,7 @@ npx shadcn@latest add form
 ## Milestone 1: Инфраструктура готова ✅
 
 **Критерии:**
+
 - ✅ Проект инициализирован
 - ✅ База данных подключена
 - ✅ Аутентификация настроена

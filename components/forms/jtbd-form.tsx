@@ -1,18 +1,21 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Product, Research, Segment } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
+import { InlineCreateSegment } from '@/components/shared/inline-create-segment'
+import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface JtbdFormValues {
   title?: string
   category?: string
   description?: string | null
   confirmed?: boolean
+  tags?: string[]
   productId?: string
   segmentId?: string | null
   researchId?: string | null
@@ -39,9 +42,24 @@ export function JtbdForm({
 }) {
   const [productId, setProductId] = useState(defaultValues?.productId ?? '')
 
+  useEffect(() => {
+    if (!defaultValues?.productId) {
+      const stored = getDefaultProductId()
+      if (stored && products.some((p) => p.id === stored)) setProductId(stored)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (productId) setDefaultProductId(productId)
+  }, [productId])
+
+  const [localSegments, setLocalSegments] = useState(segments)
+  const [segmentId, setSegmentId] = useState(defaultValues?.segmentId ?? '')
+
   const productSegments = useMemo(
-    () => segments.filter((s) => s.productId === productId),
-    [segments, productId]
+    () => localSegments.filter((s) => s.productId === productId),
+    [localSegments, productId]
   )
   const productResearches = useMemo(
     () => researches.filter((r) => r.productId === productId),
@@ -100,7 +118,12 @@ export function JtbdForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="segmentId">Сегмент</Label>
-          <Select id="segmentId" name="segmentId" defaultValue={defaultValues?.segmentId ?? ''}>
+          <Select
+            id="segmentId"
+            name="segmentId"
+            value={segmentId}
+            onChange={(e) => setSegmentId(e.target.value)}
+          >
             <option value="">Не указан</option>
             {productSegments.map((s) => (
               <option key={s.id} value={s.id}>
@@ -108,6 +131,13 @@ export function JtbdForm({
               </option>
             ))}
           </Select>
+          <InlineCreateSegment
+            productId={productId}
+            onCreated={(segment) => {
+              setLocalSegments((prev) => [...prev, segment])
+              setSegmentId(segment.id)
+            }}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="researchId">Исследование</Label>
@@ -138,6 +168,10 @@ export function JtbdForm({
           name="description"
           defaultValue={defaultValues?.description ?? ''}
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="tags">Теги (через запятую)</Label>
+        <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

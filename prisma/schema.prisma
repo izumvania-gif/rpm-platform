@@ -64,6 +64,7 @@ model Research {
   status      ResearchStatus @default(IN_PROGRESS)
   type        ResearchType
   tags        String[]
+  pinned      Boolean        @default(false)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -101,6 +102,8 @@ model Segment {
   audienceShare Float? // процент от 0 до 100
   color         String   @default("#3B82F6")
   description   String?  @db.Text
+  tags          String[]
+  pinned        Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -124,6 +127,8 @@ model JTBD {
   category    String
   description String?  @db.Text
   confirmed   Boolean  @default(false)
+  tags        String[]
+  pinned      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -148,6 +153,8 @@ model Hypothesis {
   statement String           @db.Text
   status    HypothesisStatus @default(DRAFT)
   priority  Int?
+  tags      String[]
+  pinned    Boolean          @default(false)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
@@ -165,6 +172,8 @@ model Hypothesis {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  statusChanges HypothesisStatusChange[]
 }
 
 enum HypothesisStatus {
@@ -174,6 +183,16 @@ enum HypothesisStatus {
   REJECTED
 }
 
+// История смены статуса гипотезы
+model HypothesisStatusChange {
+  id        String           @id @default(cuid())
+  status    HypothesisStatus
+  changedAt DateTime         @default(now())
+
+  hypothesisId String
+  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id], onDelete: Cascade)
+}
+
 // Разговоры (CustDev)
 model Conversation {
   id         String   @id @default(cuid())
@@ -181,6 +200,7 @@ model Conversation {
   transcript String?  @db.Text
   date       DateTime @default(now())
   tags       String[]
+  pinned     Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

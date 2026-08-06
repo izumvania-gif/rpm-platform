@@ -15,21 +15,25 @@ npm install
 ## Шаг 2: Настройка базы данных
 
 1. Создайте базу данных PostgreSQL:
+
 ```bash
 createdb rpm_platform
 ```
 
 2. Настройте переменные окружения:
+
 ```bash
 cp .env.example .env.local
 ```
 
 3. Отредактируйте `.env.local` и укажите правильный `DATABASE_URL`:
+
 ```env
 DATABASE_URL="postgresql://postgres:password@localhost:5432/rpm_platform?schema=public"
 ```
 
 4. Примените схему к базе данных:
+
 ```bash
 npm run db:push
 ```
@@ -45,6 +49,7 @@ npm run dev
 ## Полезные команды
 
 ### Разработка
+
 ```bash
 npm run dev          # Запуск dev сервера
 npm run build        # Сборка для production
@@ -52,6 +57,7 @@ npm run start        # Запуск production сервера
 ```
 
 ### База данных
+
 ```bash
 npm run db:push      # Синхронизация схемы с БД
 npm run db:studio    # Открыть Prisma Studio (GUI для БД)
@@ -60,6 +66,7 @@ npm run db:migrate   # Создание миграций
 ```
 
 ### Качество кода
+
 ```bash
 npm run lint         # Проверка кода
 npm run format       # Форматирование кода

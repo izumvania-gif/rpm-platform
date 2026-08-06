@@ -2,20 +2,141 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget'
 
 export const dynamic = 'force-dynamic'
 
+interface FeedItem {
+  href: string
+  title: string
+  kind: string
+  updatedAt: Date
+  createdAt?: Date
+}
+
 export default async function Home() {
   const userId = getCurrentUserId()
-  const [productCount, researchCount, segmentCount, jtbdCount, hypothesisCount, conversationCount] =
-    await Promise.all([
-      prisma.product.count({ where: { userId } }),
-      prisma.research.count({ where: { userId } }),
-      prisma.segment.count({ where: { userId } }),
-      prisma.jTBD.count({ where: { userId } }),
-      prisma.hypothesis.count({ where: { userId } }),
-      prisma.conversation.count({ where: { userId } }),
-    ])
+  const [
+    productCount,
+    researchCount,
+    segmentCount,
+    jtbdCount,
+    hypothesisCount,
+    conversationCount,
+    pinnedResearch,
+    pinnedSegments,
+    pinnedJtbds,
+    pinnedHypotheses,
+    pinnedConversations,
+    recentProducts,
+    recentResearch,
+    recentSegments,
+    recentJtbds,
+    recentHypotheses,
+    recentConversations,
+  ] = await Promise.all([
+    prisma.product.count({ where: { userId } }),
+    prisma.research.count({ where: { userId } }),
+    prisma.segment.count({ where: { userId } }),
+    prisma.jTBD.count({ where: { userId } }),
+    prisma.hypothesis.count({ where: { userId } }),
+    prisma.conversation.count({ where: { userId } }),
+    prisma.research.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
+    prisma.segment.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
+    prisma.jTBD.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
+    prisma.hypothesis.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
+    prisma.conversation.findMany({
+      where: { userId, pinned: true },
+      orderBy: { updatedAt: 'desc' },
+    }),
+    prisma.product.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.research.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.segment.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.jTBD.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.hypothesis.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.conversation.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+  ])
+
+  const pinnedItems: FeedItem[] = [
+    ...pinnedResearch.map((r) => ({
+      href: `/research/${r.id}`,
+      title: `#${r.number} ${r.title}`,
+      kind: 'Исследование',
+      updatedAt: r.updatedAt,
+    })),
+    ...pinnedSegments.map((s) => ({
+      href: `/segments/${s.id}`,
+      title: s.name,
+      kind: 'Сегмент',
+      updatedAt: s.updatedAt,
+    })),
+    ...pinnedJtbds.map((j) => ({
+      href: `/jtbd/${j.id}`,
+      title: j.title,
+      kind: 'JTBD',
+      updatedAt: j.updatedAt,
+    })),
+    ...pinnedHypotheses.map((h) => ({
+      href: `/hypotheses/${h.id}`,
+      title: h.statement,
+      kind: 'Гипотеза',
+      updatedAt: h.updatedAt,
+    })),
+    ...pinnedConversations.map((c) => ({
+      href: `/conversations/${c.id}`,
+      title: c.title,
+      kind: 'Разговор',
+      updatedAt: c.updatedAt,
+    })),
+  ].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+
+  const activityItems: FeedItem[] = [
+    ...recentProducts.map((p) => ({
+      href: `/products/${p.id}`,
+      title: p.name,
+      kind: 'Продукт',
+      updatedAt: p.updatedAt,
+      createdAt: p.createdAt,
+    })),
+    ...recentResearch.map((r) => ({
+      href: `/research/${r.id}`,
+      title: `#${r.number} ${r.title}`,
+      kind: 'Исследование',
+      updatedAt: r.updatedAt,
+      createdAt: r.createdAt,
+    })),
+    ...recentSegments.map((s) => ({
+      href: `/segments/${s.id}`,
+      title: s.name,
+      kind: 'Сегмент',
+      updatedAt: s.updatedAt,
+      createdAt: s.createdAt,
+    })),
+    ...recentJtbds.map((j) => ({
+      href: `/jtbd/${j.id}`,
+      title: j.title,
+      kind: 'JTBD',
+      updatedAt: j.updatedAt,
+      createdAt: j.createdAt,
+    })),
+    ...recentHypotheses.map((h) => ({
+      href: `/hypotheses/${h.id}`,
+      title: h.statement,
+      kind: 'Гипотеза',
+      updatedAt: h.updatedAt,
+      createdAt: h.createdAt,
+    })),
+    ...recentConversations.map((c) => ({
+      href: `/conversations/${c.id}`,
+      title: c.title,
+      kind: 'Разговор',
+      updatedAt: c.updatedAt,
+      createdAt: c.createdAt,
+    })),
+  ]
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    .slice(0, 15)
 
   const cards = [
     {
@@ -62,7 +183,7 @@ export default async function Home() {
       <p className="text-muted-foreground mb-8">
         Платформа для управления продуктовыми исследованиями и сегментами клиентов
       </p>
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6 mb-10">
         {cards.map((card) => (
           <Link key={card.href} href={card.href}>
             <Card className="h-full hover:border-primary transition-colors">
@@ -77,6 +198,48 @@ export default async function Home() {
           </Link>
         ))}
       </div>
+
+      <RecentlyViewedWidget />
+
+      {pinnedItems.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold mb-3">Закреплённое</h2>
+          <ul className="flex flex-wrap gap-2">
+            {pinnedItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="inline-block rounded-md border px-3 py-1.5 text-sm hover:border-primary"
+                >
+                  <span className="text-muted-foreground">{item.kind}:</span> {item.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {activityItems.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">Последняя активность</h2>
+          <ul className="space-y-2">
+            {activityItems.map((item) => (
+              <li key={item.href} className="flex items-center gap-2 text-sm">
+                <Badge variant="outline">{item.kind}</Badge>
+                <Link href={item.href} className="hover:underline">
+                  {item.title}
+                </Link>
+                <span className="text-muted-foreground">
+                  {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
+                    ? 'создано'
+                    : 'обновлено'}{' '}
+                  {item.updatedAt.toLocaleString('ru-RU')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   )
 }

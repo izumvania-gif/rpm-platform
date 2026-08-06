@@ -8,13 +8,16 @@ export const dynamic = 'force-dynamic'
 export default async function NewConversationPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
-  const [products, segments, researches] = await Promise.all([
+  const [products, segments, researches, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.segment.findMany({ where: { userId } }),
     prisma.research.findMany({ where: { userId } }),
+    searchParams.duplicateFrom
+      ? prisma.conversation.findFirst({ where: { id: searchParams.duplicateFrom, userId } })
+      : null,
   ])
 
   return (
@@ -30,7 +33,14 @@ export default async function NewConversationPage({
           products={products}
           segments={segments}
           researches={researches}
-          defaultValues={{ productId: searchParams.productId }}
+          defaultValues={
+            duplicateSource
+              ? {
+                  ...duplicateSource,
+                  productId: searchParams.productId ?? duplicateSource.productId,
+                }
+              : { productId: searchParams.productId }
+          }
           error={searchParams.error}
           submitLabel="Создать"
         />

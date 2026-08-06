@@ -2,10 +2,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteConversation } from '@/lib/actions/conversations'
+import { deleteConversation, toggleConversationPinned } from '@/lib/actions/conversations'
 import { buttonVariants } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { CopyLinkButton } from '@/components/shared/copy-link-button'
+import { TagBadges } from '@/components/shared/tag-badges'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +20,11 @@ export default async function ConversationDetailPage({ params }: { params: { id:
   if (!conversation) notFound()
 
   const deleteConversationWithId = deleteConversation.bind(null, conversation.id)
+  const toggleConversationPinnedWithId = toggleConversationPinned.bind(
+    null,
+    conversation.id,
+    !conversation.pinned
+  )
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
@@ -25,6 +32,14 @@ export default async function ConversationDetailPage({ params }: { params: { id:
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold">{conversation.title}</h1>
           <div className="flex gap-2">
+            <PinButton pinned={conversation.pinned} action={toggleConversationPinnedWithId} />
+            <CopyLinkButton />
+            <Link
+              href={`/conversations/new?productId=${conversation.product.id}&duplicateFrom=${conversation.id}`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              Дублировать
+            </Link>
             <Link
               href={`/conversations/${conversation.id}/edit`}
               className={buttonVariants({ variant: 'outline' })}
@@ -62,12 +77,8 @@ export default async function ConversationDetailPage({ params }: { params: { id:
           </span>
         </div>
         {conversation.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {conversation.tags.map((tag) => (
-              <Badge key={tag} variant="outline">
-                {tag}
-              </Badge>
-            ))}
+          <div className="mb-4">
+            <TagBadges tags={conversation.tags} />
           </div>
         )}
         {conversation.transcript && (

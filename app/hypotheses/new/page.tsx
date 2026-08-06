@@ -8,14 +8,17 @@ export const dynamic = 'force-dynamic'
 export default async function NewHypothesisPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; jtbdId?: string }
+  searchParams: { error?: string; productId?: string; jtbdId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
-  const [products, jtbds, segments, researches] = await Promise.all([
+  const [products, jtbds, segments, researches, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.jTBD.findMany({ where: { userId } }),
     prisma.segment.findMany({ where: { userId } }),
     prisma.research.findMany({ where: { userId } }),
+    searchParams.duplicateFrom
+      ? prisma.hypothesis.findFirst({ where: { id: searchParams.duplicateFrom, userId } })
+      : null,
   ])
 
   return (
@@ -32,7 +35,14 @@ export default async function NewHypothesisPage({
           jtbds={jtbds}
           segments={segments}
           researches={researches}
-          defaultValues={{ productId: searchParams.productId, jtbdId: searchParams.jtbdId }}
+          defaultValues={
+            duplicateSource
+              ? {
+                  ...duplicateSource,
+                  productId: searchParams.productId ?? duplicateSource.productId,
+                }
+              : { productId: searchParams.productId, jtbdId: searchParams.jtbdId }
+          }
           error={searchParams.error}
           submitLabel="Создать"
         />

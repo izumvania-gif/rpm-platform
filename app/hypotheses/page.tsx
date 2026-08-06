@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { toggleHypothesisPinned } from '@/lib/actions/hypotheses'
 import { hypothesisStatusLabels, hypothesisStatusOrder } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
@@ -26,32 +29,52 @@ export default async function HypothesesPage() {
       {hypotheses.length === 0 ? (
         <p className="text-muted-foreground">Гипотез пока нет.</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {hypothesisStatusOrder.map((status) => {
-            const items = hypotheses.filter((h) => h.status === status)
-            return (
-              <div key={status}>
-                <h2 className="text-sm font-semibold text-muted-foreground mb-3">
-                  {hypothesisStatusLabels[status]} ({items.length})
-                </h2>
-                <div className="space-y-3">
-                  {items.map((h) => (
-                    <Link key={h.id} href={`/hypotheses/${h.id}`}>
-                      <Card className="hover:border-primary transition-colors">
-                        <CardHeader>
-                          <CardTitle className="text-sm font-medium line-clamp-3">
-                            {h.statement}
-                          </CardTitle>
-                          <CardDescription>{h.product.name}</CardDescription>
-                        </CardHeader>
-                      </Card>
-                    </Link>
-                  ))}
+        <>
+          <div className="flex justify-end mb-4">
+            <CsvExportButton
+              filename="hypotheses.csv"
+              rows={hypotheses.map((h) => ({
+                statement: h.statement,
+                status: hypothesisStatusLabels[h.status],
+                product: h.product.name,
+                priority: h.priority ?? '',
+                tags: h.tags.join('; '),
+              }))}
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {hypothesisStatusOrder.map((status) => {
+              const items = hypotheses.filter((h) => h.status === status)
+              return (
+                <div key={status}>
+                  <h2 className="text-sm font-semibold text-muted-foreground mb-3">
+                    {hypothesisStatusLabels[status]} ({items.length})
+                  </h2>
+                  <div className="space-y-3">
+                    {items.map((h) => (
+                      <Link key={h.id} href={`/hypotheses/${h.id}`}>
+                        <Card className="hover:border-primary transition-colors">
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <CardTitle className="text-sm font-medium line-clamp-3">
+                                {h.statement}
+                              </CardTitle>
+                              <PinButton
+                                pinned={h.pinned}
+                                action={toggleHypothesisPinned.bind(null, h.id, !h.pinned)}
+                              />
+                            </div>
+                            <CardDescription>{h.product.name}</CardDescription>
+                          </CardHeader>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        </>
       )}
     </main>
   )

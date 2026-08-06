@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { toggleJtbdPinned } from '@/lib/actions/jtbd'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,10 +36,22 @@ export default async function JtbdPage() {
       </div>
 
       {jtbds.length > 0 && (
-        <p className="text-sm text-muted-foreground mb-8">
-          {byCategory.size} {byCategory.size === 1 ? 'категория' : 'категорий'} · {jtbds.length}{' '}
-          записей · {coverage}% подтверждено исследованиями
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
+          <p className="text-sm text-muted-foreground">
+            {byCategory.size} {byCategory.size === 1 ? 'категория' : 'категорий'} · {jtbds.length}{' '}
+            записей · {coverage}% подтверждено исследованиями
+          </p>
+          <CsvExportButton
+            filename="jtbd.csv"
+            rows={jtbds.map((j) => ({
+              category: j.category,
+              title: j.title,
+              product: j.product.name,
+              confirmed: j.confirmed ? 'да' : 'нет',
+              tags: j.tags.join('; '),
+            }))}
+          />
+        </div>
       )}
 
       {jtbds.length === 0 ? (
@@ -61,7 +76,13 @@ export default async function JtbdPage() {
                       </Link>
                       <p className="text-xs text-muted-foreground">{jtbd.product.name}</p>
                     </div>
-                    {jtbd.confirmed && <Badge variant="secondary">Подтверждён</Badge>}
+                    <div className="flex items-center gap-2">
+                      {jtbd.confirmed && <Badge variant="secondary">Подтверждён</Badge>}
+                      <PinButton
+                        pinned={jtbd.pinned}
+                        action={toggleJtbdPinned.bind(null, jtbd.id, !jtbd.pinned)}
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>

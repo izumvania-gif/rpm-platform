@@ -8,10 +8,10 @@ export const dynamic = 'force-dynamic'
 export default async function NewJtbdPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
-  const [products, segments, researches, categoryRows] = await Promise.all([
+  const [products, segments, researches, categoryRows, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.segment.findMany({ where: { userId } }),
     prisma.research.findMany({ where: { userId } }),
@@ -20,6 +20,9 @@ export default async function NewJtbdPage({
       select: { category: true },
       distinct: ['category'],
     }),
+    searchParams.duplicateFrom
+      ? prisma.jTBD.findFirst({ where: { id: searchParams.duplicateFrom, userId } })
+      : null,
   ])
   const categories = categoryRows.map((c) => c.category)
 
@@ -37,7 +40,14 @@ export default async function NewJtbdPage({
           segments={segments}
           researches={researches}
           categories={categories}
-          defaultValues={{ productId: searchParams.productId }}
+          defaultValues={
+            duplicateSource
+              ? {
+                  ...duplicateSource,
+                  productId: searchParams.productId ?? duplicateSource.productId,
+                }
+              : { productId: searchParams.productId }
+          }
           error={searchParams.error}
           submitLabel="Создать"
         />

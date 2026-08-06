@@ -11,7 +11,7 @@ const links = [
 
 export function SiteNav() {
   return (
-    <header className="border-b">
+    <header className="border-b print:hidden">
       <div className="container flex h-16 items-center justify-between gap-4">
         <Link href="/" className="shrink-0 text-lg font-semibold">
           ECHO

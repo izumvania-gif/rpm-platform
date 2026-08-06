@@ -1,12 +1,13 @@
 'use server'
 
 import { z } from 'zod'
-import { Prisma } from '@prisma/client'
+import { Prisma, type Segment } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalNumber, optionalString } from '@/lib/validation'
+import { optionalNumber, optionalString, toTagsArray } from '@/lib/validation'
+import { slugify } from '@/lib/utils'
 
 const segmentSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
@@ -18,6 +19,7 @@ const segmentSchema = z.object({
   audienceShare: optionalNumber(z.coerce.number().min(0).max(100)),
   color: z.string().trim().min(1),
   description: optionalString(),
+  tags: optionalString(),
   productId: z.string().trim().min(1, 'Продукт обязателен'),
 })
 
@@ -28,6 +30,7 @@ function parseSegmentForm(formData: FormData) {
     audienceShare: formData.get('audienceShare'),
     color: formData.get('color') || '#3B82F6',
     description: formData.get('description'),
+    tags: formData.get('tags'),
     productId: formData.get('productId'),
   })
 }
@@ -38,9 +41,10 @@ export async function createSegment(formData: FormData) {
     redirect(`/segments/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  const { tags, ...data } = parsed.data
   try {
     const segment = await prisma.segment.create({
-      data: { ...parsed.data, userId: getCurrentUserId() },
+      data: { ...data, tags: toTagsArray(tags), userId: getCurrentUserId() },
     })
     revalidatePath('/segments')
     redirect(`/segments/${segment.id}`)
@@ -60,10 +64,11 @@ export async function updateSegment(id: string, formData: FormData) {
     redirect(`/segments/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  const { tags, ...data } = parsed.data
   try {
     await prisma.segment.update({
       where: { id },
-      data: parsed.data,
+      data: { ...data, tags: toTagsArray(tags) },
     })
     revalidatePath('/segments')
     revalidatePath(`/segments/${id}`)
@@ -82,4 +87,53 @@ export async function deleteSegment(id: string) {
   await prisma.segment.delete({ where: { id } })
   revalidatePath('/segments')
   redirect('/segments')
+}
+
+export async function toggleSegmentPinned(id: string, pinned: boolean) {
+  await prisma.segment.update({ where: { id }, data: { pinned } })
+  revalidatePath('/segments')
+  revalidatePath(`/segments/${id}`)
+  revalidatePath('/')
+}
+
+export async function createSegmentQuick(
+  productId: string,
+  name: string
+): Promise<{ ok: true; segment: Segment } | { ok: false; error: string }> {
+  const trimmedName = name.trim()
+  if (!productId || !trimmedName) {
+    return { ok: false, error: 'Укажите продукт и название' }
+  }
+
+  const slug = slugify(trimmedName)
+  try {
+    const segment = await prisma.segment.create({
+      data: {
+        name: trimmedName,
+        slug,
+        color: '#3B82F6',
+        tags: [],
+        productId,
+        userId: getCurrentUserId(),
+      },
+    })
+    revalidatePath('/segments')
+    return { ok: true, segment }
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      const segment = await prisma.segment.create({
+        data: {
+          name: trimmedName,
+          slug: `${slug}-${Date.now().toString(36).slice(-4)}`,
+          color: '#3B82F6',
+          tags: [],
+          productId,
+          userId: getCurrentUserId(),
+        },
+      })
+      revalidatePath('/segments')
+      return { ok: true, segment }
+    }
+    throw e
+  }
 }

@@ -3,13 +3,26 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { SortControl } from '@/components/shared/sort-control'
+import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { toggleSegmentPinned } from '@/lib/actions/segments'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SegmentsPage() {
+const SORT_OPTIONS = [
+  { value: 'created_desc', label: 'Сначала новые' },
+  { value: 'name_asc', label: 'По названию' },
+]
+
+export default async function SegmentsPage({ searchParams }: { searchParams: { sort?: string } }) {
+  const sort = SORT_OPTIONS.some((o) => o.value === searchParams.sort)
+    ? (searchParams.sort as string)
+    : 'created_desc'
+
   const segments = await prisma.segment.findMany({
     where: { userId: getCurrentUserId() },
-    orderBy: { createdAt: 'desc' },
+    orderBy: sort === 'name_asc' ? { name: 'asc' } : { createdAt: 'desc' },
     include: { product: true },
   })
 
@@ -22,6 +35,21 @@ export default async function SegmentsPage() {
         </Link>
       </div>
 
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+        <form method="get">
+          <SortControl current={sort} options={SORT_OPTIONS} label="Сортировка" />
+        </form>
+        <CsvExportButton
+          filename="segments.csv"
+          rows={segments.map((s) => ({
+            name: s.name,
+            product: s.product.name,
+            audienceShare: s.audienceShare ?? '',
+            tags: s.tags.join('; '),
+          }))}
+        />
+      </div>
+
       {segments.length === 0 ? (
         <p className="text-muted-foreground">Сегментов пока нет.</p>
       ) : (
@@ -30,12 +58,18 @@ export default async function SegmentsPage() {
             <Link key={segment.id} href={`/segments/${segment.id}`}>
               <Card className="h-full hover:border-primary transition-colors">
                 <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-3 w-3 rounded-full shrink-0"
-                      style={{ backgroundColor: segment.color }}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="h-3 w-3 rounded-full shrink-0"
+                        style={{ backgroundColor: segment.color }}
+                      />
+                      <CardTitle className="truncate">{segment.name}</CardTitle>
+                    </div>
+                    <PinButton
+                      pinned={segment.pinned}
+                      action={toggleSegmentPinned.bind(null, segment.id, !segment.pinned)}
                     />
-                    <CardTitle>{segment.name}</CardTitle>
                   </div>
                   <CardDescription>{segment.product.name}</CardDescription>
                 </CardHeader>

@@ -8,12 +8,15 @@ export const dynamic = 'force-dynamic'
 export default async function NewResearchPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
 }) {
-  const products = await prisma.product.findMany({
-    where: { userId: getCurrentUserId() },
-    orderBy: { name: 'asc' },
-  })
+  const userId = getCurrentUserId()
+  const [products, duplicateSource] = await Promise.all([
+    prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+    searchParams.duplicateFrom
+      ? prisma.research.findFirst({ where: { id: searchParams.duplicateFrom, userId } })
+      : null,
+  ])
 
   return (
     <main className="container py-12">
@@ -26,7 +29,14 @@ export default async function NewResearchPage({
         <ResearchForm
           action={createResearch}
           products={products}
-          defaultValues={{ productId: searchParams.productId }}
+          defaultValues={
+            duplicateSource
+              ? {
+                  ...duplicateSource,
+                  productId: searchParams.productId ?? duplicateSource.productId,
+                }
+              : { productId: searchParams.productId }
+          }
           error={searchParams.error}
           submitLabel="Создать"
         />

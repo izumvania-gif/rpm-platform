@@ -11,3 +11,11 @@ export function optionalString(schema: z.ZodString = z.string().trim()) {
 export function optionalNumber(schema: z.ZodNumber) {
   return z.preprocess((val) => (val === '' || val == null ? undefined : val), schema.optional())
 }
+
+export function toTagsArray(tags?: string): string[] {
+  if (!tags) return []
+  return tags
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+}

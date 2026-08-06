@@ -24,17 +24,20 @@
 ### Установка
 
 1. Клонируйте репозиторий:
+
 ```bash
 git clone <repository-url>
 cd rpm-platform
 ```
 
 2. Установите зависимости:
+
 ```bash
 npm install
 ```
 
 3. Настройте переменные окружения:
+
 ```bash
 cp .env.example .env.local
 ```
@@ -42,11 +45,13 @@ cp .env.example .env.local
 Отредактируйте `.env.local` и укажите правильные данные для подключения к PostgreSQL.
 
 4. Инициализируйте базу данных:
+
 ```bash
 npm run db:push
 ```
 
 5. Запустите сервер разработки:
+
 ```bash
 npm run dev
 ```

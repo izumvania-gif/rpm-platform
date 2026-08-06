@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalString } from '@/lib/validation'
+import { optionalString, toTagsArray } from '@/lib/validation'
 
 const conversationSchema = z.object({
   title: z.string().trim().min(1, 'Название обязательно'),
@@ -27,14 +27,6 @@ function parseConversationForm(formData: FormData) {
     segmentId: formData.get('segmentId'),
     researchId: formData.get('researchId'),
   })
-}
-
-function toTagsArray(tags?: string): string[] {
-  if (!tags) return []
-  return tags
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean)
 }
 
 export async function createConversation(formData: FormData) {
@@ -73,4 +65,11 @@ export async function deleteConversation(id: string) {
   await prisma.conversation.delete({ where: { id } })
   revalidatePath('/conversations')
   redirect('/conversations')
+}
+
+export async function toggleConversationPinned(id: string, pinned: boolean) {
+  await prisma.conversation.update({ where: { id }, data: { pinned } })
+  revalidatePath('/conversations')
+  revalidatePath(`/conversations/${id}`)
+  revalidatePath('/')
 }

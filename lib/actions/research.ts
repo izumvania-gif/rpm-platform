@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { toTagsArray } from '@/lib/validation'
 
 const researchSchema = z.object({
   title: z.string().trim().min(1, 'Название обязательно'),
@@ -27,14 +28,6 @@ function parseResearchForm(formData: FormData) {
     tags: formData.get('tags') || undefined,
     productId: formData.get('productId'),
   })
-}
-
-function toTagsArray(tags?: string): string[] {
-  if (!tags) return []
-  return tags
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean)
 }
 
 export async function createResearch(formData: FormData) {
@@ -71,4 +64,11 @@ export async function deleteResearch(id: string) {
   await prisma.research.delete({ where: { id } })
   revalidatePath('/research')
   redirect('/research')
+}
+
+export async function toggleResearchPinned(id: string, pinned: boolean) {
+  await prisma.research.update({ where: { id }, data: { pinned } })
+  revalidatePath('/research')
+  revalidatePath(`/research/${id}`)
+  revalidatePath('/')
 }

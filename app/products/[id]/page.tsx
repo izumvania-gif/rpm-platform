@@ -6,6 +6,10 @@ import { deleteProduct } from '@/lib/actions/products'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { PrintButton } from '@/components/shared/print-button'
+import { CopyLinkButton } from '@/components/shared/copy-link-button'
+import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { stageLabels } from '@/lib/labels'
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
@@ -24,12 +28,49 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
   const deleteProductWithId = deleteProduct.bind(null, product.id)
 
+  const checklistItems = [
+    {
+      label: 'Добавить сегмент клиентов',
+      done: product.segments.length > 0,
+      href: `/segments/new?productId=${product.id}`,
+      cta: 'Добавить',
+    },
+    {
+      label: 'Добавить исследование',
+      done: product.researches.length > 0,
+      href: `/research/new?productId=${product.id}`,
+      cta: 'Добавить',
+    },
+    {
+      label: 'Добавить JTBD',
+      done: product.jtbds.length > 0,
+      href: `/jtbd/new?productId=${product.id}`,
+      cta: 'Добавить',
+    },
+    {
+      label: 'Добавить гипотезу',
+      done: product.hypotheses.length > 0,
+      href: `/hypotheses/new?productId=${product.id}`,
+      cta: 'Добавить',
+    },
+  ]
+  const isNearEmpty =
+    product.segments.length +
+      product.researches.length +
+      product.jtbds.length +
+      product.hypotheses.length <
+    4
+
   return (
     <main className="container py-12 space-y-10">
+      <RecentlyViewedTracker href={`/products/${product.id}`} title={product.name} kind="Продукт" />
+      {isNearEmpty && <WelcomeChecklist productId={product.id} items={checklistItems} />}
       <div>
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold">{product.name}</h1>
-          <div className="flex gap-2">
+          <div className="flex gap-2 print:hidden">
+            <PrintButton />
+            <CopyLinkButton />
             <Link
               href={`/products/${product.id}/edit`}
               className={buttonVariants({ variant: 'outline' })}
@@ -56,7 +97,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <h2 className="text-lg font-semibold">Исследования ({product.researches.length})</h2>
           <Link
             href={`/research/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
           >
             Добавить исследование
           </Link>
@@ -81,7 +122,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <h2 className="text-lg font-semibold">Сегменты ({product.segments.length})</h2>
           <Link
             href={`/segments/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
           >
             Добавить сегмент
           </Link>
@@ -106,7 +147,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <h2 className="text-lg font-semibold">JTBD ({product.jtbds.length})</h2>
           <Link
             href={`/jtbd/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
           >
             Добавить JTBD
           </Link>
@@ -131,7 +172,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <h2 className="text-lg font-semibold">Гипотезы ({product.hypotheses.length})</h2>
           <Link
             href={`/hypotheses/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
           >
             Добавить гипотезу
           </Link>
@@ -156,7 +197,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <h2 className="text-lg font-semibold">Разговоры ({product.conversations.length})</h2>
           <Link
             href={`/conversations/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
           >
             Добавить разговор
           </Link>

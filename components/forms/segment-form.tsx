@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Product } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { slugify } from '@/lib/utils'
+import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface SegmentFormValues {
   name?: string
@@ -15,6 +16,7 @@ export interface SegmentFormValues {
   audienceShare?: number | null
   color?: string
   description?: string | null
+  tags?: string[]
   productId?: string
 }
 
@@ -33,6 +35,19 @@ export function SegmentForm({
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [slug, setSlug] = useState(defaultValues?.slug ?? '')
+  const [productId, setProductId] = useState(defaultValues?.productId ?? '')
+
+  useEffect(() => {
+    if (!defaultValues?.productId) {
+      const stored = getDefaultProductId()
+      if (stored && products.some((p) => p.id === stored)) setProductId(stored)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (productId) setDefaultProductId(productId)
+  }, [productId])
 
   return (
     <form action={action} className="space-y-4 max-w-xl">
@@ -66,7 +81,13 @@ export function SegmentForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="productId">Продукт</Label>
-        <Select id="productId" name="productId" required defaultValue={defaultValues?.productId}>
+        <Select
+          id="productId"
+          name="productId"
+          required
+          value={productId}
+          onChange={(e) => setProductId(e.target.value)}
+        >
           <option value="" disabled>
             Выберите продукт
           </option>
@@ -108,6 +129,10 @@ export function SegmentForm({
           name="description"
           defaultValue={defaultValues?.description ?? ''}
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="tags">Теги (через запятую)</Label>
+        <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

@@ -2,11 +2,19 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteHypothesis, updateHypothesisStatus } from '@/lib/actions/hypotheses'
+import {
+  deleteHypothesis,
+  toggleHypothesisPinned,
+  updateHypothesisStatus,
+} from '@/lib/actions/hypotheses'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { SubmitButton } from '@/components/shared/submit-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { CopyLinkButton } from '@/components/shared/copy-link-button'
+import { TagBadges } from '@/components/shared/tag-badges'
+import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { hypothesisStatusLabels, hypothesisStatusOrder } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
@@ -14,19 +22,43 @@ export const dynamic = 'force-dynamic'
 export default async function HypothesisDetailPage({ params }: { params: { id: string } }) {
   const hypothesis = await prisma.hypothesis.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true, jtbd: true, segment: true, research: true },
+    include: {
+      product: true,
+      jtbd: true,
+      segment: true,
+      research: true,
+      statusChanges: { orderBy: { changedAt: 'desc' } },
+    },
   })
 
   if (!hypothesis) notFound()
 
   const deleteHypothesisWithId = deleteHypothesis.bind(null, hypothesis.id)
+  const toggleHypothesisPinnedWithId = toggleHypothesisPinned.bind(
+    null,
+    hypothesis.id,
+    !hypothesis.pinned
+  )
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <RecentlyViewedTracker
+        href={`/hypotheses/${hypothesis.id}`}
+        title={hypothesis.statement}
+        kind="Гипотеза"
+      />
       <div>
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold">{hypothesis.statement}</h1>
           <div className="flex gap-2">
+            <PinButton pinned={hypothesis.pinned} action={toggleHypothesisPinnedWithId} />
+            <CopyLinkButton />
+            <Link
+              href={`/hypotheses/new?productId=${hypothesis.product.id}&duplicateFrom=${hypothesis.id}`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              Дублировать
+            </Link>
             <Link
               href={`/hypotheses/${hypothesis.id}/edit`}
               className={buttonVariants({ variant: 'outline' })}
@@ -69,6 +101,7 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
             </Link>
           )}
         </div>
+        {hypothesis.tags.length > 0 && <TagBadges tags={hypothesis.tags} />}
       </div>
 
       <section>
@@ -91,6 +124,19 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
           })}
         </div>
       </section>
+
+      {hypothesis.statusChanges.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">История статусов</h2>
+          <ul className="space-y-1">
+            {hypothesis.statusChanges.map((change) => (
+              <li key={change.id} className="text-sm text-muted-foreground">
+                {hypothesisStatusLabels[change.status]} — {change.changedAt.toLocaleString('ru-RU')}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   )
 }

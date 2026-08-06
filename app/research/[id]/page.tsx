@@ -2,11 +2,18 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteResearch } from '@/lib/actions/research'
+import { deleteResearch, toggleResearchPinned } from '@/lib/actions/research'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { CopyLinkButton } from '@/components/shared/copy-link-button'
+import { TagBadges } from '@/components/shared/tag-badges'
+import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { statusLabels, typeLabels } from '@/lib/labels'
+import { isStale } from '@/lib/utils'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ResearchDetailPage({ params }: { params: { id: string } }) {
   const research = await prisma.research.findFirst({
@@ -17,15 +24,29 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
   if (!research) notFound()
 
   const deleteResearchWithId = deleteResearch.bind(null, research.id)
+  const toggleResearchPinnedWithId = toggleResearchPinned.bind(null, research.id, !research.pinned)
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <RecentlyViewedTracker
+        href={`/research/${research.id}`}
+        title={`#${research.number} ${research.title}`}
+        kind="Исследование"
+      />
       <div>
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold">
             #{research.number} {research.title}
           </h1>
           <div className="flex gap-2">
+            <PinButton pinned={research.pinned} action={toggleResearchPinnedWithId} />
+            <CopyLinkButton />
+            <Link
+              href={`/research/new?productId=${research.product.id}&duplicateFrom=${research.id}`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              Дублировать
+            </Link>
             <Link
               href={`/research/${research.id}/edit`}
               className={buttonVariants({ variant: 'outline' })}
@@ -40,6 +61,11 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
             {statusLabels[research.status]}
           </Badge>
           <Badge variant="outline">{typeLabels[research.type]}</Badge>
+          {isStale(research.updatedAt) && (
+            <Badge variant="outline" className="text-muted-foreground">
+              Давно не обновлялось
+            </Badge>
+          )}
           <Link
             href={`/products/${research.product.id}`}
             className="text-sm text-muted-foreground hover:underline"
@@ -51,12 +77,8 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
           </span>
         </div>
         {research.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {research.tags.map((tag) => (
-              <Badge key={tag} variant="outline">
-                {tag}
-              </Badge>
-            ))}
+          <div className="mb-4">
+            <TagBadges tags={research.tags} />
           </div>
         )}
         {research.description && <p className="text-muted-foreground">{research.description}</p>}

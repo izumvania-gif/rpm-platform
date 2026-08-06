@@ -4,14 +4,25 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { SortControl } from '@/components/shared/sort-control'
+import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { stageLabels } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ProductsPage() {
+const SORT_OPTIONS = [
+  { value: 'created_desc', label: 'Сначала новые' },
+  { value: 'name_asc', label: 'По названию' },
+]
+
+export default async function ProductsPage({ searchParams }: { searchParams: { sort?: string } }) {
+  const sort = SORT_OPTIONS.some((o) => o.value === searchParams.sort)
+    ? (searchParams.sort as string)
+    : 'created_desc'
+
   const products = await prisma.product.findMany({
     where: { userId: getCurrentUserId() },
-    orderBy: { createdAt: 'desc' },
+    orderBy: sort === 'name_asc' ? { name: 'asc' } : { createdAt: 'desc' },
   })
 
   return (
@@ -22,6 +33,22 @@ export default async function ProductsPage() {
           Новый продукт
         </Link>
       </div>
+
+      {products.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+          <form method="get">
+            <SortControl current={sort} options={SORT_OPTIONS} label="Сортировка" />
+          </form>
+          <CsvExportButton
+            filename="products.csv"
+            rows={products.map((p) => ({
+              name: p.name,
+              slug: p.slug,
+              stage: stageLabels[p.stage],
+            }))}
+          />
+        </div>
+      )}
 
       {products.length === 0 ? (
         <p className="text-muted-foreground">Продуктов пока нет. Создайте первый продукт.</p>

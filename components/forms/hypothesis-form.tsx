@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   HypothesisStatus,
   type JTBD,
@@ -13,12 +13,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
+import { InlineCreateSegment } from '@/components/shared/inline-create-segment'
 import { hypothesisStatusLabels } from '@/lib/labels'
+import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface HypothesisFormValues {
   statement?: string
   status?: HypothesisStatus
   priority?: number | null
+  tags?: string[]
   productId?: string
   jtbdId?: string | null
   segmentId?: string | null
@@ -46,13 +49,28 @@ export function HypothesisForm({
 }) {
   const [productId, setProductId] = useState(defaultValues?.productId ?? '')
 
+  useEffect(() => {
+    if (!defaultValues?.productId) {
+      const stored = getDefaultProductId()
+      if (stored && products.some((p) => p.id === stored)) setProductId(stored)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (productId) setDefaultProductId(productId)
+  }, [productId])
+
   const productJtbds = useMemo(
     () => jtbds.filter((j) => j.productId === productId),
     [jtbds, productId]
   )
+  const [localSegments, setLocalSegments] = useState(segments)
+  const [segmentId, setSegmentId] = useState(defaultValues?.segmentId ?? '')
+
   const productSegments = useMemo(
-    () => segments.filter((s) => s.productId === productId),
-    [segments, productId]
+    () => localSegments.filter((s) => s.productId === productId),
+    [localSegments, productId]
   )
   const productResearches = useMemo(
     () => researches.filter((r) => r.productId === productId),
@@ -131,7 +149,12 @@ export function HypothesisForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="segmentId">Сегмент</Label>
-          <Select id="segmentId" name="segmentId" defaultValue={defaultValues?.segmentId ?? ''}>
+          <Select
+            id="segmentId"
+            name="segmentId"
+            value={segmentId}
+            onChange={(e) => setSegmentId(e.target.value)}
+          >
             <option value="">Не указан</option>
             {productSegments.map((s) => (
               <option key={s.id} value={s.id}>
@@ -139,6 +162,13 @@ export function HypothesisForm({
               </option>
             ))}
           </Select>
+          <InlineCreateSegment
+            productId={productId}
+            onCreated={(segment) => {
+              setLocalSegments((prev) => [...prev, segment])
+              setSegmentId(segment.id)
+            }}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="researchId">Исследование</Label>
@@ -151,6 +181,10 @@ export function HypothesisForm({
             ))}
           </Select>
         </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="tags">Теги (через запятую)</Label>
+        <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

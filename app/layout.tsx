@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { SiteNav } from '@/components/shared/site-nav'
+import { KeyboardShortcuts } from '@/components/shared/keyboard-shortcuts'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru">
       <body className={inter.className}>
         <SiteNav />
+        <KeyboardShortcuts />
         {children}
       </body>
     </html>

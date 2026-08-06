@@ -56,3 +56,9 @@ export function slugify(input: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
+
+const STALE_AFTER_MS = 90 * 24 * 60 * 60 * 1000 // 3 месяца
+
+export function isStale(date: Date): boolean {
+  return Date.now() - date.getTime() > STALE_AFTER_MS
+}

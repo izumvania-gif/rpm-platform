@@ -154,6 +154,25 @@ model JTBD {
 
   hypotheses Hypothesis[]
   features   Feature[]
+
+  parentId String?
+  parent   JTBD?   @relation("JtbdHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children JTBD[]  @relation("JtbdHierarchy")
+
+  sequenceFrom JtbdSequenceEdge[] @relation("JtbdSequenceFrom")
+  sequenceTo   JtbdSequenceEdge[] @relation("JtbdSequenceTo")
+}
+
+// Рёбра последовательности JTBD ("задача A предшествует задаче B")
+model JtbdSequenceEdge {
+  id         String   @id @default(cuid())
+  fromJtbdId String
+  fromJtbd   JTBD     @relation("JtbdSequenceFrom", fields: [fromJtbdId], references: [id], onDelete: Cascade)
+  toJtbdId   String
+  toJtbd     JTBD     @relation("JtbdSequenceTo", fields: [toJtbdId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([fromJtbdId, toJtbdId])
 }
 
 // Гипотезы

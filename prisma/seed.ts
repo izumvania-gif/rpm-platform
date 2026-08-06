@@ -370,6 +370,36 @@ async function seedDemoProduct(userId: string) {
     }),
   }
 
+  // Иерархия JTBD: "непрерывность" и "комплаенс" — верхнеуровневые задачи,
+  // остальные — шаги к их решению.
+  await prisma.jTBD.update({
+    where: { id: jtbds.inventory.id },
+    data: { parentId: jtbds.continuity.id },
+  })
+  await prisma.jTBD.update({
+    where: { id: jtbds.monitoring.id },
+    data: { parentId: jtbds.continuity.id },
+  })
+  await prisma.jTBD.update({
+    where: { id: jtbds.automation.id },
+    data: { parentId: jtbds.continuity.id },
+  })
+  await prisma.jTBD.update({
+    where: { id: jtbds.infosec.id },
+    data: { parentId: jtbds.compliance.id },
+  })
+
+  // Последовательность: сначала знаем, что у нас есть, потом следим за
+  // сроками, потом автоматизируем замену; комплаенс отдельно подталкивает
+  // к автоматизации.
+  await prisma.jtbdSequenceEdge.createMany({
+    data: [
+      { fromJtbdId: jtbds.inventory.id, toJtbdId: jtbds.monitoring.id },
+      { fromJtbdId: jtbds.monitoring.id, toJtbdId: jtbds.automation.id },
+      { fromJtbdId: jtbds.compliance.id, toJtbdId: jtbds.automation.id },
+    ],
+  })
+
   const h2 = await prisma.hypothesis.create({
     data: {
       statement:

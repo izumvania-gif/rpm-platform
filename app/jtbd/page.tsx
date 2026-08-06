@@ -30,9 +30,14 @@ export default async function JtbdPage() {
     <main className="container py-12">
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-bold">JTBD</h1>
-        <Link href="/jtbd/new" className={buttonVariants()}>
-          Новый JTBD
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/jtbd/graph" className={buttonVariants({ variant: 'outline' })}>
+            Граф JTBD
+          </Link>
+          <Link href="/jtbd/new" className={buttonVariants()}>
+            Новый JTBD
+          </Link>
+        </div>
       </div>
 
       {jtbds.length > 0 && (

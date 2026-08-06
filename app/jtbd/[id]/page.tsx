@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
 export default async function JtbdDetailPage({ params }: { params: { id: string } }) {
   const jtbd = await prisma.jTBD.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true, segment: true, research: true, hypotheses: true },
+    include: { product: true, segment: true, research: true, hypotheses: true, features: true },
   })
 
   if (!jtbd) notFound()
@@ -103,6 +103,25 @@ export default async function JtbdDetailPage({ params }: { params: { id: string 
               <li key={h.id}>
                 <Link href={`/hypotheses/${h.id}`} className="text-sm hover:underline">
                   {h.statement}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-3">
+          Фичи, которые закрывают ({jtbd.features.length})
+        </h2>
+        {jtbd.features.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока не привязано ни одной фичи.</p>
+        ) : (
+          <ul className="space-y-2">
+            {jtbd.features.map((f) => (
+              <li key={f.id}>
+                <Link href={`/features/${f.id}`} className="text-sm hover:underline">
+                  {f.name}
                 </Link>
               </li>
             ))}

@@ -19,12 +19,16 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  products      Product[]
-  researches    Research[]
-  segments      Segment[]
-  jtbds         JTBD[]
-  hypotheses    Hypothesis[]
-  conversations Conversation[]
+  products         Product[]
+  researches       Research[]
+  segments         Segment[]
+  jtbds            JTBD[]
+  hypotheses       Hypothesis[]
+  conversations    Conversation[]
+  competitors      Competitor[]
+  productResources ProductResource[]
+  features         Feature[]
+  rtbs             RTB[]
 }
 
 // Продукты
@@ -40,11 +44,15 @@ model Product {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  researches    Research[]
-  segments      Segment[]
-  jtbds         JTBD[]
-  hypotheses    Hypothesis[]
-  conversations Conversation[]
+  researches       Research[]
+  segments         Segment[]
+  jtbds            JTBD[]
+  hypotheses       Hypothesis[]
+  conversations    Conversation[]
+  competitors      Competitor[]
+  productResources ProductResource[]
+  features         Feature[]
+  rtbs             RTB[]
 }
 
 enum Stage {
@@ -145,6 +153,7 @@ model JTBD {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   hypotheses Hypothesis[]
+  features   Feature[]
 }
 
 // Гипотезы
@@ -215,4 +224,80 @@ model Conversation {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Конкуренты
+model Competitor {
+  id          String   @id @default(cuid())
+  name        String
+  url         String?
+  positioning String?  @db.Text
+  features    String[] // краткий список фич конкурента
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Ресурсы продукта (sales-kit, dev-docs, ссылки на Confluence/Jira)
+enum ProductResourceKind {
+  SALES_KIT
+  DEVELOPER_DOC
+  CONFLUENCE_LINK
+  JIRA_LINK
+  OTHER
+}
+
+model ProductResource {
+  id          String              @id @default(cuid())
+  title       String
+  kind        ProductResourceKind
+  url         String?
+  description String?             @db.Text
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Фичи — как продукт решает JTBD
+model Feature {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  jtbds JTBD[]
+  rtbs  RTB[]
+}
+
+// RTB (Reasons To Believe) — маркетинговые обещания, опирающиеся на фичи
+model RTB {
+  id        String   @id @default(cuid())
+  statement String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  features Feature[]
 }

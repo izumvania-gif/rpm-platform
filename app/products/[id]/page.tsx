@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteProduct } from '@/lib/actions/products'
+import { deleteProductResource } from '@/lib/actions/product-resources'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteButton } from '@/components/shared/delete-button'
@@ -10,7 +11,7 @@ import { PrintButton } from '@/components/shared/print-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
-import { stageLabels } from '@/lib/labels'
+import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const product = await prisma.product.findFirst({
@@ -21,6 +22,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       jtbds: { orderBy: { createdAt: 'desc' } },
       hypotheses: { orderBy: { createdAt: 'desc' } },
       conversations: { orderBy: { date: 'desc' } },
+      competitors: { orderBy: { createdAt: 'desc' } },
+      productResources: { orderBy: { createdAt: 'desc' } },
+      features: { orderBy: { createdAt: 'desc' } },
+      rtbs: { orderBy: { createdAt: 'desc' } },
     },
   })
 
@@ -211,6 +216,129 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                 <Link href={`/conversations/${c.id}`} className="text-sm hover:underline">
                   {c.title}
                 </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Конкуренты ({product.competitors.length})</h2>
+          <Link
+            href={`/competitors/new?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
+          >
+            Добавить конкурента
+          </Link>
+        </div>
+        {product.competitors.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет конкурентов.</p>
+        ) : (
+          <ul className="space-y-2">
+            {product.competitors.map((c) => (
+              <li key={c.id}>
+                <Link href={`/competitors/${c.id}`} className="text-sm hover:underline">
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Фичи ({product.features.length})</h2>
+          <Link
+            href={`/features/new?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
+          >
+            Добавить фичу
+          </Link>
+        </div>
+        {product.features.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет фич.</p>
+        ) : (
+          <ul className="space-y-2">
+            {product.features.map((f) => (
+              <li key={f.id}>
+                <Link href={`/features/${f.id}`} className="text-sm hover:underline">
+                  {f.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">RTB ({product.rtbs.length})</h2>
+          <Link
+            href={`/rtb/new?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
+          >
+            Добавить RTB
+          </Link>
+        </div>
+        {product.rtbs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет RTB.</p>
+        ) : (
+          <ul className="space-y-2">
+            {product.rtbs.map((r) => (
+              <li key={r.id}>
+                <Link href={`/rtb/${r.id}`} className="text-sm hover:underline">
+                  {r.statement}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Ресурсы ({product.productResources.length})</h2>
+          <Link
+            href={`/resources/new?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
+          >
+            Добавить ресурс
+          </Link>
+        </div>
+        {product.productResources.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет ресурсов.</p>
+        ) : (
+          <ul className="space-y-2">
+            {product.productResources.map((resource) => (
+              <li key={resource.id} className="flex items-center justify-between gap-2 text-sm">
+                <span>
+                  <Badge variant="outline" className="mr-2">
+                    {productResourceKindLabels[resource.kind]}
+                  </Badge>
+                  {resource.url ? (
+                    <a
+                      href={resource.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:underline"
+                    >
+                      {resource.title}
+                    </a>
+                  ) : (
+                    resource.title
+                  )}
+                </span>
+                <span className="flex items-center gap-2 print:hidden">
+                  <Link
+                    href={`/resources/${resource.id}/edit`}
+                    className="text-muted-foreground hover:underline"
+                  >
+                    Редактировать
+                  </Link>
+                  <DeleteButton action={deleteProductResource.bind(null, resource.id)} />
+                </span>
               </li>
             ))}
           </ul>

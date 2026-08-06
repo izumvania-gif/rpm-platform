@@ -1,4 +1,11 @@
-import { PrismaClient, Stage, ResearchType, ResearchStatus, HypothesisStatus } from '@prisma/client'
+import {
+  PrismaClient,
+  Stage,
+  ResearchType,
+  ResearchStatus,
+  HypothesisStatus,
+  ProductResourceKind,
+} from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { DEFAULT_USER_ID } from '../lib/current-user'
 
@@ -553,6 +560,132 @@ async function seedDemoProduct(userId: string) {
       userId,
       createdAt: daysAgo(95),
       updatedAt: daysAgo(95),
+    },
+  })
+
+  await prisma.competitor.create({
+    data: {
+      name: 'Самописное решение',
+      positioning:
+        'Собственная разработка внутри компании — типовой статус-кво у крупных заказчиков ' +
+        'до появления CLM-решения на рынке.',
+      features: ['ручная ротация', 'нет единого UI', 'высокая стоимость поддержки'],
+      productId: product.id,
+      userId,
+      createdAt: daysAgo(100),
+    },
+  })
+  await prisma.competitor.create({
+    data: {
+      name: 'Встроенный модуль обновления сертификатов в УЦ',
+      positioning:
+        'Ограничен одним удостоверяющим центром, без мультипротокольности — не подходит ' +
+        'заказчикам с несколькими УЦ в разных контурах.',
+      features: ['работает только с одним УЦ', 'нет инвентаризации', 'нет дашборда'],
+      productId: product.id,
+      userId,
+      createdAt: daysAgo(95),
+    },
+  })
+
+  await prisma.productResource.create({
+    data: {
+      title: 'Рутокен CLM — Сейл-кит 1.0',
+      kind: ProductResourceKind.SALES_KIT,
+      description:
+        'Презентация с внутреннего тренинга по продукту: портрет заказчика, квалификационные ' +
+        'вопросы, архитектура, конкурентное окружение.',
+      productId: product.id,
+      userId,
+      createdAt: daysAgo(150),
+    },
+  })
+  await prisma.productResource.create({
+    data: {
+      title: 'Техническая архитектура',
+      kind: ProductResourceKind.DEVELOPER_DOC,
+      description:
+        'Backend на C++, frontend на TypeScript/React. Протоколы для УЦ: ACME, MS-WSTEP, ' +
+        'DCOM, SCEP. gRPC для агентов, REST API для фронта.',
+      productId: product.id,
+      userId,
+      createdAt: daysAgo(150),
+    },
+  })
+
+  const featureInventory = await prisma.feature.create({
+    data: {
+      name: 'Единый инвентарь сертификатов',
+      description:
+        'Агентская схема сканирования с гибкой периодичностью проверок и автоматическим ' +
+        'добавлением новых сертификатов в реестр.',
+      productId: product.id,
+      userId,
+      jtbds: { connect: [{ id: jtbds.inventory.id }] },
+      createdAt: daysAgo(90),
+    },
+  })
+  const featureDashboard = await prisma.feature.create({
+    data: {
+      name: 'Дашборд контроля сроков и уведомления',
+      description:
+        'Цветовая индикация сроков истечения, график динамики, уведомления по email/SMS/SIEM.',
+      productId: product.id,
+      userId,
+      jtbds: { connect: [{ id: jtbds.monitoring.id }] },
+      createdAt: daysAgo(88),
+    },
+  })
+  const featureAutomation = await prisma.feature.create({
+    data: {
+      name: 'Автоматическая ротация сертификатов',
+      description:
+        'Гибкий график обновления с учётом maintenance-окон, выпуск новых ключей прямо на ' +
+        'хосте, автоматический перезапуск сервисов после замены.',
+      productId: product.id,
+      userId,
+      jtbds: { connect: [{ id: jtbds.automation.id }, { id: jtbds.continuity.id }] },
+      createdAt: daysAgo(85),
+    },
+  })
+  const featureProtocols = await prisma.feature.create({
+    data: {
+      name: 'Поддержка протоколов CMP/EST/ACME/WSTEP',
+      description: 'Работа с разными УЦ через стандартные протоколы управления сертификатами.',
+      productId: product.id,
+      userId,
+      jtbds: { connect: [{ id: jtbds.compliance.id }] },
+      createdAt: daysAgo(80),
+    },
+  })
+
+  await prisma.rTB.create({
+    data: {
+      statement:
+        'Ни один сертификат не останется незамеченным — единый реестр с автообнаружением ' +
+        'и дашбордом сроков в реальном времени.',
+      productId: product.id,
+      userId,
+      features: { connect: [{ id: featureInventory.id }, { id: featureDashboard.id }] },
+      createdAt: daysAgo(70),
+    },
+  })
+  await prisma.rTB.create({
+    data: {
+      statement: 'Ротация без участия человека — от запроса до замены и перезапуска сервиса.',
+      productId: product.id,
+      userId,
+      features: { connect: [{ id: featureAutomation.id }] },
+      createdAt: daysAgo(65),
+    },
+  })
+  await prisma.rTB.create({
+    data: {
+      statement: 'Соответствует требованиям Приказа №117 ФСТЭК «из коробки».',
+      productId: product.id,
+      userId,
+      features: { connect: [{ id: featureProtocols.id }] },
+      createdAt: daysAgo(60),
     },
   })
 

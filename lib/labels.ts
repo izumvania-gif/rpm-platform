@@ -1,4 +1,10 @@
-import { HypothesisStatus, ResearchStatus, ResearchType, Stage } from '@prisma/client'
+import {
+  HypothesisStatus,
+  ProductResourceKind,
+  ResearchStatus,
+  ResearchType,
+  Stage,
+} from '@prisma/client'
 
 export const stageLabels: Record<Stage, string> = {
   IDEA: 'Идея',
@@ -35,3 +41,11 @@ export const hypothesisStatusOrder: HypothesisStatus[] = [
   HypothesisStatus.CONFIRMED,
   HypothesisStatus.REJECTED,
 ]
+
+export const productResourceKindLabels: Record<ProductResourceKind, string> = {
+  SALES_KIT: 'Sales-kit',
+  DEVELOPER_DOC: 'Документация для разработчиков',
+  CONFLUENCE_LINK: 'Confluence',
+  JIRA_LINK: 'Jira',
+  OTHER: 'Другое',
+}

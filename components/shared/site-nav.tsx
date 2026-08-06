@@ -7,6 +7,9 @@ const links = [
   { href: '/jtbd', label: 'JTBD' },
   { href: '/hypotheses', label: 'Гипотезы' },
   { href: '/conversations', label: 'Разговоры' },
+  { href: '/competitors', label: 'Конкуренты' },
+  { href: '/features', label: 'Фичи' },
+  { href: '/rtb', label: 'RTB' },
 ]
 
 export function SiteNav() {

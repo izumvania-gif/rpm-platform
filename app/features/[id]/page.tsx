@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteFeature } from '@/lib/actions/features'
 import { buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
@@ -46,43 +47,53 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
         {feature.description && <p className="text-muted-foreground mt-4">{feature.description}</p>}
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold mb-3">
-          JTBD, которые закрывает ({feature.jtbds.length})
-        </h2>
-        {feature.jtbds.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока не привязано ни одного JTBD.</p>
-        ) : (
-          <ul className="space-y-2">
-            {feature.jtbds.map((j) => (
-              <li key={j.id}>
-                <Link href={`/jtbd/${j.id}`} className="text-sm hover:underline">
-                  {j.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">
+            JTBD, которые закрывает{' '}
+            <span className="font-normal text-muted-foreground">({feature.jtbds.length})</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {feature.jtbds.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Пока не привязано ни одного JTBD.</p>
+          ) : (
+            <ul className="space-y-2">
+              {feature.jtbds.map((j) => (
+                <li key={j.id}>
+                  <Link href={`/jtbd/${j.id}`} className="text-sm hover:underline">
+                    {j.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
-      <section>
-        <h2 className="text-lg font-semibold mb-3">
-          RTB на основе этой фичи ({feature.rtbs.length})
-        </h2>
-        {feature.rtbs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет RTB.</p>
-        ) : (
-          <ul className="space-y-2">
-            {feature.rtbs.map((r) => (
-              <li key={r.id}>
-                <Link href={`/rtb/${r.id}`} className="text-sm hover:underline">
-                  {r.statement}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">
+            RTB на основе этой фичи{' '}
+            <span className="font-normal text-muted-foreground">({feature.rtbs.length})</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {feature.rtbs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Пока нет RTB.</p>
+          ) : (
+            <ul className="space-y-2">
+              {feature.rtbs.map((r) => (
+                <li key={r.id}>
+                  <Link href={`/rtb/${r.id}`} className="text-sm hover:underline">
+                    {r.statement}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </main>
   )
 }

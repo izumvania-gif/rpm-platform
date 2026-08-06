@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import type { Product, Research, Segment } from '@prisma/client'
+import { JtbdJobType, type Product, type Research, type Segment } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,11 +9,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { InlineCreateSegment } from '@/components/shared/inline-create-segment'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
+import { jtbdJobTypeDescriptions, jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 
 export interface JtbdFormValues {
   title?: string
   category?: string
   description?: string | null
+  jobType?: JtbdJobType
   confirmed?: boolean
   tags?: string[]
   productId?: string
@@ -56,6 +58,9 @@ export function JtbdForm({
 
   const [localSegments, setLocalSegments] = useState(segments)
   const [segmentId, setSegmentId] = useState(defaultValues?.segmentId ?? '')
+  const [jobType, setJobType] = useState<JtbdJobType>(
+    defaultValues?.jobType ?? JtbdJobType.SMALL_JOB
+  )
 
   const productSegments = useMemo(
     () => localSegments.filter((s) => s.productId === productId),
@@ -95,6 +100,22 @@ export function JtbdForm({
             <option key={c} value={c} />
           ))}
         </datalist>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="jobType">Тип задачи</Label>
+        <Select
+          id="jobType"
+          name="jobType"
+          value={jobType}
+          onChange={(e) => setJobType(e.target.value as JtbdJobType)}
+        >
+          {jtbdJobTypeOrder.map((type) => (
+            <option key={type} value={type}>
+              {jtbdJobTypeLabels[type]}
+            </option>
+          ))}
+        </Select>
+        <p className="text-xs text-muted-foreground">{jtbdJobTypeDescriptions[jobType]}</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="productId">Продукт</Label>

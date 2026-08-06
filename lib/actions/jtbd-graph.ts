@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { JtbdJobType, type JTBD } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 
@@ -58,4 +59,33 @@ export async function createJtbdSequenceEdge(
 export async function deleteJtbdSequenceEdge(id: string): Promise<void> {
   await prisma.jtbdSequenceEdge.delete({ where: { id } })
   revalidatePath('/jtbd/graph')
+}
+
+export async function createJtbdQuick(
+  productId: string,
+  title: string,
+  category: string,
+  jobType: JtbdJobType
+): Promise<{ ok: true; jtbd: JTBD } | { ok: false; error: string }> {
+  const trimmedTitle = title.trim()
+  const trimmedCategory = category.trim()
+  if (!productId || !trimmedTitle || !trimmedCategory) {
+    return { ok: false, error: 'Укажите продукт, формулировку и категорию' }
+  }
+  if (!Object.values(JtbdJobType).includes(jobType)) {
+    return { ok: false, error: 'Некорректный тип задачи' }
+  }
+
+  const jtbd = await prisma.jTBD.create({
+    data: {
+      title: trimmedTitle,
+      category: trimmedCategory,
+      jobType,
+      productId,
+      userId: getCurrentUserId(),
+    },
+  })
+  revalidatePath('/jtbd/graph')
+  revalidatePath('/jtbd')
+  return { ok: true, jtbd }
 }

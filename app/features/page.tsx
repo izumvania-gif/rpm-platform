@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { FeatureFilterForm } from '@/components/forms/feature-filter-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,16 +13,43 @@ const SORT_OPTIONS = [
   { value: 'name_asc', label: 'По названию' },
 ]
 
-export default async function FeaturesPage({ searchParams }: { searchParams: { sort?: string } }) {
+function truncate(text: string, max: number) {
+  return text.length > max ? `${text.slice(0, max)}…` : text
+}
+
+export default async function FeaturesPage({
+  searchParams,
+}: {
+  searchParams: { sort?: string; jtbdId?: string; segmentId?: string }
+}) {
   const sort = SORT_OPTIONS.some((o) => o.value === searchParams.sort)
     ? (searchParams.sort as string)
     : 'created_desc'
+  const userId = getCurrentUserId()
 
-  const features = await prisma.feature.findMany({
-    where: { userId: getCurrentUserId() },
-    orderBy: sort === 'name_asc' ? { name: 'asc' } : { createdAt: 'desc' },
-    include: { product: true, jtbds: true, rtbs: true },
-  })
+  const [features, jtbds, segments] = await Promise.all([
+    prisma.feature.findMany({
+      where: {
+        userId,
+        ...(searchParams.jtbdId ? { jtbds: { some: { id: searchParams.jtbdId } } } : {}),
+        ...(searchParams.segmentId
+          ? { jtbds: { some: { segmentId: searchParams.segmentId } } }
+          : {}),
+      },
+      orderBy: sort === 'name_asc' ? { name: 'asc' } : { createdAt: 'desc' },
+      include: { product: true, jtbds: true, rtbs: true },
+    }),
+    prisma.jTBD.findMany({
+      where: { userId },
+      include: { product: true },
+      orderBy: { title: 'asc' },
+    }),
+    prisma.segment.findMany({
+      where: { userId },
+      include: { product: true },
+      orderBy: { name: 'asc' },
+    }),
+  ])
 
   return (
     <main className="container py-12">
@@ -34,9 +61,20 @@ export default async function FeaturesPage({ searchParams }: { searchParams: { s
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
-        <form method="get">
-          <SortControl current={sort} options={SORT_OPTIONS} label="Сортировка" />
-        </form>
+        <FeatureFilterForm
+          jtbdOptions={jtbds.map((j) => ({
+            id: j.id,
+            label: `${j.product.name} — ${truncate(j.title, 50)}`,
+          }))}
+          segmentOptions={segments.map((s) => ({
+            id: s.id,
+            label: `${s.product.name} — ${s.name}`,
+          }))}
+          jtbdId={searchParams.jtbdId}
+          segmentId={searchParams.segmentId}
+          sort={sort}
+          sortOptions={SORT_OPTIONS}
+        />
         <CsvExportButton
           filename="features.csv"
           rows={features.map((f) => ({
@@ -49,7 +87,11 @@ export default async function FeaturesPage({ searchParams }: { searchParams: { s
       </div>
 
       {features.length === 0 ? (
-        <p className="text-muted-foreground">Фич пока нет.</p>
+        <p className="text-muted-foreground">
+          {searchParams.jtbdId || searchParams.segmentId
+            ? 'Ничего не найдено по выбранным фильтрам.'
+            : 'Фич пока нет.'}
+        </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (

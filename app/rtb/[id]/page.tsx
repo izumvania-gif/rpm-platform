@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteRTB } from '@/lib/actions/rtbs'
 import { buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
@@ -42,24 +43,29 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
         </Link>
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold mb-3">
-          Фичи, на которых основано ({rtb.features.length})
-        </h2>
-        {rtb.features.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока не привязано ни одной фичи.</p>
-        ) : (
-          <ul className="space-y-2">
-            {rtb.features.map((f) => (
-              <li key={f.id}>
-                <Link href={`/features/${f.id}`} className="text-sm hover:underline">
-                  {f.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">
+            Фичи, на которых основано{' '}
+            <span className="font-normal text-muted-foreground">({rtb.features.length})</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {rtb.features.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Пока не привязано ни одной фичи.</p>
+          ) : (
+            <ul className="space-y-2">
+              {rtb.features.map((f) => (
+                <li key={f.id}>
+                  <Link href={`/features/${f.id}`} className="text-sm hover:underline">
+                    {f.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </main>
   )
 }

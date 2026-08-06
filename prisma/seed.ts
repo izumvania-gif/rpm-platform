@@ -5,6 +5,7 @@ import {
   ResearchStatus,
   HypothesisStatus,
   ProductResourceKind,
+  JtbdJobType,
 } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { DEFAULT_USER_ID } from '../lib/current-user'
@@ -271,6 +272,7 @@ async function seedDemoProduct(userId: string) {
           'видеть полную картину инфраструктуры и не терять «теневые» активы.',
         category: 'Учёт и инвентаризация',
         description: 'Ключевая боль ИТ-ЛПР: нет единой точки учёта сертификатов.',
+        jobType: JtbdJobType.SMALL_JOB,
         confirmed: true,
         tags: ['инвентаризация', 'ит'],
         pinned: true,
@@ -289,6 +291,7 @@ async function seedDemoProduct(userId: string) {
           'делается вручную, я хочу автоматические уведомления и дашборд с истекающими ' +
           'сертификатами, чтобы устранить человеческий фактор (забыл, ушёл в отпуск, сменился).',
         category: 'Контроль сроков',
+        jobType: JtbdJobType.SMALL_JOB,
         confirmed: true,
         tags: ['мониторинг', 'уведомления'],
         productId: product.id,
@@ -306,6 +309,7 @@ async function seedDemoProduct(userId: string) {
           'дней дорогостоящего DevOps-времени, я хочу автоматизировать весь цикл запрос → выпуск ' +
           '→ деплой → замена без участия человека, чтобы снизить риск ошибок и освободить ресурс.',
         category: 'Автоматизация ротации',
+        jobType: JtbdJobType.CORE_JOB,
         confirmed: false,
         tags: ['автоматизация', 'devops'],
         productId: product.id,
@@ -322,6 +326,7 @@ async function seedDemoProduct(userId: string) {
           'репутационный ущерб, я хочу гарантию, что ни один сертификат не истечёт незамеченным, ' +
           'чтобы обеспечить непрерывность бизнеса перед клиентами.',
         category: 'Непрерывность и SLA',
+        jobType: JtbdJobType.BIG_JOB,
         confirmed: true,
         tags: ['sla', 'непрерывность'],
         pinned: true,
@@ -341,6 +346,7 @@ async function seedDemoProduct(userId: string) {
           'систему на протоколах CMP/EST/ACME/WSTEP со сменой сертификатов не реже раза в год, ' +
           'чтобы соответствовать требованиям регулятора.',
         category: 'Комплаенс',
+        jobType: JtbdJobType.BIG_JOB,
         confirmed: true,
         tags: ['фстэк', 'комплаенс', 'кии'],
         productId: product.id,
@@ -358,6 +364,7 @@ async function seedDemoProduct(userId: string) {
           'выпускать и контролировать сессионные/короткоживущие сертификаты, чтобы снизить ' +
           'поверхность атаки и соответствовать требованиям регуляторов и УЦ.',
         category: 'Информационная безопасность',
+        jobType: JtbdJobType.MICRO_JOB,
         confirmed: false,
         tags: ['ib', 'компрометация'],
         productId: product.id,

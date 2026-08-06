@@ -5,7 +5,9 @@ import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
+import { JobTypeBadge } from '@/components/shared/job-type-badge'
 import { toggleJtbdPinned } from '@/lib/actions/jtbd'
+import { jtbdJobTypeLabels } from '@/lib/jtbd-job-types'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +52,7 @@ export default async function JtbdPage() {
             filename="jtbd.csv"
             rows={jtbds.map((j) => ({
               category: j.category,
+              jobType: jtbdJobTypeLabels[j.jobType],
               title: j.title,
               product: j.product.name,
               confirmed: j.confirmed ? 'да' : 'нет',
@@ -82,6 +85,7 @@ export default async function JtbdPage() {
                       <p className="text-xs text-muted-foreground">{jtbd.product.name}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
+                      <JobTypeBadge jobType={jtbd.jobType} />
                       {jtbd.confirmed && <Badge variant="secondary">Подтверждён</Badge>}
                       <PinButton
                         pinned={jtbd.pinned}

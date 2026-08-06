@@ -128,17 +128,30 @@ model Segment {
   @@unique([productId, slug])
 }
 
+// Тип задачи по масштабу (методология JTBD):
+// BIG_JOB — большая задача, которую продукт не решает полностью целиком (часто эмоциональная);
+// CORE_JOB — самая крупная задача, которую продукт решает полностью;
+// SMALL_JOB — задача до/после core job;
+// MICRO_JOB — задача внутри small/core job.
+enum JtbdJobType {
+  BIG_JOB
+  CORE_JOB
+  SMALL_JOB
+  MICRO_JOB
+}
+
 // JTBD (Jobs-to-be-Done)
 model JTBD {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   category    String
-  description String?  @db.Text
-  confirmed   Boolean  @default(false)
+  description String?    @db.Text
+  jobType     JtbdJobType @default(SMALL_JOB)
+  confirmed   Boolean    @default(false)
   tags        String[]
-  pinned      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  pinned      Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)

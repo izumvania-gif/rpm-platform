@@ -67,11 +67,13 @@ async function JtbdGraphSection({
         categories={categories}
         category={activeCategory}
       />
-      {jtbds.length === 0 ? (
-        <p className="text-muted-foreground">У этого продукта пока нет JTBD.</p>
-      ) : (
-        <JtbdGraphCanvas jtbds={jtbds} sequenceEdges={sequenceEdges} category={activeCategory} />
-      )}
+      <JtbdGraphCanvas
+        productId={productId}
+        jtbds={jtbds}
+        sequenceEdges={sequenceEdges}
+        categories={categories}
+        category={activeCategory}
+      />
     </div>
   )
 }

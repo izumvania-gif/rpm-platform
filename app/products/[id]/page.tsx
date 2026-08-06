@@ -6,6 +6,7 @@ import { deleteProduct } from '@/lib/actions/products'
 import { deleteProductResource } from '@/lib/actions/product-resources'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PrintButton } from '@/components/shared/print-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
@@ -14,6 +15,62 @@ import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
+
+function GroupHeading({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="border-l-4 border-primary pl-3">
+      <h2 className="text-xl font-bold">{title}</h2>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+  )
+}
+
+function ProductSection({
+  title,
+  count,
+  addHref,
+  addLabel,
+  emptyLabel,
+  items,
+}: {
+  title: string
+  count: number
+  addHref: string
+  addLabel: string
+  emptyLabel: string
+  items: { href: string; label: string }[]
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+        <CardTitle className="text-base font-semibold">
+          {title} <span className="font-normal text-muted-foreground">({count})</span>
+        </CardTitle>
+        <Link
+          href={addHref}
+          className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' shrink-0 print:hidden'}
+        >
+          {addLabel}
+        </Link>
+      </CardHeader>
+      <CardContent>
+        {items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{emptyLabel}</p>
+        ) : (
+          <ul className="space-y-2">
+            {items.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href} className="text-sm hover:underline">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const product = await prisma.product.findFirst({
@@ -99,253 +156,165 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
         )}
       </div>
 
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Исследования ({product.researches.length})</h2>
-          <Link
-            href={`/research/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить исследование
-          </Link>
+      <div className="space-y-5">
+        <GroupHeading
+          title="Исследование клиентов"
+          description="Кто клиенты, какие у них задачи и что подтверждено исследованиями"
+        />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <ProductSection
+            title="Исследования"
+            count={product.researches.length}
+            addHref={`/research/new?productId=${product.id}`}
+            addLabel="Добавить исследование"
+            emptyLabel="Пока нет исследований."
+            items={product.researches.map((r) => ({
+              href: `/research/${r.id}`,
+              label: `#${r.number} ${r.title}`,
+            }))}
+          />
+          <ProductSection
+            title="Сегменты"
+            count={product.segments.length}
+            addHref={`/segments/new?productId=${product.id}`}
+            addLabel="Добавить сегмент"
+            emptyLabel="Пока нет сегментов."
+            items={product.segments.map((s) => ({ href: `/segments/${s.id}`, label: s.name }))}
+          />
+          <ProductSection
+            title="JTBD"
+            count={product.jtbds.length}
+            addHref={`/jtbd/new?productId=${product.id}`}
+            addLabel="Добавить JTBD"
+            emptyLabel="Пока нет JTBD."
+            items={product.jtbds.map((j) => ({ href: `/jtbd/${j.id}`, label: j.title }))}
+          />
+          <ProductSection
+            title="Гипотезы"
+            count={product.hypotheses.length}
+            addHref={`/hypotheses/new?productId=${product.id}`}
+            addLabel="Добавить гипотезу"
+            emptyLabel="Пока нет гипотез."
+            items={product.hypotheses.map((h) => ({
+              href: `/hypotheses/${h.id}`,
+              label: h.statement,
+            }))}
+          />
+          <ProductSection
+            title="Разговоры"
+            count={product.conversations.length}
+            addHref={`/conversations/new?productId=${product.id}`}
+            addLabel="Добавить разговор"
+            emptyLabel="Пока нет разговоров."
+            items={product.conversations.map((c) => ({
+              href: `/conversations/${c.id}`,
+              label: c.title,
+            }))}
+          />
         </div>
-        {product.researches.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет исследований.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.researches.map((r) => (
-              <li key={r.id}>
-                <Link href={`/research/${r.id}`} className="text-sm hover:underline">
-                  #{r.number} {r.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      </div>
 
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Сегменты ({product.segments.length})</h2>
-          <Link
-            href={`/segments/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить сегмент
-          </Link>
+      <div className="space-y-5">
+        <GroupHeading
+          title="Позиционирование"
+          description="Как продукт решает задачи клиентов и чем отличается от конкурентов"
+        />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <ProductSection
+            title="Конкуренты"
+            count={product.competitors.length}
+            addHref={`/competitors/new?productId=${product.id}`}
+            addLabel="Добавить конкурента"
+            emptyLabel="Пока нет конкурентов."
+            items={product.competitors.map((c) => ({
+              href: `/competitors/${c.id}`,
+              label: c.name,
+            }))}
+          />
+          <ProductSection
+            title="Фичи"
+            count={product.features.length}
+            addHref={`/features/new?productId=${product.id}`}
+            addLabel="Добавить фичу"
+            emptyLabel="Пока нет фич."
+            items={product.features.map((f) => ({ href: `/features/${f.id}`, label: f.name }))}
+          />
+          <ProductSection
+            title="RTB"
+            count={product.rtbs.length}
+            addHref={`/rtb/new?productId=${product.id}`}
+            addLabel="Добавить RTB"
+            emptyLabel="Пока нет RTB."
+            items={product.rtbs.map((r) => ({ href: `/rtb/${r.id}`, label: r.statement }))}
+          />
         </div>
-        {product.segments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет сегментов.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.segments.map((s) => (
-              <li key={s.id}>
-                <Link href={`/segments/${s.id}`} className="text-sm hover:underline">
-                  {s.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      </div>
 
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">JTBD ({product.jtbds.length})</h2>
-          <Link
-            href={`/jtbd/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить JTBD
-          </Link>
-        </div>
-        {product.jtbds.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет JTBD.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.jtbds.map((j) => (
-              <li key={j.id}>
-                <Link href={`/jtbd/${j.id}`} className="text-sm hover:underline">
-                  {j.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Гипотезы ({product.hypotheses.length})</h2>
-          <Link
-            href={`/hypotheses/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить гипотезу
-          </Link>
-        </div>
-        {product.hypotheses.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет гипотез.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.hypotheses.map((h) => (
-              <li key={h.id}>
-                <Link href={`/hypotheses/${h.id}`} className="text-sm hover:underline">
-                  {h.statement}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Разговоры ({product.conversations.length})</h2>
-          <Link
-            href={`/conversations/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить разговор
-          </Link>
-        </div>
-        {product.conversations.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет разговоров.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.conversations.map((c) => (
-              <li key={c.id}>
-                <Link href={`/conversations/${c.id}`} className="text-sm hover:underline">
-                  {c.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Конкуренты ({product.competitors.length})</h2>
-          <Link
-            href={`/competitors/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить конкурента
-          </Link>
-        </div>
-        {product.competitors.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет конкурентов.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.competitors.map((c) => (
-              <li key={c.id}>
-                <Link href={`/competitors/${c.id}`} className="text-sm hover:underline">
-                  {c.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Фичи ({product.features.length})</h2>
-          <Link
-            href={`/features/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить фичу
-          </Link>
-        </div>
-        {product.features.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет фич.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.features.map((f) => (
-              <li key={f.id}>
-                <Link href={`/features/${f.id}`} className="text-sm hover:underline">
-                  {f.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">RTB ({product.rtbs.length})</h2>
-          <Link
-            href={`/rtb/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить RTB
-          </Link>
-        </div>
-        {product.rtbs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет RTB.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.rtbs.map((r) => (
-              <li key={r.id}>
-                <Link href={`/rtb/${r.id}`} className="text-sm hover:underline">
-                  {r.statement}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Ресурсы ({product.productResources.length})</h2>
-          <Link
-            href={`/resources/new?productId=${product.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' print:hidden'}
-          >
-            Добавить ресурс
-          </Link>
-        </div>
-        {product.productResources.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Пока нет ресурсов.</p>
-        ) : (
-          <ul className="space-y-2">
-            {product.productResources.map((resource) => (
-              <li key={resource.id} className="flex items-center justify-between gap-2 text-sm">
-                <span>
-                  <Badge variant="outline" className="mr-2">
-                    {productResourceKindLabels[resource.kind]}
-                  </Badge>
-                  {resource.url ? (
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:underline"
-                    >
-                      {resource.title}
-                    </a>
-                  ) : (
-                    resource.title
-                  )}
-                </span>
-                <span className="flex items-center gap-2 print:hidden">
-                  <Link
-                    href={`/resources/${resource.id}/edit`}
-                    className="text-muted-foreground hover:underline"
+      <div className="space-y-5">
+        <GroupHeading
+          title="Ресурсы"
+          description="Sales-kit, документация, ссылки на Confluence/Jira"
+        />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+            <CardTitle className="text-base font-semibold">
+              Ресурсы{' '}
+              <span className="font-normal text-muted-foreground">
+                ({product.productResources.length})
+              </span>
+            </CardTitle>
+            <Link
+              href={`/resources/new?productId=${product.id}`}
+              className={
+                buttonVariants({ variant: 'outline', size: 'sm' }) + ' shrink-0 print:hidden'
+              }
+            >
+              Добавить ресурс
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {product.productResources.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Пока нет ресурсов.</p>
+            ) : (
+              <ul className="space-y-2">
+                {product.productResources.map((resource) => (
+                  <li
+                    key={resource.id}
+                    className="flex flex-wrap items-center justify-between gap-2 text-sm"
                   >
-                    Редактировать
-                  </Link>
-                  <DeleteButton action={deleteProductResource.bind(null, resource.id)} />
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                    <span>
+                      <Badge variant="outline" className="mr-2">
+                        {productResourceKindLabels[resource.kind]}
+                      </Badge>
+                      {resource.url ? (
+                        <a
+                          href={resource.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline"
+                        >
+                          {resource.title}
+                        </a>
+                      ) : (
+                        resource.title
+                      )}
+                    </span>
+                    <span className="flex items-center gap-2 print:hidden">
+                      <Link
+                        href={`/resources/${resource.id}/edit`}
+                        className="text-muted-foreground hover:underline"
+                      >
+                        Редактировать
+                      </Link>
+                      <DeleteButton action={deleteProductResource.bind(null, resource.id)} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </main>
   )
 }

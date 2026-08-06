@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { JtbdJobType } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -11,6 +12,7 @@ const jtbdSchema = z.object({
   title: z.string().trim().min(1, 'Формулировка обязательна'),
   category: z.string().trim().min(1, 'Категория обязательна'),
   description: optionalString(),
+  jobType: z.nativeEnum(JtbdJobType),
   confirmed: z.coerce.boolean(),
   tags: optionalString(),
   productId: z.string().trim().min(1, 'Продукт обязателен'),
@@ -23,6 +25,7 @@ function parseJtbdForm(formData: FormData) {
     title: formData.get('title'),
     category: formData.get('category'),
     description: formData.get('description'),
+    jobType: formData.get('jobType') || JtbdJobType.SMALL_JOB,
     confirmed: formData.get('confirmed') === 'on',
     tags: formData.get('tags'),
     productId: formData.get('productId'),

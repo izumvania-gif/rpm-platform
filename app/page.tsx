@@ -201,47 +201,59 @@ export default async function Home() {
 
       <RecentlyViewedWidget />
 
-      {pinnedItems.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-lg font-semibold mb-3">Закреплённое</h2>
-          <ul className="flex flex-wrap gap-2">
-            {pinnedItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="inline-block rounded-md border px-3 py-1.5 text-sm hover:border-primary"
-                >
-                  <span className="text-muted-foreground">{item.kind}:</span> {item.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {pinnedItems.length > 0 && (
+          <Card>
+            <CardHeader className="border-l-4 border-primary">
+              <CardTitle className="text-base">Закреплённое</CardTitle>
+              <CardDescription>Важные записи, отмеченные звёздочкой</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="flex flex-wrap gap-2">
+                {pinnedItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="inline-block rounded-md border px-3 py-1.5 text-sm hover:border-primary"
+                    >
+                      <span className="text-muted-foreground">{item.kind}:</span> {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
 
-      {activityItems.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold mb-3">Последняя активность</h2>
-          <ul className="space-y-2">
-            {activityItems.map((item) => (
-              <li key={item.href} className="flex items-center gap-2 text-sm">
-                <Badge variant="outline" className="shrink-0">
-                  {item.kind}
-                </Badge>
-                <Link href={item.href} className="min-w-0 flex-1 truncate hover:underline">
-                  {item.title}
-                </Link>
-                <span className="shrink-0 text-muted-foreground">
-                  {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
-                    ? 'создано'
-                    : 'обновлено'}{' '}
-                  {item.updatedAt.toLocaleString('ru-RU')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {activityItems.length > 0 && (
+          <Card>
+            <CardHeader className="border-l-4 border-primary">
+              <CardTitle className="text-base">Последняя активность</CardTitle>
+              <CardDescription>Что изменилось в последних записях</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                {activityItems.map((item) => (
+                  <li key={item.href} className="flex items-center gap-2 text-sm">
+                    <Badge variant="outline" className="shrink-0">
+                      {item.kind}
+                    </Badge>
+                    <Link href={item.href} className="min-w-0 flex-1 truncate hover:underline">
+                      {item.title}
+                    </Link>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
+                        ? 'создано'
+                        : 'обновлено'}{' '}
+                      {item.updatedAt.toLocaleString('ru-RU')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </main>
   )
 }

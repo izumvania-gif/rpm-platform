@@ -9,6 +9,7 @@ import {
 } from '@/lib/actions/hypotheses'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { PinButton } from '@/components/shared/pin-button'
@@ -104,39 +105,45 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
         {hypothesis.tags.length > 0 && <TagBadges tags={hypothesis.tags} />}
       </div>
 
-      <section>
-        <h2 className="text-sm font-semibold text-muted-foreground mb-2">Сменить статус</h2>
-        <div className="flex flex-wrap gap-2">
-          {hypothesisStatusOrder.map((status) => {
-            const setStatus = updateHypothesisStatus.bind(null, hypothesis.id, status)
-            return (
-              <form key={status} action={setStatus}>
-                <SubmitButton
-                  variant={status === hypothesis.status ? 'default' : 'outline'}
-                  size="sm"
-                  disabled={status === hypothesis.status}
-                  pendingText="..."
-                >
-                  {hypothesisStatusLabels[status]}
-                </SubmitButton>
-              </form>
-            )
-          })}
-        </div>
-      </section>
-
-      {hypothesis.statusChanges.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground mb-2">История статусов</h2>
-          <ul className="space-y-1">
-            {hypothesis.statusChanges.map((change) => (
-              <li key={change.id} className="text-sm text-muted-foreground">
-                {hypothesisStatusLabels[change.status]} — {change.changedAt.toLocaleString('ru-RU')}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">Статус</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {hypothesisStatusOrder.map((status) => {
+              const setStatus = updateHypothesisStatus.bind(null, hypothesis.id, status)
+              return (
+                <form key={status} action={setStatus}>
+                  <SubmitButton
+                    variant={status === hypothesis.status ? 'default' : 'outline'}
+                    size="sm"
+                    disabled={status === hypothesis.status}
+                    pendingText="..."
+                  >
+                    {hypothesisStatusLabels[status]}
+                  </SubmitButton>
+                </form>
+              )
+            })}
+          </div>
+          {hypothesis.statusChanges.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                История статусов
+              </h3>
+              <ul className="space-y-1">
+                {hypothesis.statusChanges.map((change) => (
+                  <li key={change.id} className="text-sm text-muted-foreground">
+                    {hypothesisStatusLabels[change.status]} —{' '}
+                    {change.changedAt.toLocaleString('ru-RU')}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </main>
   )
 }

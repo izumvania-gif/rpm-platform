@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { FeatureFilterForm } from '@/components/forms/feature-filter-form'
@@ -53,6 +53,15 @@ export default async function FeaturesPage({
     }),
   ])
 
+  const byProduct = new Map<string, { name: string; items: typeof features }>()
+  for (const feature of features) {
+    if (!byProduct.has(feature.productId)) {
+      byProduct.set(feature.productId, { name: feature.product.name, items: [] })
+    }
+    byProduct.get(feature.productId)!.items.push(feature)
+  }
+  const groups = Array.from(byProduct.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
@@ -62,7 +71,7 @@ export default async function FeaturesPage({
         </Link>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <FeatureFilterForm
           jtbdOptions={jtbds.map((j) => ({
             id: j.id,
@@ -88,6 +97,13 @@ export default async function FeaturesPage({
         />
       </div>
 
+      {features.length > 0 && (
+        <p className="text-sm text-muted-foreground mb-6">
+          {groups.length} {groups.length === 1 ? 'продукт' : 'продуктов'} · {features.length}{' '}
+          записей
+        </p>
+      )}
+
       {features.length === 0 ? (
         <p className="text-muted-foreground">
           {searchParams.jtbdId || searchParams.segmentId
@@ -95,27 +111,36 @@ export default async function FeaturesPage({
             : 'Фич пока нет.'}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <Link key={feature.id} href={`/features/${feature.id}`}>
-              <Card className="h-full hover:border-primary transition-colors">
-                <CardHeader>
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="truncate">{feature.name}</CardTitle>
-                    <PinButton
-                      pinned={feature.pinned}
-                      action={toggleFeaturePinned.bind(null, feature.id, !feature.pinned)}
-                    />
-                  </div>
-                  <CardDescription>{feature.product.name}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.jtbds.length} JTBD · {feature.rtbs.length} RTB
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+        <div className="space-y-8">
+          {groups.map((group) => (
+            <section key={group.name}>
+              <h2 className="text-lg font-semibold mb-3">
+                {group.name}{' '}
+                <span className="text-muted-foreground font-normal">({group.items.length})</span>
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {group.items.map((feature) => (
+                  <Link key={feature.id} href={`/features/${feature.id}`}>
+                    <Card className="h-full hover:border-primary transition-colors">
+                      <CardHeader>
+                        <div className="flex items-center justify-between gap-2">
+                          <CardTitle className="truncate">{feature.name}</CardTitle>
+                          <PinButton
+                            pinned={feature.pinned}
+                            action={toggleFeaturePinned.bind(null, feature.id, !feature.pinned)}
+                          />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          {feature.jtbds.length} JTBD · {feature.rtbs.length} RTB
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}

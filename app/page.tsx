@@ -123,7 +123,7 @@ export default async function Home() {
       updatedAt: f.updatedAt,
     })),
     ...pinnedRTBs.map((r) => ({
-      href: `/rtb/${r.id}`,
+      href: `/marketing/${r.id}`,
       title: r.statement,
       kind: 'RTB',
       updatedAt: r.updatedAt,
@@ -188,7 +188,7 @@ export default async function Home() {
       createdAt: f.createdAt,
     })),
     ...recentRTBs.map((r) => ({
-      href: `/rtb/${r.id}`,
+      href: `/marketing/${r.id}`,
       title: r.statement,
       kind: 'RTB',
       updatedAt: r.updatedAt,
@@ -248,10 +248,10 @@ export default async function Home() {
       description: 'Как продукт закрывает JTBD',
     },
     {
-      href: '/rtb',
-      label: 'RTB',
+      href: '/marketing',
+      label: 'Маркетинг',
       count: rtbCount,
-      description: 'Маркетинговые обещания на основе фич',
+      description: 'Маркетинговые обещания (RTB) на основе фич',
     },
   ]
 

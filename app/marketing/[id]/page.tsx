@@ -25,7 +25,7 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
-      <RecentlyViewedTracker href={`/rtb/${rtb.id}`} title={rtb.statement} kind="RTB" />
+      <RecentlyViewedTracker href={`/marketing/${rtb.id}`} title={rtb.statement} kind="RTB" />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{rtb.statement}</h1>
@@ -33,12 +33,15 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
             <PinButton pinned={rtb.pinned} action={toggleRTBPinnedWithId} />
             <CopyLinkButton />
             <Link
-              href={`/rtb/new?productId=${rtb.product.id}&duplicateFrom=${rtb.id}`}
+              href={`/marketing/new?productId=${rtb.product.id}&duplicateFrom=${rtb.id}`}
               className={buttonVariants({ variant: 'outline' })}
             >
               Дублировать
             </Link>
-            <Link href={`/rtb/${rtb.id}/edit`} className={buttonVariants({ variant: 'outline' })}>
+            <Link
+              href={`/marketing/${rtb.id}/edit`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
               Редактировать
             </Link>
             <DeleteButton action={deleteRTBWithId} />

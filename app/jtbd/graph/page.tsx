@@ -1,10 +1,9 @@
-import Link from 'next/link'
 import type { Product } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { buttonVariants } from '@/components/ui/button'
 import { JtbdGraphFilterForm } from '@/components/forms/jtbd-graph-filter-form'
 import { JtbdGraphCanvas } from '@/components/jtbd-graph/canvas'
+import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,9 +20,7 @@ export default async function JtbdGraphPage({
     <main className="container py-12 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Граф JTBD</h1>
-        <Link href="/jtbd" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-          Обычный список
-        </Link>
+        <JtbdViewTabs active="graph" />
       </div>
 
       {!productId ? (

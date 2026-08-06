@@ -94,7 +94,7 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
             <ul className="space-y-2">
               {feature.rtbs.map((r) => (
                 <li key={r.id}>
-                  <Link href={`/rtb/${r.id}`} className="text-sm hover:underline">
+                  <Link href={`/marketing/${r.id}`} className="text-sm hover:underline">
                     {r.statement}
                   </Link>
                 </li>

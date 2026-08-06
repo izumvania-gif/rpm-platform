@@ -9,6 +9,7 @@ import { JobTypeBadge } from '@/components/shared/job-type-badge'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { toggleJtbdPinned } from '@/lib/actions/jtbd'
 import { jtbdJobTypeLabels } from '@/lib/jtbd-job-types'
+import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,10 +34,8 @@ export default async function JtbdPage() {
     <main className="container py-12">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <h1 className="text-2xl font-bold">JTBD</h1>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/jtbd/graph" className={buttonVariants({ variant: 'outline' })}>
-            Граф JTBD
-          </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <JtbdViewTabs active="list" />
           <Link href="/jtbd/new" className={buttonVariants()}>
             Новый JTBD
           </Link>

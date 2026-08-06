@@ -2,19 +2,40 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const links = [
-  { href: '/products', label: 'Продукты' },
-  { href: '/research', label: 'Исследования' },
-  { href: '/segments', label: 'Сегменты' },
-  { href: '/jtbd', label: 'JTBD' },
-  { href: '/hypotheses', label: 'Гипотезы' },
-  { href: '/conversations', label: 'Разговоры' },
-  { href: '/competitors', label: 'Конкуренты' },
-  { href: '/features', label: 'Фичи' },
-  { href: '/rtb', label: 'RTB' },
+interface NavLink {
+  href: string
+  label: string
+  match: string[]
+  subLinks?: { href: string; label: string }[]
+}
+
+const links: NavLink[] = [
+  {
+    href: '/products',
+    label: 'Продукты',
+    match: ['/products', '/features', '/competitors'],
+    subLinks: [{ href: '/features', label: 'Фичи' }],
+  },
+  { href: '/segments', label: 'Сегменты', match: ['/segments'] },
+  {
+    href: '/research',
+    label: 'Исследования',
+    match: ['/research', '/hypotheses', '/conversations'],
+    subLinks: [
+      { href: '/hypotheses', label: 'Гипотезы' },
+      { href: '/conversations', label: 'Разговоры' },
+    ],
+  },
+  { href: '/marketing', label: 'Маркетинг', match: ['/marketing'] },
+  { href: '/jtbd', label: 'JTBD', match: ['/jtbd'] },
 ]
+
+function isActive(pathname: string, prefixes: string[]) {
+  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+}
 
 export function SiteNav() {
   const pathname = usePathname()
@@ -30,20 +51,46 @@ export function SiteNav() {
               RPM<span className="text-primary">.</span>
             </span>
           </Link>
-          <nav className="flex min-w-0 gap-4 overflow-x-auto sm:gap-6">
+          <nav className="flex min-w-0 items-stretch gap-4 overflow-x-visible sm:gap-6">
             {links.map((link) => {
-              const active = pathname === link.href || pathname.startsWith(`${link.href}/`)
+              const active = isActive(pathname, link.match)
               return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    'shrink-0 whitespace-nowrap border-b-2 border-transparent py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
-                    active && 'border-primary text-foreground'
+                <div key={link.href} className="group relative flex shrink-0 items-stretch">
+                  <Link
+                    href={link.href}
+                    className={cn(
+                      'flex shrink-0 items-center gap-1 whitespace-nowrap border-b-2 border-transparent py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+                      active && 'border-primary text-foreground'
+                    )}
+                  >
+                    {link.label}
+                    {link.subLinks && <ChevronDown size={14} className="text-muted-foreground" />}
+                  </Link>
+                  {link.subLinks && (
+                    <div
+                      className={cn(
+                        'invisible absolute left-0 top-full z-20 min-w-[10rem] rounded-md border bg-background py-1 opacity-0 shadow-md transition-opacity',
+                        'group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
+                      )}
+                    >
+                      {link.subLinks.map((sub) => {
+                        const subActive = pathname === sub.href || pathname.startsWith(`${sub.href}/`)
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            className={cn(
+                              'block whitespace-nowrap px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground',
+                              subActive && 'text-foreground font-medium'
+                            )}
+                          >
+                            {sub.label}
+                          </Link>
+                        )
+                      })}
+                    </div>
                   )}
-                >
-                  {link.label}
-                </Link>
+                </div>
               )
             })}
           </nav>

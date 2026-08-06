@@ -240,12 +240,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             items={product.features.map((f) => ({ href: `/features/${f.id}`, label: f.name }))}
           />
           <ProductSection
-            title="RTB"
+            title="Маркетинг"
             count={product.rtbs.length}
-            addHref={`/rtb/new?productId=${product.id}`}
+            addHref={`/marketing/new?productId=${product.id}`}
             addLabel="Добавить RTB"
             emptyLabel="Пока нет RTB."
-            items={product.rtbs.map((r) => ({ href: `/rtb/${r.id}`, label: r.statement }))}
+            items={product.rtbs.map((r) => ({ href: `/marketing/${r.id}`, label: r.statement }))}
           />
         </div>
       </div>

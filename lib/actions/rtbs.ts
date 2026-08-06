@@ -25,7 +25,7 @@ function parseRTBForm(formData: FormData) {
 export async function createRTB(formData: FormData) {
   const { parsed, featureIds } = parseRTBForm(formData)
   if (!parsed.success) {
-    redirect(`/rtb/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
+    redirect(`/marketing/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
   const rtb = await prisma.rTB.create({
@@ -35,14 +35,14 @@ export async function createRTB(formData: FormData) {
       features: { connect: featureIds.map((id) => ({ id })) },
     },
   })
-  revalidatePath('/rtb')
-  redirect(`/rtb/${rtb.id}`)
+  revalidatePath('/marketing')
+  redirect(`/marketing/${rtb.id}`)
 }
 
 export async function updateRTB(id: string, formData: FormData) {
   const { parsed, featureIds } = parseRTBForm(formData)
   if (!parsed.success) {
-    redirect(`/rtb/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
+    redirect(`/marketing/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
   await prisma.rTB.update({
@@ -52,20 +52,20 @@ export async function updateRTB(id: string, formData: FormData) {
       features: { set: featureIds.map((featureId) => ({ id: featureId })) },
     },
   })
-  revalidatePath('/rtb')
-  revalidatePath(`/rtb/${id}`)
-  redirect(`/rtb/${id}`)
+  revalidatePath('/marketing')
+  revalidatePath(`/marketing/${id}`)
+  redirect(`/marketing/${id}`)
 }
 
 export async function deleteRTB(id: string) {
   await prisma.rTB.delete({ where: { id } })
-  revalidatePath('/rtb')
-  redirect('/rtb')
+  revalidatePath('/marketing')
+  redirect('/marketing')
 }
 
 export async function toggleRTBPinned(id: string, pinned: boolean) {
   await prisma.rTB.update({ where: { id }, data: { pinned } })
-  revalidatePath('/rtb')
-  revalidatePath(`/rtb/${id}`)
+  revalidatePath('/marketing')
+  revalidatePath(`/marketing/${id}`)
   revalidatePath('/')
 }

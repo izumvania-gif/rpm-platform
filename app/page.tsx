@@ -24,17 +24,26 @@ export default async function Home() {
     jtbdCount,
     hypothesisCount,
     conversationCount,
+    competitorCount,
+    featureCount,
+    rtbCount,
     pinnedResearch,
     pinnedSegments,
     pinnedJtbds,
     pinnedHypotheses,
     pinnedConversations,
+    pinnedCompetitors,
+    pinnedFeatures,
+    pinnedRTBs,
     recentProducts,
     recentResearch,
     recentSegments,
     recentJtbds,
     recentHypotheses,
     recentConversations,
+    recentCompetitors,
+    recentFeatures,
+    recentRTBs,
   ] = await Promise.all([
     prisma.product.count({ where: { userId } }),
     prisma.research.count({ where: { userId } }),
@@ -42,6 +51,9 @@ export default async function Home() {
     prisma.jTBD.count({ where: { userId } }),
     prisma.hypothesis.count({ where: { userId } }),
     prisma.conversation.count({ where: { userId } }),
+    prisma.competitor.count({ where: { userId } }),
+    prisma.feature.count({ where: { userId } }),
+    prisma.rTB.count({ where: { userId } }),
     prisma.research.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.segment.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.jTBD.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
@@ -50,12 +62,21 @@ export default async function Home() {
       where: { userId, pinned: true },
       orderBy: { updatedAt: 'desc' },
     }),
+    prisma.competitor.findMany({
+      where: { userId, pinned: true },
+      orderBy: { updatedAt: 'desc' },
+    }),
+    prisma.feature.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
+    prisma.rTB.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.product.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.research.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.segment.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.jTBD.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.hypothesis.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.conversation.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.competitor.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.feature.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.rTB.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
   ])
 
   const pinnedItems: FeedItem[] = [
@@ -88,6 +109,24 @@ export default async function Home() {
       title: c.title,
       kind: 'Разговор',
       updatedAt: c.updatedAt,
+    })),
+    ...pinnedCompetitors.map((c) => ({
+      href: `/competitors/${c.id}`,
+      title: c.name,
+      kind: 'Конкурент',
+      updatedAt: c.updatedAt,
+    })),
+    ...pinnedFeatures.map((f) => ({
+      href: `/features/${f.id}`,
+      title: f.name,
+      kind: 'Фича',
+      updatedAt: f.updatedAt,
+    })),
+    ...pinnedRTBs.map((r) => ({
+      href: `/rtb/${r.id}`,
+      title: r.statement,
+      kind: 'RTB',
+      updatedAt: r.updatedAt,
     })),
   ].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
 
@@ -134,6 +173,27 @@ export default async function Home() {
       updatedAt: c.updatedAt,
       createdAt: c.createdAt,
     })),
+    ...recentCompetitors.map((c) => ({
+      href: `/competitors/${c.id}`,
+      title: c.name,
+      kind: 'Конкурент',
+      updatedAt: c.updatedAt,
+      createdAt: c.createdAt,
+    })),
+    ...recentFeatures.map((f) => ({
+      href: `/features/${f.id}`,
+      title: f.name,
+      kind: 'Фича',
+      updatedAt: f.updatedAt,
+      createdAt: f.createdAt,
+    })),
+    ...recentRTBs.map((r) => ({
+      href: `/rtb/${r.id}`,
+      title: r.statement,
+      kind: 'RTB',
+      updatedAt: r.updatedAt,
+      createdAt: r.createdAt,
+    })),
   ]
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 15)
@@ -175,15 +235,33 @@ export default async function Home() {
       count: conversationCount,
       description: 'База CustDev-разговоров',
     },
+    {
+      href: '/competitors',
+      label: 'Конкуренты',
+      count: competitorCount,
+      description: 'Конкурентное окружение по продуктам',
+    },
+    {
+      href: '/features',
+      label: 'Фичи',
+      count: featureCount,
+      description: 'Как продукт закрывает JTBD',
+    },
+    {
+      href: '/rtb',
+      label: 'RTB',
+      count: rtbCount,
+      description: 'Маркетинговые обещания на основе фич',
+    },
   ]
 
   return (
     <main className="container py-12">
-      <h1 className="text-3xl font-bold mb-2">ECHO Platform</h1>
+      <h1 className="text-3xl font-bold mb-2">RPM Platform</h1>
       <p className="text-muted-foreground mb-8">
         Платформа для управления продуктовыми исследованиями и сегментами клиентов
       </p>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6 mb-10">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5 mb-10">
         {cards.map((card) => (
           <Link key={card.href} href={card.href}>
             <Card className="h-full hover:border-primary transition-colors">

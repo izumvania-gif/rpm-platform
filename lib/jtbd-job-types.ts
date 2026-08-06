@@ -22,10 +22,28 @@ export const jtbdJobTypeDescriptions: Record<JtbdJobType, string> = {
   MICRO_JOB: 'Узкая задача внутри малой или основной задачи.',
 }
 
+// Цвета читаются из CSS-переменных темы (app/globals.css: --jtbd-*), а не хардкодятся —
+// так у графа/бейджей есть согласованная тёмная тема, как и у остального UI.
 export const jtbdJobTypeColors: Record<JtbdJobType, { bg: string; text: string; border: string }> =
   {
-    BIG_JOB: { bg: '#EDE9FE', text: '#5B21B6', border: '#7C3AED' },
-    CORE_JOB: { bg: '#FEE2E2', text: '#991B1B', border: '#DC2626' },
-    SMALL_JOB: { bg: '#DBEAFE', text: '#1E3A8A', border: '#2563EB' },
-    MICRO_JOB: { bg: '#F1F5F9', text: '#334155', border: '#64748B' },
+    BIG_JOB: {
+      bg: 'hsl(var(--jtbd-big-bg))',
+      text: 'hsl(var(--jtbd-big-text))',
+      border: 'hsl(var(--jtbd-big-border))',
+    },
+    CORE_JOB: {
+      bg: 'hsl(var(--jtbd-core-bg))',
+      text: 'hsl(var(--jtbd-core-text))',
+      border: 'hsl(var(--jtbd-core-border))',
+    },
+    SMALL_JOB: {
+      bg: 'hsl(var(--jtbd-small-bg))',
+      text: 'hsl(var(--jtbd-small-text))',
+      border: 'hsl(var(--jtbd-small-border))',
+    },
+    MICRO_JOB: {
+      bg: 'hsl(var(--jtbd-micro-bg))',
+      text: 'hsl(var(--jtbd-micro-text))',
+      border: 'hsl(var(--jtbd-micro-border))',
+    },
   }

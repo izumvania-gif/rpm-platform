@@ -2,10 +2,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteRTB } from '@/lib/actions/rtbs'
+import { deleteRTB, toggleRTBPinned } from '@/lib/actions/rtbs'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 
@@ -20,6 +21,7 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
   if (!rtb) notFound()
 
   const deleteRTBWithId = deleteRTB.bind(null, rtb.id)
+  const toggleRTBPinnedWithId = toggleRTBPinned.bind(null, rtb.id, !rtb.pinned)
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
@@ -28,7 +30,14 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{rtb.statement}</h1>
           <div className="flex flex-wrap gap-2">
+            <PinButton pinned={rtb.pinned} action={toggleRTBPinnedWithId} />
             <CopyLinkButton />
+            <Link
+              href={`/rtb/new?productId=${rtb.product.id}&duplicateFrom=${rtb.id}`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              Дублировать
+            </Link>
             <Link href={`/rtb/${rtb.id}/edit`} className={buttonVariants({ variant: 'outline' })}>
               Редактировать
             </Link>

@@ -8,6 +8,7 @@ import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
+import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,11 @@ export default async function ConversationDetailPage({ params }: { params: { id:
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <RecentlyViewedTracker
+        href={`/conversations/${conversation.id}`}
+        title={conversation.title}
+        kind="Разговор"
+      />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{conversation.title}</h1>

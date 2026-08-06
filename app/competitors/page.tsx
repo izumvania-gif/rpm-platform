@@ -5,6 +5,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { toggleCompetitorPinned } from '@/lib/actions/competitors'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,7 +62,13 @@ export default async function CompetitorsPage({
             <Link key={competitor.id} href={`/competitors/${competitor.id}`}>
               <Card className="h-full hover:border-primary transition-colors">
                 <CardHeader>
-                  <CardTitle className="truncate">{competitor.name}</CardTitle>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="truncate">{competitor.name}</CardTitle>
+                    <PinButton
+                      pinned={competitor.pinned}
+                      action={toggleCompetitorPinned.bind(null, competitor.id, !competitor.pinned)}
+                    />
+                  </div>
                   <CardDescription>{competitor.product.name}</CardDescription>
                 </CardHeader>
                 <CardContent>

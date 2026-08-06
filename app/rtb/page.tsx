@@ -5,6 +5,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { PinButton } from '@/components/shared/pin-button'
+import { toggleRTBPinned } from '@/lib/actions/rtbs'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,7 +54,13 @@ export default async function RTBPage({ searchParams }: { searchParams: { sort?:
             <Link key={rtb.id} href={`/rtb/${rtb.id}`}>
               <Card className="h-full hover:border-primary transition-colors">
                 <CardHeader>
-                  <CardTitle className="line-clamp-3 text-base">{rtb.statement}</CardTitle>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="line-clamp-3 text-base">{rtb.statement}</CardTitle>
+                    <PinButton
+                      pinned={rtb.pinned}
+                      action={toggleRTBPinned.bind(null, rtb.id, !rtb.pinned)}
+                    />
+                  </div>
                   <CardDescription>
                     {rtb.product.name} · {rtb.features.length} фич
                   </CardDescription>

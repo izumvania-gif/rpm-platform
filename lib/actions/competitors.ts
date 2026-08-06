@@ -60,3 +60,10 @@ export async function deleteCompetitor(id: string) {
   revalidatePath('/competitors')
   redirect('/competitors')
 }
+
+export async function toggleCompetitorPinned(id: string, pinned: boolean) {
+  await prisma.competitor.update({ where: { id }, data: { pinned } })
+  revalidatePath('/competitors')
+  revalidatePath(`/competitors/${id}`)
+  revalidatePath('/')
+}

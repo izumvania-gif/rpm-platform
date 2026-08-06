@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteCompetitor } from '@/lib/actions/competitors'
+import { deleteCompetitor, toggleCompetitorPinned } from '@/lib/actions/competitors'
 import { buttonVariants } from '@/components/ui/button'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
@@ -20,6 +21,11 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
   if (!competitor) notFound()
 
   const deleteCompetitorWithId = deleteCompetitor.bind(null, competitor.id)
+  const toggleCompetitorPinnedWithId = toggleCompetitorPinned.bind(
+    null,
+    competitor.id,
+    !competitor.pinned
+  )
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
@@ -32,7 +38,14 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{competitor.name}</h1>
           <div className="flex flex-wrap gap-2">
+            <PinButton pinned={competitor.pinned} action={toggleCompetitorPinnedWithId} />
             <CopyLinkButton />
+            <Link
+              href={`/competitors/new?productId=${competitor.product.id}&duplicateFrom=${competitor.id}`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              Дублировать
+            </Link>
             <Link
               href={`/competitors/${competitor.id}/edit`}
               className={buttonVariants({ variant: 'outline' })}

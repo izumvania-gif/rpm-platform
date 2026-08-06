@@ -8,12 +8,18 @@ export const dynamic = 'force-dynamic'
 export default async function NewRTBPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
-  const [products, features] = await Promise.all([
+  const [products, features, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.feature.findMany({ where: { userId } }),
+    searchParams.duplicateFrom
+      ? prisma.rTB.findFirst({
+          where: { id: searchParams.duplicateFrom, userId },
+          include: { features: true },
+        })
+      : null,
   ])
 
   return (
@@ -28,7 +34,15 @@ export default async function NewRTBPage({
           action={createRTB}
           products={products}
           features={features}
-          defaultValues={{ productId: searchParams.productId }}
+          defaultValues={
+            duplicateSource
+              ? {
+                  ...duplicateSource,
+                  productId: searchParams.productId ?? duplicateSource.productId,
+                  featureIds: duplicateSource.features.map((f) => f.id),
+                }
+              : { productId: searchParams.productId }
+          }
           error={searchParams.error}
           submitLabel="Создать"
         />

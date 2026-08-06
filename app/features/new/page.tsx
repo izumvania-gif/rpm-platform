@@ -8,13 +8,19 @@ export const dynamic = 'force-dynamic'
 export default async function NewFeaturePage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
-  const [products, jtbds, rtbs] = await Promise.all([
+  const [products, jtbds, rtbs, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.jTBD.findMany({ where: { userId } }),
     prisma.rTB.findMany({ where: { userId } }),
+    searchParams.duplicateFrom
+      ? prisma.feature.findFirst({
+          where: { id: searchParams.duplicateFrom, userId },
+          include: { jtbds: true, rtbs: true },
+        })
+      : null,
   ])
 
   return (
@@ -30,7 +36,16 @@ export default async function NewFeaturePage({
           products={products}
           jtbds={jtbds}
           rtbs={rtbs}
-          defaultValues={{ productId: searchParams.productId }}
+          defaultValues={
+            duplicateSource
+              ? {
+                  ...duplicateSource,
+                  productId: searchParams.productId ?? duplicateSource.productId,
+                  jtbdIds: duplicateSource.jtbds.map((j) => j.id),
+                  rtbIds: duplicateSource.rtbs.map((r) => r.id),
+                }
+              : { productId: searchParams.productId }
+          }
           error={searchParams.error}
           submitLabel="Создать"
         />

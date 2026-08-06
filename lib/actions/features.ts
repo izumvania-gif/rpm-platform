@@ -68,3 +68,10 @@ export async function deleteFeature(id: string) {
   revalidatePath('/features')
   redirect('/features')
 }
+
+export async function toggleFeaturePinned(id: string, pinned: boolean) {
+  await prisma.feature.update({ where: { id }, data: { pinned } })
+  revalidatePath('/features')
+  revalidatePath(`/features/${id}`)
+  revalidatePath('/')
+}

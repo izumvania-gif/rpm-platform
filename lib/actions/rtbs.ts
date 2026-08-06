@@ -62,3 +62,10 @@ export async function deleteRTB(id: string) {
   revalidatePath('/rtb')
   redirect('/rtb')
 }
+
+export async function toggleRTBPinned(id: string, pinned: boolean) {
+  await prisma.rTB.update({ where: { id }, data: { pinned } })
+  revalidatePath('/rtb')
+  revalidatePath(`/rtb/${id}`)
+  revalidatePath('/')
+}

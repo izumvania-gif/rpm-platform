@@ -25,6 +25,20 @@
     --input: 214.3 25% 90%;
     --ring: 0 72.2% 50.6%;
     --radius: 0.5rem;
+
+    /* JTBD job-type badge/node colors (big/core/small/micro job) */
+    --jtbd-big-bg: 250 89% 96%;
+    --jtbd-big-text: 263 69% 42%;
+    --jtbd-big-border: 262 83% 58%;
+    --jtbd-core-bg: 0 93% 94%;
+    --jtbd-core-text: 0 70% 35%;
+    --jtbd-core-border: 0 72% 51%;
+    --jtbd-small-bg: 214 95% 93%;
+    --jtbd-small-text: 224 64% 33%;
+    --jtbd-small-border: 221 83% 53%;
+    --jtbd-micro-bg: 210 40% 96%;
+    --jtbd-micro-text: 215 25% 27%;
+    --jtbd-micro-border: 215 16% 47%;
   }
 
   .dark {
@@ -47,6 +61,20 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 0 72.2% 58%;
+
+    /* JTBD job-type badge/node colors (big/core/small/micro job) — dark variants */
+    --jtbd-big-bg: 263 40% 20%;
+    --jtbd-big-text: 263 90% 88%;
+    --jtbd-big-border: 262 70% 60%;
+    --jtbd-core-bg: 0 40% 20%;
+    --jtbd-core-text: 0 85% 88%;
+    --jtbd-core-border: 0 70% 55%;
+    --jtbd-small-bg: 221 40% 20%;
+    --jtbd-small-text: 214 85% 88%;
+    --jtbd-small-border: 221 70% 60%;
+    --jtbd-micro-bg: 215 20% 20%;
+    --jtbd-micro-text: 210 30% 85%;
+    --jtbd-micro-border: 215 16% 55%;
   }
 }
 

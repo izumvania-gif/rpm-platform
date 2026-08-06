@@ -27,7 +27,7 @@ export function SiteNav() {
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-primary" />
             <span className="text-lg font-bold tracking-tight">
-              ECHO<span className="text-primary">.</span>
+              RPM<span className="text-primary">.</span>
             </span>
           </Link>
           <nav className="flex min-w-0 gap-4 overflow-x-auto sm:gap-6">

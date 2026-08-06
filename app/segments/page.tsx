@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
+import { TagBadges } from '@/components/shared/tag-badges'
 import { toggleSegmentPinned } from '@/lib/actions/segments'
 
 export const dynamic = 'force-dynamic'
@@ -73,12 +74,13 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
                   </div>
                   <CardDescription>{segment.product.name}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-2">
                   {segment.audienceShare != null && (
                     <p className="text-sm text-muted-foreground">
                       {segment.audienceShare}% аудитории
                     </p>
                   )}
+                  <TagBadges tags={segment.tags} />
                 </CardContent>
               </Card>
             </Link>

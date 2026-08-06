@@ -265,6 +265,7 @@ model Competitor {
   url         String?
   positioning String?  @db.Text
   features    String[] // краткий список фич конкурента
+  pinned      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -305,6 +306,7 @@ model Feature {
   id          String   @id @default(cuid())
   name        String
   description String?  @db.Text
+  pinned      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -322,6 +324,7 @@ model Feature {
 model RTB {
   id        String   @id @default(cuid())
   statement String   @db.Text
+  pinned    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

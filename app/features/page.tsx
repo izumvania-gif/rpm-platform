@@ -4,7 +4,9 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { PinButton } from '@/components/shared/pin-button'
 import { FeatureFilterForm } from '@/components/forms/feature-filter-form'
+import { toggleFeaturePinned } from '@/lib/actions/features'
 
 export const dynamic = 'force-dynamic'
 
@@ -98,7 +100,13 @@ export default async function FeaturesPage({
             <Link key={feature.id} href={`/features/${feature.id}`}>
               <Card className="h-full hover:border-primary transition-colors">
                 <CardHeader>
-                  <CardTitle className="truncate">{feature.name}</CardTitle>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="truncate">{feature.name}</CardTitle>
+                    <PinButton
+                      pinned={feature.pinned}
+                      action={toggleFeaturePinned.bind(null, feature.id, !feature.pinned)}
+                    />
+                  </div>
                   <CardDescription>{feature.product.name}</CardDescription>
                 </CardHeader>
                 <CardContent>

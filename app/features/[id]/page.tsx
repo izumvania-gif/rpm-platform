@@ -2,10 +2,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteFeature } from '@/lib/actions/features'
+import { deleteFeature, toggleFeaturePinned } from '@/lib/actions/features'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 
@@ -20,6 +21,7 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
   if (!feature) notFound()
 
   const deleteFeatureWithId = deleteFeature.bind(null, feature.id)
+  const toggleFeaturePinnedWithId = toggleFeaturePinned.bind(null, feature.id, !feature.pinned)
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
@@ -28,7 +30,14 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{feature.name}</h1>
           <div className="flex flex-wrap gap-2">
+            <PinButton pinned={feature.pinned} action={toggleFeaturePinnedWithId} />
             <CopyLinkButton />
+            <Link
+              href={`/features/new?productId=${feature.product.id}&duplicateFrom=${feature.id}`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              Дублировать
+            </Link>
             <Link
               href={`/features/${feature.id}/edit`}
               className={buttonVariants({ variant: 'outline' })}

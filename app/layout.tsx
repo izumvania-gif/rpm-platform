@@ -7,7 +7,7 @@ import { KeyboardShortcuts } from '@/components/shared/keyboard-shortcuts'
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
 export const metadata: Metadata = {
-  title: 'ECHO Platform - Research & Product Management',
+  title: 'RPM Platform - Research & Product Management',
   description: 'Платформа для управления продуктовыми исследованиями и сегментами клиентов',
 }
 

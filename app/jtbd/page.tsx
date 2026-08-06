@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { JobTypeBadge } from '@/components/shared/job-type-badge'
+import { TagBadges } from '@/components/shared/tag-badges'
 import { toggleJtbdPinned } from '@/lib/actions/jtbd'
 import { jtbdJobTypeLabels } from '@/lib/jtbd-job-types'
 
@@ -83,6 +84,11 @@ export default async function JtbdPage() {
                         {jtbd.title}
                       </Link>
                       <p className="text-xs text-muted-foreground">{jtbd.product.name}</p>
+                      {jtbd.tags.length > 0 && (
+                        <div className="mt-1">
+                          <TagBadges tags={jtbd.tags} />
+                        </div>
+                      )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <JobTypeBadge jobType={jtbd.jobType} />

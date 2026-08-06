@@ -6,6 +6,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
+import { TagBadges } from '@/components/shared/tag-badges'
 import { toggleResearchPinned } from '@/lib/actions/research'
 import { statusLabels, typeLabels } from '@/lib/labels'
 import { ResearchFilterForm } from '@/components/forms/research-filter-form'
@@ -81,6 +82,7 @@ export default async function ResearchPage({
                 <th className="py-2 pr-4">Продукт</th>
                 <th className="py-2 pr-4">Тип</th>
                 <th className="py-2 pr-4">Статус</th>
+                <th className="py-2 pr-4">Теги</th>
                 <th className="py-2 pr-4">Дата</th>
               </tr>
             </thead>
@@ -109,6 +111,9 @@ export default async function ResearchPage({
                     <Badge variant={r.status === 'COMPLETED' ? 'default' : 'secondary'}>
                       {statusLabels[r.status]}
                     </Badge>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <TagBadges tags={r.tags} />
                   </td>
                   <td className="py-2 pr-4">{r.date.toLocaleDateString('ru-RU')}</td>
                 </tr>

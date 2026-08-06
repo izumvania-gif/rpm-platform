@@ -12,33 +12,37 @@ datasource db {
 
 // Пользователи
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   name         String?
   passwordHash String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  
-  products     Product[]
-  researches   Research[]
-  segments     Segment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products   Product[]
+  researches Research[]
+  segments   Segment[]
+  jtbds      JTBD[]
+  hypotheses Hypothesis[]
 }
 
 // Продукты
 model Product {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
-  slug        String     @unique
-  description String?    @db.Text
-  stage       Stage      @default(IDEA)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  researches  Research[]
-  segments    Segment[]
+  slug        String   @unique
+  description String?  @db.Text
+  stage       Stage    @default(IDEA)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  researches Research[]
+  segments   Segment[]
+  jtbds      JTBD[]
+  hypotheses Hypothesis[]
 }
 
 enum Stage {
@@ -60,12 +64,15 @@ model Research {
   tags        String[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
-  
-  productId   String
-  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  userId      String
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  jtbds      JTBD[]
+  hypotheses Hypothesis[]
 }
 
 enum ResearchStatus {
@@ -88,17 +95,77 @@ model Segment {
   id            String   @id @default(cuid())
   name          String
   slug          String
-  audienceShare Float?   // процент от 0 до 100
+  audienceShare Float? // процент от 0 до 100
   color         String   @default("#3B82F6")
   description   String?  @db.Text
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
-  productId     String
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  jtbds      JTBD[]
+  hypotheses Hypothesis[]
+
   @@unique([productId, slug])
+}
+
+// JTBD (Jobs-to-be-Done)
+model JTBD {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  description String?  @db.Text
+  confirmed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  segmentId String?
+  segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  researchId String?
+  research   Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  hypotheses Hypothesis[]
+}
+
+// Гипотезы
+model Hypothesis {
+  id        String           @id @default(cuid())
+  statement String           @db.Text
+  status    HypothesisStatus @default(DRAFT)
+  priority  Int?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  jtbdId String?
+  jtbd   JTBD?   @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
+
+  segmentId String?
+  segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  researchId String?
+  research   Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum HypothesisStatus {
+  DRAFT
+  IN_REVIEW
+  CONFIRMED
+  REJECTED
 }

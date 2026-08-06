@@ -14,6 +14,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
     include: {
       researches: { orderBy: { date: 'desc' } },
       segments: { orderBy: { createdAt: 'desc' } },
+      jtbds: { orderBy: { createdAt: 'desc' } },
+      hypotheses: { orderBy: { createdAt: 'desc' } },
     },
   })
 
@@ -91,6 +93,56 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               <li key={s.id}>
                 <Link href={`/segments/${s.id}`} className="text-sm hover:underline">
                   {s.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">JTBD ({product.jtbds.length})</h2>
+          <Link
+            href={`/jtbd/new?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Добавить JTBD
+          </Link>
+        </div>
+        {product.jtbds.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет JTBD.</p>
+        ) : (
+          <ul className="space-y-2">
+            {product.jtbds.map((j) => (
+              <li key={j.id}>
+                <Link href={`/jtbd/${j.id}`} className="text-sm hover:underline">
+                  {j.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Гипотезы ({product.hypotheses.length})</h2>
+          <Link
+            href={`/hypotheses/new?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Добавить гипотезу
+          </Link>
+        </div>
+        {product.hypotheses.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет гипотез.</p>
+        ) : (
+          <ul className="space-y-2">
+            {product.hypotheses.map((h) => (
+              <li key={h.id}>
+                <Link href={`/hypotheses/${h.id}`} className="text-sm hover:underline">
+                  {h.statement}
                 </Link>
               </li>
             ))}

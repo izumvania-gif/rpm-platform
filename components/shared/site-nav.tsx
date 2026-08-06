@@ -4,6 +4,8 @@ const links = [
   { href: '/products', label: 'Продукты' },
   { href: '/research', label: 'Исследования' },
   { href: '/segments', label: 'Сегменты' },
+  { href: '/jtbd', label: 'JTBD' },
+  { href: '/hypotheses', label: 'Гипотезы' },
 ]
 
 export function SiteNav() {

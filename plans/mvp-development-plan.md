@@ -1,9 +1,25 @@
 # План разработки MVP платформы ECHO
 
-**Версия:** 1.0  
-**Дата:** 3 августа 2026  
+**Версия:** 1.1 (обновлено по факту реализации)  
+**Дата:** 3 августа 2026, обновлено 6 августа 2026  
 **Режим разработки:** Solo-разработчик  
 **Технологический стек:** Next.js + Node.js + PostgreSQL + Python (AI)
+
+---
+
+## 0. Статус реализации и отклонения от плана
+
+Раздел описывает, что фактически построено и чем это отличается от плана ниже. Сам план (разделы 1–12) оставлен как есть для истории — актуальный статус см. здесь и в [чек-листе](./mvp-quick-start-checklist.md).
+
+**Готово:** Фаза 0 (инфраструктура), Фаза 2 (Продукты), Фаза 3 (Исследования), Фаза 4 (Сегменты), Фаза 5 (связи между модулями — частично), а также **JTBD и Гипотезы из P1** — реализованы раньше срока вместе с P0, т.к. они были явно запрошены до завершения Фазы 6.
+
+**Ключевые отклонения от плана:**
+
+1. **Фаза 1 (аутентификация) отложена, а не реализована.** Экранов логина/регистрации нет. Вместо этого при первом запуске (`npm run db:seed`) создаётся один пользователь-владелец (`prisma/seed.ts`), и все записи неявно принадлежат ему через `lib/current-user.ts#getCurrentUserId()`. Модель `User` и конфигурация NextAuth (`lib/auth.ts`) в коде оставлены нетронутыми — когда экран логина понадобится, `getCurrentUserId()` меняется на чтение сессии, без миграции схемы.
+2. **Архитектура API отличается от плана.** Вместо REST-эндпоинтов (`POST /api/products` и т.д.) и React Query используются **Server Components** для чтения (прямые запросы к Prisma в компонентах страниц) и **Server Actions** (`lib/actions/*.ts`) для мутаций. React Query и отдельные API-роуты для CRUD не используются — это сокращает объём кода примерно вдвое при той же функциональности. NextAuth-эндпоинт (`app/api/auth/[...nextauth]/route.ts`) — единственный настоящий API route в проекте.
+3. **JTBD и Гипотезы (раздел 9.1, P1) пришли раньше очереди.** Модели `JTBD` и `Hypothesis` в `prisma/schema.prisma`, полный CRUD, доска гипотез по статусам (упрощённый Kanban без drag-and-drop) — уже реализованы. Раздел 9.1 ниже устарел в этой части.
+4. **Фаза 6 (полировка) не начата.** Нет toast-уведомлений, loading-skeleton, `ErrorBoundary`. Есть только базовая обработка ошибок форм (сообщение об ошибке над формой) и `confirm()` перед удалением.
+5. **UI-библиотека:** компоненты shadcn/ui (`components/ui/*`) написаны вручную по образцу официального стиля, а не через `npx shadcn add` — CLI обращается к внешнему registry, недоступному в среде разработки на момент реализации.
 
 ---
 
@@ -29,29 +45,29 @@ graph TB
         C[TailwindCSS + shadcn/ui]
         D[React Query]
     end
-    
+
     subgraph "Backend"
         E[Next.js API Routes]
         F[Prisma ORM]
         G[NextAuth.js]
     end
-    
+
     subgraph "Database"
         H[(PostgreSQL 15+)]
     end
-    
+
     subgraph "AI Services - Phase 2"
         I[Python FastAPI]
         J[LangChain]
         K[OpenAI API]
     end
-    
+
     A --> E
     E --> F
     F --> H
     E --> G
     G --> H
-    
+
     style I fill:#f9f,stroke:#333,stroke-dasharray: 5 5
     style J fill:#f9f,stroke:#333,stroke-dasharray: 5 5
     style K fill:#f9f,stroke:#333,stroke-dasharray: 5 5
@@ -60,14 +76,16 @@ graph TB
 ### 1.2 Упрощения для MVP
 
 **Что ВКЛЮЧАЕМ в MVP:**
+
 - ✅ Монолитная архитектура (Next.js fullstack)
 - ✅ Один workspace (без мультитенантности)
-- ✅ Базовая аутентификация (email + password)
+- ⚠️ ~~Базовая аутентификация (email + password)~~ — отложена, см. раздел 0. Используется один seed-пользователь без экрана логина
 - ✅ Одна роль пользователя (admin)
 - ✅ Только русский язык интерфейса
 - ✅ Локальное хранилище файлов
 
 **Что ОТКЛАДЫВАЕМ на потом:**
+
 - ❌ AI-функции (Chat, генерация гипотез)
 - ❌ Мультиязычность (EN)
 - ❌ Интеграции (Яндекс.Метрика, LangFuse)
@@ -79,55 +97,89 @@ graph TB
 
 ## 2. Модули P0 для MVP
 
-### 2.1 Управление продуктами (P0)
+### 2.1 Управление продуктами (P0) — ✅ реализовано
 
 **Минимальный функционал:**
-- Создание одного продукта
-- Поля: название, slug, описание (RU), стадия
-- Редактирование профиля продукта
-- Просмотр профиля продукта
 
-**Технические детали:**
+- Создание одного продукта — ✅ (можно создавать сколько угодно, ограничения на "один продукт" нет)
+- Поля: название, slug, описание (RU), стадия — ✅
+- Редактирование профиля продукта — ✅
+- Просмотр профиля продукта — ✅ (плюс списки связанных исследований/сегментов/JTBD/гипотез)
+
+**Технические детали (по факту):**
+
 - Модель `Product` в Prisma
-- CRUD API endpoints
-- Форма создания/редактирования
-- Страница просмотра профиля
+- Server Actions (`lib/actions/products.ts`) вместо REST API
+- Форма создания/редактирования (`components/forms/product-form.tsx`) с автоподстановкой slug из названия (транслитерация кириллицы)
+- Страница просмотра профиля (`app/products/[id]/page.tsx`)
 
-### 2.2 Исследования (P0)
+### 2.2 Исследования (P0) — ✅ реализовано
 
 **Минимальный функционал:**
-- Создание исследования вручную
-- Поля: номер (автогенерация), название, дата, статус, тип, описание
-- Список исследований (табличный вид)
-- Просмотр карточки исследования
-- Редактирование и удаление
 
-**Технические детали:**
+- Создание исследования вручную — ✅
+- Поля: номер (автогенерация), название, дата, статус, тип, описание — ✅ (плюс теги)
+- Список исследований (табличный вид) — ✅
+- Просмотр карточки исследования — ✅
+- Редактирование и удаление — ✅
+
+**Технические детали (по факту):**
+
 - Модель `Research` в Prisma
-- CRUD API endpoints
-- Список с фильтрацией по статусу
-- Детальная страница исследования
+- Server Actions (`lib/actions/research.ts`)
+- Табличный список без фильтрации по статусу/типу (отложено — см. раздел 0)
+- Детальная страница исследования (`app/research/[id]/page.tsx`)
 
-### 2.3 Сегменты клиентов (P0)
+### 2.3 Сегменты клиентов (P0) — ✅ реализовано
 
 **Минимальный функционал:**
-- Создание сегмента
-- Поля: название, slug, доля аудитории (%), цветовая метка, описание
-- Список сегментов
-- Просмотр и редактирование сегмента
-- Привязка сегмента к продукту
+
+- Создание сегмента — ✅
+- Поля: название, slug, доля аудитории (%), цветовая метка, описание — ✅
+- Список сегментов — ✅
+- Просмотр и редактирование сегмента — ✅
+- Привязка сегмента к продукту — ✅
+
+**Технические детали (по факту):**
+
+- Модель `Segment` в Prisma
+- Server Actions (`lib/actions/segments.ts`)
+- Карточный вид сегментов
+- Цвет выбирается нативным `<input type="color">`, без предустановленной палитры
+
+### 2.4 JTBD (P1, реализовано раньше срока) — ✅ реализовано
+
+**Функционал:**
+
+- Формулировка, категория (с автодополнением по уже введённым категориям), комментарий
+- Флаг "подтверждён исследованием" + % покрытия на странице списка, сгруппированного по категориям
+- Необязательные связи с сегментом и исследованием, обязательная связь с продуктом
 
 **Технические детали:**
-- Модель `Segment` в Prisma
-- CRUD API endpoints
-- Карточный вид сегментов
-- Цветовые метки (предустановленные)
+
+- Модель `JTBD` в Prisma, Server Actions (`lib/actions/jtbd.ts`)
+- `app/jtbd/*` — список (группировка по категории), создание, детальная страница, редактирование
+
+### 2.5 Гипотезы (P1, реализовано раньше срока) — ✅ реализовано
+
+**Функционал:**
+
+- Формулировка, статус (черновик / на проверке / подтверждена / опровергнута), приоритет
+- Необязательные связи с JTBD, сегментом, исследованием, обязательная — с продуктом
+- Доска по статусам (упрощённый Kanban, 4 колонки, без drag-and-drop) + быстрая смена статуса кнопками на детальной странице
+
+**Технические детали:**
+
+- Модель `Hypothesis` в Prisma, Server Actions (`lib/actions/hypotheses.ts`)
+- `app/hypotheses/*` — доска, создание, детальная страница, редактирование
 
 ---
 
 ## 3. Структура базы данных
 
 ### 3.1 Схема Prisma (упрощенная для MVP)
+
+> Ниже — исходная плановая схема (User/Product/Research/Segment) плюс блоки JTBD/Hypothesis, добавленные по факту реализации. Актуальный источник истины — `prisma/schema.prisma`.
 
 ```prisma
 // Пользователи
@@ -138,7 +190,7 @@ model User {
   passwordHash  String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   products      Product[]
   researches    Research[]
   segments      Segment[]
@@ -153,10 +205,10 @@ model Product {
   stage       Stage    @default(IDEA)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   researches  Research[]
   segments    Segment[]
 }
@@ -180,10 +232,10 @@ model Research {
   tags        String[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
-  
+
   productId   String
   product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
+
   userId      String
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -213,27 +265,93 @@ model Segment {
   description     String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
   productId       String
   product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
+
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([productId, slug])
+}
+
+// JTBD (Jobs-to-be-Done) — добавлено по факту реализации, изначально планировалось в P1
+model JTBD {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  description String?  @db.Text
+  confirmed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  segmentId   String?
+  segment     Segment?  @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  researchId  String?
+  research    Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  hypotheses  Hypothesis[]
+}
+
+// Гипотезы — добавлено по факту реализации, изначально планировалось в P1
+model Hypothesis {
+  id         String           @id @default(cuid())
+  statement  String           @db.Text
+  status     HypothesisStatus @default(DRAFT)
+  priority   Int?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  jtbdId     String?
+  jtbd       JTBD?     @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
+
+  segmentId  String?
+  segment    Segment?  @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  researchId String?
+  research   Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
+
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum HypothesisStatus {
+  DRAFT
+  IN_REVIEW
+  CONFIRMED
+  REJECTED
 }
 ```
 
-### 3.2 ER-диаграмма MVP
+### 3.2 ER-диаграмма (актуальная, с JTBD/Hypothesis)
 
 ```mermaid
 erDiagram
     USER ||--o{ PRODUCT : creates
     USER ||--o{ RESEARCH : creates
     USER ||--o{ SEGMENT : creates
+    USER ||--o{ JTBD : creates
+    USER ||--o{ HYPOTHESIS : creates
     PRODUCT ||--o{ RESEARCH : contains
     PRODUCT ||--o{ SEGMENT : contains
-    
+    PRODUCT ||--o{ JTBD : contains
+    PRODUCT ||--o{ HYPOTHESIS : contains
+    SEGMENT |o--o{ JTBD : "optionally linked"
+    RESEARCH |o--o{ JTBD : "optionally linked"
+    SEGMENT |o--o{ HYPOTHESIS : "optionally linked"
+    RESEARCH |o--o{ HYPOTHESIS : "optionally linked"
+    JTBD |o--o{ HYPOTHESIS : "optionally linked"
+
     USER {
         string id PK
         string email UK
@@ -242,7 +360,7 @@ erDiagram
         datetime createdAt
         datetime updatedAt
     }
-    
+
     PRODUCT {
         string id PK
         string name
@@ -253,7 +371,7 @@ erDiagram
         datetime createdAt
         datetime updatedAt
     }
-    
+
     RESEARCH {
         string id PK
         int number
@@ -268,7 +386,7 @@ erDiagram
         datetime createdAt
         datetime updatedAt
     }
-    
+
     SEGMENT {
         string id PK
         string name
@@ -277,6 +395,34 @@ erDiagram
         string color
         text description
         string productId FK
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    JTBD {
+        string id PK
+        string title
+        string category
+        text description
+        boolean confirmed
+        string productId FK
+        string segmentId FK
+        string researchId FK
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    HYPOTHESIS {
+        string id PK
+        text statement
+        enum status
+        int priority
+        string productId FK
+        string jtbdId FK
+        string segmentId FK
+        string researchId FK
         string userId FK
         datetime createdAt
         datetime updatedAt
@@ -290,6 +436,7 @@ erDiagram
 ### Фаза 0: Подготовка инфраструктуры
 
 **Задачи:**
+
 - Инициализация Next.js проекта с TypeScript
 - Настройка Prisma + PostgreSQL
 - Настройка TailwindCSS + shadcn/ui
@@ -298,6 +445,7 @@ erDiagram
 - Создание базовой структуры проекта
 
 **Структура проекта:**
+
 ```
 rpm-platform/
 ├── src/
@@ -336,6 +484,7 @@ rpm-platform/
 ```
 
 **Ключевые библиотеки:**
+
 ```json
 {
   "dependencies": {
@@ -365,9 +514,12 @@ rpm-platform/
 
 ---
 
-### Фаза 1: Аутентификация и базовый UI
+### Фаза 1: Аутентификация и базовый UI — ⚠️ ОТЛОЖЕНА
 
-**Задачи:**
+Экраны логина/регистрации не строились. Вместо этого используется один seed-пользователь (`prisma/seed.ts`, `lib/current-user.ts`) — см. раздел 0 для деталей и обоснования. Базовый layout (шапка с навигацией) реализован в рамках Фазы 2, отдельного `DashboardLayout`/`Sidebar`/`Header` нет — навигация — это один компонент `components/shared/site-nav.tsx`.
+
+**Задачи (план, не выполнено):**
+
 - Реализация регистрации пользователя
 - Реализация входа/выхода
 - Создание защищенных маршрутов
@@ -375,6 +527,7 @@ rpm-platform/
 - Навигационное меню
 
 **Компоненты:**
+
 - `LoginForm` - форма входа
 - `RegisterForm` - форма регистрации
 - `DashboardLayout` - основной layout
@@ -382,14 +535,16 @@ rpm-platform/
 - `Header` - шапка с профилем пользователя
 
 **API endpoints:**
+
 - `POST /api/auth/register` - регистрация
 - NextAuth.js endpoints для аутентификации
 
 ---
 
-### Фаза 2: Модуль "Продукты"
+### Фаза 2: Модуль "Продукты" — ✅ ЗАВЕРШЕНА
 
 **Задачи:**
+
 - Создание модели Product в Prisma
 - API endpoints для CRUD операций
 - Форма создания продукта
@@ -397,32 +552,39 @@ rpm-platform/
 - Форма редактирования продукта
 
 **Компоненты:**
+
 - `ProductForm` - форма создания/редактирования
 - `ProductProfile` - страница профиля продукта
 - `ProductCard` - карточка продукта
 - `StageSelect` - выбор стадии продукта
 
-**API endpoints:**
-- `POST /api/products` - создание продукта
-- `GET /api/products/:id` - получение продукта
-- `PUT /api/products/:id` - обновление продукта
-- `DELETE /api/products/:id` - удаление продукта
+**API endpoints (план) → по факту Server Actions:**
+
+- ~~`POST /api/products`~~ → `createProduct(formData)` в `lib/actions/products.ts`
+- ~~`GET /api/products/:id`~~ → прямой запрос Prisma в `app/products/[id]/page.tsx` (Server Component)
+- ~~`PUT /api/products/:id`~~ → `updateProduct(id, formData)`
+- ~~`DELETE /api/products/:id`~~ → `deleteProduct(id)`
 
 **Валидация (Zod):**
+
 ```typescript
 const productSchema = z.object({
-  name: z.string().min(1, "Название обязательно"),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/, "Только латиница, цифры и дефис"),
+  name: z.string().min(1, 'Название обязательно'),
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/, 'Только латиница, цифры и дефис'),
   description: z.string().optional(),
-  stage: z.enum(["IDEA", "MVP", "GROWTH", "SCALE"])
-});
+  stage: z.enum(['IDEA', 'MVP', 'GROWTH', 'SCALE']),
+})
 ```
 
 ---
 
-### Фаза 3: Модуль "Исследования"
+### Фаза 3: Модуль "Исследования" — ✅ ЗАВЕРШЕНА (без фильтрации/поиска)
 
 **Задачи:**
+
 - Создание модели Research в Prisma
 - API endpoints для CRUD операций
 - Список исследований с фильтрацией
@@ -431,6 +593,7 @@ const productSchema = z.object({
 - Редактирование и удаление
 
 **Компоненты:**
+
 - `ResearchList` - список исследований
 - `ResearchForm` - форма создания/редактирования
 - `ResearchCard` - карточка исследования
@@ -438,24 +601,27 @@ const productSchema = z.object({
 - `ResearchFilters` - фильтры (по статусу, типу)
 - `StatusBadge` - бейдж статуса
 
-**API endpoints:**
-- `GET /api/researches` - список исследований (с фильтрами)
-- `POST /api/researches` - создание исследования
-- `GET /api/researches/:id` - получение исследования
-- `PUT /api/researches/:id` - обновление исследования
-- `DELETE /api/researches/:id` - удаление исследования
+**API endpoints (план) → по факту Server Actions:**
+
+- ~~`GET /api/researches`~~ → прямой запрос Prisma в `app/research/page.tsx`, без фильтров
+- ~~`POST /api/researches`~~ → `createResearch(formData)` в `lib/actions/research.ts`
+- ~~`GET /api/researches/:id`~~ → прямой запрос Prisma в `app/research/[id]/page.tsx`
+- ~~`PUT /api/researches/:id`~~ → `updateResearch(id, formData)`
+- ~~`DELETE /api/researches/:id`~~ → `deleteResearch(id)`
 
 **Функции:**
-- Автогенерация номера исследования
-- Фильтрация по статусу и типу
-- Сортировка по дате
-- Поиск по названию
+
+- Автогенерация номера исследования — ✅
+- ~~Фильтрация по статусу и типу~~ — не реализовано
+- Сортировка по дате — ✅
+- ~~Поиск по названию~~ — не реализовано
 
 ---
 
-### Фаза 4: Модуль "Сегменты"
+### Фаза 4: Модуль "Сегменты" — ✅ ЗАВЕРШЕНА (без предустановленной палитры)
 
 **Задачи:**
+
 - Создание модели Segment в Prisma
 - API endpoints для CRUD операций
 - Список сегментов (карточный вид)
@@ -464,49 +630,55 @@ const productSchema = z.object({
 - Цветовые метки
 
 **Компоненты:**
+
 - `SegmentList` - список сегментов
 - `SegmentForm` - форма создания/редактирования
 - `SegmentCard` - карточка сегмента
 - `SegmentDetail` - детальная страница
 - `ColorPicker` - выбор цвета
 
-**API endpoints:**
-- `GET /api/segments` - список сегментов
-- `POST /api/segments` - создание сегмента
-- `GET /api/segments/:id` - получение сегмента
-- `PUT /api/segments/:id` - обновление сегмента
-- `DELETE /api/segments/:id` - удаление сегмента
+**API endpoints (план) → по факту Server Actions:**
+
+- ~~`GET /api/segments`~~ → прямой запрос Prisma в `app/segments/page.tsx`
+- ~~`POST /api/segments`~~ → `createSegment(formData)` в `lib/actions/segments.ts`
+- ~~`GET /api/segments/:id`~~ → прямой запрос Prisma в `app/segments/[id]/page.tsx`
+- ~~`PUT /api/segments/:id`~~ → `updateSegment(id, formData)`
+- ~~`DELETE /api/segments/:id`~~ → `deleteSegment(id)`
 
 **Функции:**
-- Предустановленные цвета (8-10 вариантов)
-- Валидация доли аудитории (0-100%)
-- Уникальность slug в рамках продукта
+
+- ~~Предустановленные цвета (8-10 вариантов)~~ → нативный `<input type="color">`, произвольный выбор
+- Валидация доли аудитории (0-100%) — ✅
+- Уникальность slug в рамках продукта — ✅ (`@@unique([productId, slug])`)
 
 ---
 
-### Фаза 5: Связи между модулями
+### Фаза 5: Связи между модулями — ✅ ЗАВЕРШЕНА (без отдельной фильтрации списков)
 
 **Задачи:**
-- Привязка исследований к продукту
-- Привязка сегментов к продукту
-- Отображение связанных данных
-- Фильтрация по продукту
 
-**Компоненты:**
-- `ProductSelector` - выбор продукта в формах
-- `RelatedResearches` - список связанных исследований
-- `RelatedSegments` - список связанных сегментов
+- Привязка исследований к продукту — ✅
+- Привязка сегментов к продукту — ✅
+- Отображение связанных данных — ✅ (плюс JTBD и гипотезы)
+- ~~Фильтрация по продукту~~ — списки (`/research`, `/segments`, `/jtbd`, `/hypotheses`) показывают всё сразу, без глобального фильтра по продукту; связи видны через страницу продукта
+
+**Компоненты (по факту):**
+
+- ~~`ProductSelector`~~ отдельным переиспользуемым компонентом не выделен — выбор продукта встроен в каждую форму (`<Select name="productId">`), с клиентской фильтрацией зависимых полей (сегмент/исследование/JTBD) по выбранному продукту
+- Список связанных исследований/сегментов/JTBD/гипотез — прямо на `app/products/[id]/page.tsx`, без отдельных `RelatedResearches`/`RelatedSegments` компонентов
 
 **Функции:**
-- Каскадное удаление (при удалении продукта удаляются связанные данные)
-- Счетчики (количество исследований, сегментов в продукте)
-- Фильтрация списков по выбранному продукту
+
+- Каскадное удаление — ✅ (`onDelete: Cascade` от Product; `onDelete: SetNull` для необязательных связей Segment/Research у JTBD и Hypothesis)
+- Счетчики (количество исследований, сегментов, JTBD, гипотез в продукте) — ✅, также на дашборде
+- ~~Фильтрация списков по выбранному продукту~~ — не реализована
 
 ---
 
-### Фаза 6: Полировка и тестирование
+### Фаза 6: Полировка и тестирование — ❌ НЕ НАЧАТА
 
 **Задачи:**
+
 - Обработка ошибок и валидация
 - Loading states и skeleton screens
 - Пустые состояния (empty states)
@@ -516,6 +688,7 @@ const productSchema = z.object({
 - Ручное тестирование всех функций
 
 **Компоненты:**
+
 - `ErrorBoundary` - обработка ошибок
 - `LoadingSpinner` - индикатор загрузки
 - `EmptyState` - пустое состояние
@@ -523,6 +696,7 @@ const productSchema = z.object({
 - `Toast` - уведомления
 
 **Тестирование:**
+
 - Создание, редактирование, удаление всех сущностей
 - Валидация форм
 - Обработка ошибок API
@@ -532,51 +706,74 @@ const productSchema = z.object({
 
 ## 5. Milestone и чекпоинты
 
-### Milestone 1: Инфраструктура готова
+> Статус ✅/❌ ниже отражает фактическую реализацию, не план.
+
+### Milestone 1: Инфраструктура готова — ✅ ДОСТИГНУТ
+
 **Критерии:**
+
 - ✅ Проект инициализирован
 - ✅ База данных подключена
-- ✅ Аутентификация работает
+- ❌ Аутентификация — отложена (см. раздел 0)
 - ✅ Базовый UI создан
 
-### Milestone 2: Модуль "Продукты" работает
+### Milestone 2: Модуль "Продукты" работает — ✅ ДОСТИГНУТ
+
 **Критерии:**
+
 - ✅ Можно создать продукт
 - ✅ Можно просмотреть профиль продукта
 - ✅ Можно отредактировать продукт
 - ✅ Можно удалить продукт
 
-### Milestone 3: Модуль "Исследования" работает
+### Milestone 3: Модуль "Исследования" работает — ✅ ДОСТИГНУТ
+
 **Критерии:**
+
 - ✅ Можно создать исследование
 - ✅ Список исследований отображается
-- ✅ Фильтрация работает
+- ❌ Фильтрация — не реализована
 - ✅ Детальная страница работает
 - ✅ Редактирование и удаление работают
 
-### Milestone 4: Модуль "Сегменты" работает
+### Milestone 4: Модуль "Сегменты" работает — ✅ ДОСТИГНУТ
+
 **Критерии:**
+
 - ✅ Можно создать сегмент
 - ✅ Список сегментов отображается
 - ✅ Цветовые метки работают
 - ✅ Детальная страница работает
 - ✅ Редактирование и удаление работают
 
-### Milestone 5: MVP готов к использованию
+### Milestone 4.5: JTBD и Гипотезы работают (P1, реализовано раньше срока) — ✅ ДОСТИГНУТ
+
 **Критерии:**
-- ✅ Все модули P0 работают
+
+- ✅ Можно создать JTBD со связью с продуктом/сегментом/исследованием
+- ✅ Список JTBD сгруппирован по категориям с % подтверждения
+- ✅ Можно создать гипотезу со связью с продуктом/JTBD/сегментом/исследованием
+- ✅ Доска гипотез по статусам, быстрая смена статуса
+
+### Milestone 5: MVP готов к использованию — ⚠️ ЧАСТИЧНО
+
+**Критерии:**
+
+- ✅ Все модули P0 работают (плюс JTBD/Гипотезы из P1)
 - ✅ Связи между модулями работают
-- ✅ Обработка ошибок реализована
-- ✅ UI отполирован
-- ✅ Адаптивная верстка работает
-- ✅ Ручное тестирование пройдено
+- ⚠️ Обработка ошибок — только базовая (сообщения над формой, `confirm()` перед удалением), без toast/ErrorBoundary
+- ❌ UI не отполирован (Фаза 6 не начата)
+- ⚠️ Адаптивная верстка — не проверялась специально (используется Tailwind, но без ручного прохода по брейкпоинтам)
+- ⚠️ Ручное тестирование — пройдено через автоматизированный browser-flow (Playwright), не по сценариям раздела 7.1
 
 ---
 
 ## 6. Технические решения для ускорения разработки
 
 ### 6.1 UI компоненты
+
 **Использовать shadcn/ui** - готовые компоненты:
+
 - Button, Input, Select, Textarea
 - Dialog, Sheet, Popover
 - Table, Card, Badge
@@ -584,26 +781,34 @@ const productSchema = z.object({
 - Toast (для уведомлений)
 
 ### 6.2 Формы
+
 **React Hook Form + Zod:**
+
 - Автоматическая валидация
 - Типобезопасность
 - Минимум кода
 
 ### 6.3 Работа с API
+
 **React Query (TanStack Query):**
+
 - Кеширование запросов
 - Автоматическая ревалидация
 - Optimistic updates
 - Loading и error states из коробки
 
 ### 6.4 Стилизация
+
 **TailwindCSS:**
+
 - Быстрая разработка UI
 - Консистентный дизайн
 - Адаптивность из коробки
 
 ### 6.5 База данных
+
 **Prisma ORM:**
+
 - Типобезопасные запросы
 - Автоматические миграции
 - Prisma Studio для отладки
@@ -615,12 +820,14 @@ const productSchema = z.object({
 ### 7.1 Ручное тестирование
 
 **Сценарий 1: Регистрация и вход**
+
 1. Зарегистрировать нового пользователя
 2. Выйти из системы
 3. Войти с созданными учетными данными
 4. Проверить, что данные пользователя отображаются
 
 **Сценарий 2: Работа с продуктом**
+
 1. Создать новый продукт
 2. Просмотреть профиль продукта
 3. Отредактировать продукт
@@ -628,6 +835,7 @@ const productSchema = z.object({
 5. Попытаться создать продукт с дублирующимся slug (должна быть ошибка)
 
 **Сценарий 3: Работа с исследованиями**
+
 1. Создать исследование для продукта
 2. Проверить, что номер автоматически сгенерирован
 3. Просмотреть список исследований
@@ -637,6 +845,7 @@ const productSchema = z.object({
 7. Удалить исследование (с подтверждением)
 
 **Сценарий 4: Работа с сегментами**
+
 1. Создать сегмент для продукта
 2. Выбрать цветовую метку
 3. Просмотреть список сегментов
@@ -645,6 +854,7 @@ const productSchema = z.object({
 6. Удалить сегмент
 
 **Сценарий 5: Связи между модулями**
+
 1. Создать продукт
 2. Создать несколько исследований для этого продукта
 3. Создать несколько сегментов для этого продукта
@@ -707,18 +917,23 @@ const productSchema = z.object({
 ### 9.1 Приоритет P1 (следующая итерация)
 
 **Модули для добавления:**
-- JTBD (Jobs-to-be-Done)
-- Разговоры (CustDev)
-- Гипотезы
+
+- ~~JTBD (Jobs-to-be-Done)~~ — ✅ реализовано, см. раздел 2.4
+- Разговоры (CustDev) — осталось сделать
+- ~~Гипотезы~~ — ✅ реализовано, см. раздел 2.5
+- Аутентификация (Фаза 1 из исходного плана) — осталось сделать, когда понадобится больше одного пользователя
+- Выводы ("findings") исследований и дорожная карта/timeline-вид для исследований — из функциональных требований, не начаты
 
 **Связи:**
-- Привязка JTBD к сегментам и исследованиям
-- Привязка разговоров к исследованиям и сегментам
-- Привязка гипотез к JTBD
+
+- ~~Привязка JTBD к сегментам и исследованиям~~ — ✅ реализовано
+- Привязка разговоров к исследованиям и сегментам — осталось сделать
+- ~~Привязка гипотез к JTBD~~ — ✅ реализовано (плюс к сегменту и исследованию)
 
 ### 9.2 Приоритет P2 (AI-функции)
 
 **AI-инфраструктура:**
+
 - Настройка Python FastAPI сервиса
 - Интеграция с OpenAI API
 - Реализация RAG (Retrieval-Augmented Generation)
@@ -728,12 +943,14 @@ const productSchema = z.object({
 ### 9.3 Улучшения платформы
 
 **Функциональные:**
+
 - Мультипродуктовость (переключение между продуктами)
 - Ролевая модель (admin, analyst, viewer)
 - Экспорт данных (PDF, CSV)
 - Дашборд с метриками
 
 **Технические:**
+
 - Миграция на мультитенантность
 - Интеграции (Яндекс.Метрика, LangFuse)
 - Мультиязычность (EN)
@@ -819,6 +1036,7 @@ const productSchema = z.object({
 Этот план разработки MVP платформы ECHO оптимизирован для solo-разработчика и фокусируется на быстром создании работающего продукта с минимальным, но функциональным набором возможностей.
 
 **Ключевые принципы:**
+
 - 🎯 Фокус на P0 модулях
 - ⚡ Использование готовых решений для ускорения
 - 🔄 Итеративная разработка с четкими milestone

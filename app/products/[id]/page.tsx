@@ -16,6 +16,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       segments: { orderBy: { createdAt: 'desc' } },
       jtbds: { orderBy: { createdAt: 'desc' } },
       hypotheses: { orderBy: { createdAt: 'desc' } },
+      conversations: { orderBy: { date: 'desc' } },
     },
   })
 
@@ -143,6 +144,31 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               <li key={h.id}>
                 <Link href={`/hypotheses/${h.id}`} className="text-sm hover:underline">
                   {h.statement}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Разговоры ({product.conversations.length})</h2>
+          <Link
+            href={`/conversations/new?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Добавить разговор
+          </Link>
+        </div>
+        {product.conversations.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет разговоров.</p>
+        ) : (
+          <ul className="space-y-2">
+            {product.conversations.map((c) => (
+              <li key={c.id}>
+                <Link href={`/conversations/${c.id}`} className="text-sm hover:underline">
+                  {c.title}
                 </Link>
               </li>
             ))}

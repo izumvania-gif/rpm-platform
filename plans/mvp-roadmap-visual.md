@@ -147,15 +147,19 @@ erDiagram
     USER ||--o{ SEGMENT : creates
     USER ||--o{ JTBD : creates
     USER ||--o{ HYPOTHESIS : creates
+    USER ||--o{ CONVERSATION : creates
     PRODUCT ||--o{ RESEARCH : contains
     PRODUCT ||--o{ SEGMENT : contains
     PRODUCT ||--o{ JTBD : contains
     PRODUCT ||--o{ HYPOTHESIS : contains
+    PRODUCT ||--o{ CONVERSATION : contains
     SEGMENT |o--o{ JTBD : "optional"
     RESEARCH |o--o{ JTBD : "optional"
     SEGMENT |o--o{ HYPOTHESIS : "optional"
     RESEARCH |o--o{ HYPOTHESIS : "optional"
     JTBD |o--o{ HYPOTHESIS : "optional"
+    SEGMENT |o--o{ CONVERSATION : "optional"
+    RESEARCH |o--o{ CONVERSATION : "optional"
 
     USER {
         string id PK
@@ -213,6 +217,17 @@ erDiagram
         int priority
         string productId FK
         string jtbdId FK
+        string segmentId FK
+        string researchId FK
+        string userId FK
+    }
+
+    CONVERSATION {
+        string id PK
+        string title
+        text transcript
+        datetime date
+        string productId FK
         string segmentId FK
         string researchId FK
         string userId FK
@@ -354,6 +369,7 @@ graph TB
         MVP6[Базовый UI]
         MVP7[JTBD — из P1, раньше срока]
         MVP8[Гипотезы — из P1, раньше срока]
+        MVP9[Разговоры CustDev — из P1, раньше срока]
     end
 
     subgraph "⚠️ Сознательно отложено"
@@ -363,8 +379,8 @@ graph TB
     end
 
     subgraph "❌ Отложено на P1 (осталось)"
-        P1_2[Разговоры CustDev]
         P1_4[Дашборд метрик]
+        P1_5[Выводы исследований + timeline-вид]
     end
 
     subgraph "❌ Отложено на P2"
@@ -388,13 +404,14 @@ graph TB
     style MVP6 fill:#c8e6c9
     style MVP7 fill:#c8e6c9
     style MVP8 fill:#c8e6c9
+    style MVP9 fill:#c8e6c9
 
     style D1 fill:#ffe0b2
     style D2 fill:#ffe0b2
     style D3 fill:#ffe0b2
 
-    style P1_2 fill:#fff9c4
     style P1_4 fill:#fff9c4
+    style P1_5 fill:#fff9c4
 
     style P2_1 fill:#ffccbc
     style P2_2 fill:#ffccbc

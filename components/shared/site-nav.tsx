@@ -6,6 +6,7 @@ const links = [
   { href: '/segments', label: 'Сегменты' },
   { href: '/jtbd', label: 'JTBD' },
   { href: '/hypotheses', label: 'Гипотезы' },
+  { href: '/conversations', label: 'Разговоры' },
 ]
 
 export function SiteNav() {

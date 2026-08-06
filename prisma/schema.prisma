@@ -19,11 +19,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  products   Product[]
-  researches Research[]
-  segments   Segment[]
-  jtbds      JTBD[]
-  hypotheses Hypothesis[]
+  products      Product[]
+  researches    Research[]
+  segments      Segment[]
+  jtbds         JTBD[]
+  hypotheses    Hypothesis[]
+  conversations Conversation[]
 }
 
 // Продукты
@@ -39,10 +40,11 @@ model Product {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  researches Research[]
-  segments   Segment[]
-  jtbds      JTBD[]
-  hypotheses Hypothesis[]
+  researches    Research[]
+  segments      Segment[]
+  jtbds         JTBD[]
+  hypotheses    Hypothesis[]
+  conversations Conversation[]
 }
 
 enum Stage {
@@ -71,8 +73,9 @@ model Research {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  jtbds      JTBD[]
-  hypotheses Hypothesis[]
+  jtbds         JTBD[]
+  hypotheses    Hypothesis[]
+  conversations Conversation[]
 }
 
 enum ResearchStatus {
@@ -107,8 +110,9 @@ model Segment {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  jtbds      JTBD[]
-  hypotheses Hypothesis[]
+  jtbds         JTBD[]
+  hypotheses    Hypothesis[]
+  conversations Conversation[]
 
   @@unique([productId, slug])
 }
@@ -168,4 +172,27 @@ enum HypothesisStatus {
   IN_REVIEW
   CONFIRMED
   REJECTED
+}
+
+// Разговоры (CustDev)
+model Conversation {
+  id         String   @id @default(cuid())
+  title      String
+  transcript String?  @db.Text
+  date       DateTime @default(now())
+  tags       String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  segmentId String?
+  segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  researchId String?
+  research   Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

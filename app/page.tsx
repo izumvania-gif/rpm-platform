@@ -7,15 +7,15 @@ export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const userId = getCurrentUserId()
-  const [productCount, researchCount, segmentCount, jtbdCount, hypothesisCount] = await Promise.all(
-    [
+  const [productCount, researchCount, segmentCount, jtbdCount, hypothesisCount, conversationCount] =
+    await Promise.all([
       prisma.product.count({ where: { userId } }),
       prisma.research.count({ where: { userId } }),
       prisma.segment.count({ where: { userId } }),
       prisma.jTBD.count({ where: { userId } }),
       prisma.hypothesis.count({ where: { userId } }),
-    ]
-  )
+      prisma.conversation.count({ where: { userId } }),
+    ])
 
   const cards = [
     {
@@ -48,6 +48,12 @@ export default async function Home() {
       count: hypothesisCount,
       description: 'Пайплайн гипотез по статусам',
     },
+    {
+      href: '/conversations',
+      label: 'Разговоры',
+      count: conversationCount,
+      description: 'База CustDev-разговоров',
+    },
   ]
 
   return (
@@ -56,7 +62,7 @@ export default async function Home() {
       <p className="text-muted-foreground mb-8">
         Платформа для управления продуктовыми исследованиями и сегментами клиентов
       </p>
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {cards.map((card) => (
           <Link key={card.href} href={card.href}>
             <Card className="h-full hover:border-primary transition-colors">

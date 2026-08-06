@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/shared/submit-button'
 
 export function DeleteButton({
   action,
@@ -16,9 +16,9 @@ export function DeleteButton({
         if (!confirm(confirmMessage)) e.preventDefault()
       }}
     >
-      <Button type="submit" variant="destructive">
+      <SubmitButton variant="destructive" pendingText="Удаление...">
         Удалить
-      </Button>
+      </SubmitButton>
     </form>
   )
 }

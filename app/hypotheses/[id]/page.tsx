@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteHypothesis, updateHypothesisStatus } from '@/lib/actions/hypotheses'
-import { buttonVariants, Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { SubmitButton } from '@/components/shared/submit-button'
 import { hypothesisStatusLabels, hypothesisStatusOrder } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
@@ -77,14 +78,14 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
             const setStatus = updateHypothesisStatus.bind(null, hypothesis.id, status)
             return (
               <form key={status} action={setStatus}>
-                <Button
-                  type="submit"
+                <SubmitButton
                   variant={status === hypothesis.status ? 'default' : 'outline'}
                   size="sm"
                   disabled={status === hypothesis.status}
+                  pendingText="..."
                 >
                   {hypothesisStatusLabels[status]}
-                </Button>
+                </SubmitButton>
               </form>
             )
           })}

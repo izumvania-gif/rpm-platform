@@ -5,34 +5,27 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { optionalString } from '@/lib/validation'
 
 const jtbdSchema = z.object({
   title: z.string().trim().min(1, 'Формулировка обязательна'),
   category: z.string().trim().min(1, 'Категория обязательна'),
-  description: z.string().trim().optional(),
+  description: optionalString(),
   confirmed: z.coerce.boolean(),
   productId: z.string().trim().min(1, 'Продукт обязателен'),
-  segmentId: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  researchId: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+  segmentId: optionalString(),
+  researchId: optionalString(),
 })
 
 function parseJtbdForm(formData: FormData) {
   return jtbdSchema.safeParse({
     title: formData.get('title'),
     category: formData.get('category'),
-    description: formData.get('description') || undefined,
+    description: formData.get('description'),
     confirmed: formData.get('confirmed') === 'on',
     productId: formData.get('productId'),
-    segmentId: formData.get('segmentId') ?? '',
-    researchId: formData.get('researchId') ?? '',
+    segmentId: formData.get('segmentId'),
+    researchId: formData.get('researchId'),
   })
 }
 

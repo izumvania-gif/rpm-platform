@@ -12,16 +12,16 @@ const links = [
 export function SiteNav() {
   return (
     <header className="border-b">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-semibold">
+      <div className="container flex h-16 items-center justify-between gap-4">
+        <Link href="/" className="shrink-0 text-lg font-semibold">
           ECHO
         </Link>
-        <nav className="flex gap-6">
+        <nav className="flex min-w-0 gap-4 overflow-x-auto sm:gap-6">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+              className="shrink-0 whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               {link.label}
             </Link>

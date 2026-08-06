@@ -8,7 +8,7 @@ import {
   type Research,
   type Segment,
 } from '@prisma/client'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -152,7 +152,7 @@ export function HypothesisForm({
           </Select>
         </div>
       </div>
-      <Button type="submit">{submitLabel}</Button>
+      <SubmitButton>{submitLabel}</SubmitButton>
     </form>
   )
 }

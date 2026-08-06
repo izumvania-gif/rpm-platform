@@ -5,34 +5,27 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { optionalString } from '@/lib/validation'
 
 const conversationSchema = z.object({
   title: z.string().trim().min(1, 'Название обязательно'),
-  transcript: z.string().trim().optional(),
+  transcript: optionalString(),
   date: z.coerce.date(),
-  tags: z.string().trim().optional(),
+  tags: optionalString(),
   productId: z.string().trim().min(1, 'Продукт обязателен'),
-  segmentId: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  researchId: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+  segmentId: optionalString(),
+  researchId: optionalString(),
 })
 
 function parseConversationForm(formData: FormData) {
   return conversationSchema.safeParse({
     title: formData.get('title'),
-    transcript: formData.get('transcript') || undefined,
+    transcript: formData.get('transcript'),
     date: formData.get('date'),
-    tags: formData.get('tags') || undefined,
+    tags: formData.get('tags'),
     productId: formData.get('productId'),
-    segmentId: formData.get('segmentId') ?? '',
-    researchId: formData.get('researchId') ?? '',
+    segmentId: formData.get('segmentId'),
+    researchId: formData.get('researchId'),
   })
 }
 

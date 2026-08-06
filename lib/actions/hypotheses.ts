@@ -6,42 +6,27 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { optionalNumber, optionalString } from '@/lib/validation'
 
 const hypothesisSchema = z.object({
   statement: z.string().trim().min(1, 'Формулировка обязательна'),
   status: z.nativeEnum(HypothesisStatus),
-  priority: z.coerce
-    .number()
-    .int()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+  priority: optionalNumber(z.coerce.number().int()),
   productId: z.string().trim().min(1, 'Продукт обязателен'),
-  jtbdId: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  segmentId: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  researchId: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+  jtbdId: optionalString(),
+  segmentId: optionalString(),
+  researchId: optionalString(),
 })
 
 function parseHypothesisForm(formData: FormData) {
   return hypothesisSchema.safeParse({
     statement: formData.get('statement'),
     status: formData.get('status'),
-    priority: formData.get('priority') ?? '',
+    priority: formData.get('priority'),
     productId: formData.get('productId'),
-    jtbdId: formData.get('jtbdId') ?? '',
-    segmentId: formData.get('segmentId') ?? '',
-    researchId: formData.get('researchId') ?? '',
+    jtbdId: formData.get('jtbdId'),
+    segmentId: formData.get('segmentId'),
+    researchId: formData.get('researchId'),
   })
 }
 

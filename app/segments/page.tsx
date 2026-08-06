@@ -28,7 +28,7 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">Сегменты</h1>
         <Link href="/segments/new" className={buttonVariants()}>
           Новый сегмент
@@ -53,7 +53,7 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
       {segments.length === 0 ? (
         <p className="text-muted-foreground">Сегментов пока нет.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {segments.map((segment) => (
             <Link key={segment.id} href={`/segments/${segment.id}`}>
               <Card className="h-full hover:border-primary transition-colors">

@@ -27,7 +27,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">Продукты</h1>
         <Link href="/products/new" className={buttonVariants()}>
           Новый продукт
@@ -53,7 +53,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
       {products.length === 0 ? (
         <p className="text-muted-foreground">Продуктов пока нет. Создайте первый продукт.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <Link key={product.id} href={`/products/${product.id}`}>
               <Card className="h-full hover:border-primary transition-colors">

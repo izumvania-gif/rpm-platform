@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateRTB } from '@/lib/actions/rtbs'
 import { RTBForm } from '@/components/forms/rtb-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditRTBPage({
   params,
   searchParams,

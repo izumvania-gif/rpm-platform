@@ -8,9 +8,15 @@ import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { toggleResearchPinned } from '@/lib/actions/research'
 import { statusLabels, typeLabels } from '@/lib/labels'
-import { ResearchFilterForm, RESEARCH_SORT_OPTIONS } from '@/components/forms/research-filter-form'
+import { ResearchFilterForm } from '@/components/forms/research-filter-form'
 
 export const dynamic = 'force-dynamic'
+
+const SORT_OPTIONS = [
+  { value: 'date_desc', label: 'Сначала новые' },
+  { value: 'date_asc', label: 'Сначала старые' },
+  { value: 'title_asc', label: 'По названию' },
+]
 
 export default async function ResearchPage({
   searchParams,
@@ -20,7 +26,7 @@ export default async function ResearchPage({
   const userId = getCurrentUserId()
   const status = Object.values(ResearchStatus).find((s) => s === searchParams.status)
   const type = Object.values(ResearchType).find((t) => t === searchParams.type)
-  const sort = RESEARCH_SORT_OPTIONS.some((o) => o.value === searchParams.sort)
+  const sort = SORT_OPTIONS.some((o) => o.value === searchParams.sort)
     ? (searchParams.sort as string)
     : 'date_desc'
 
@@ -39,7 +45,7 @@ export default async function ResearchPage({
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">Исследования</h1>
         <Link href="/research/new" className={buttonVariants()}>
           Новое исследование
@@ -47,7 +53,7 @@ export default async function ResearchPage({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
-        <ResearchFilterForm status={status} type={type} sort={sort} />
+        <ResearchFilterForm status={status} type={type} sort={sort} sortOptions={SORT_OPTIONS} />
         <CsvExportButton
           filename="research.csv"
           rows={researches.map((r) => ({

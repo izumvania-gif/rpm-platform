@@ -19,7 +19,7 @@ export default async function HypothesesPage() {
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">Гипотезы</h1>
         <Link href="/hypotheses/new" className={buttonVariants()}>
           Новая гипотеза
@@ -42,7 +42,7 @@ export default async function HypothesesPage() {
               }))}
             />
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {hypothesisStatusOrder.map((status) => {
               const items = hypotheses.filter((h) => h.status === status)
               return (

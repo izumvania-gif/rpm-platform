@@ -33,6 +33,7 @@ export default async function NewSegmentPage({
             duplicateSource
               ? {
                   ...duplicateSource,
+                  slug: `${duplicateSource.slug}-copy`,
                   productId: searchParams.productId ?? duplicateSource.productId,
                 }
               : { productId: searchParams.productId }

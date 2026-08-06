@@ -34,11 +34,11 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
         kind="Исследование"
       />
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">
             #{research.number} {research.title}
           </h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <PinButton pinned={research.pinned} action={toggleResearchPinnedWithId} />
             <CopyLinkButton />
             <Link

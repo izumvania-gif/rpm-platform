@@ -13,6 +13,8 @@ import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-track
 import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const product = await prisma.product.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
@@ -71,9 +73,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       <RecentlyViewedTracker href={`/products/${product.id}`} title={product.name} kind="Продукт" />
       {isNearEmpty && <WelcomeChecklist productId={product.id} items={checklistItems} />}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{product.name}</h1>
-          <div className="flex gap-2 print:hidden">
+          <div className="flex flex-wrap gap-2 print:hidden">
             <PrintButton />
             <CopyLinkButton />
             <Link

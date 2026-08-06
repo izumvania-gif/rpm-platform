@@ -24,9 +24,9 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
     <main className="container py-12 max-w-2xl space-y-6">
       <RecentlyViewedTracker href={`/features/${feature.id}`} title={feature.name} kind="Фича" />
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{feature.name}</h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <CopyLinkButton />
             <Link
               href={`/features/${feature.id}/edit`}

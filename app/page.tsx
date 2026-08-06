@@ -183,7 +183,7 @@ export default async function Home() {
       <p className="text-muted-foreground mb-8">
         Платформа для управления продуктовыми исследованиями и сегментами клиентов
       </p>
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6 mb-10">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6 mb-10">
         {cards.map((card) => (
           <Link key={card.href} href={card.href}>
             <Card className="h-full hover:border-primary transition-colors">
@@ -225,11 +225,13 @@ export default async function Home() {
           <ul className="space-y-2">
             {activityItems.map((item) => (
               <li key={item.href} className="flex items-center gap-2 text-sm">
-                <Badge variant="outline">{item.kind}</Badge>
-                <Link href={item.href} className="hover:underline">
+                <Badge variant="outline" className="shrink-0">
+                  {item.kind}
+                </Badge>
+                <Link href={item.href} className="min-w-0 flex-1 truncate hover:underline">
                   {item.title}
                 </Link>
-                <span className="text-muted-foreground">
+                <span className="shrink-0 text-muted-foreground">
                   {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
                     ? 'создано'
                     : 'обновлено'}{' '}

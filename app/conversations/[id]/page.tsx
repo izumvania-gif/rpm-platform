@@ -29,9 +29,9 @@ export default async function ConversationDetailPage({ params }: { params: { id:
   return (
     <main className="container py-12 max-w-2xl space-y-6">
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{conversation.title}</h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <PinButton pinned={conversation.pinned} action={toggleConversationPinnedWithId} />
             <CopyLinkButton />
             <Link

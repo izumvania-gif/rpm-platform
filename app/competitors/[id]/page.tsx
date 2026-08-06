@@ -29,9 +29,9 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
         kind="Конкурент"
       />
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{competitor.name}</h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <CopyLinkButton />
             <Link
               href={`/competitors/${competitor.id}/edit`}

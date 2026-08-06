@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateResearch } from '@/lib/actions/research'
 import { ResearchForm } from '@/components/forms/research-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditResearchPage({
   params,
   searchParams,

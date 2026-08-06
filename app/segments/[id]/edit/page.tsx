@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateSegment } from '@/lib/actions/segments'
 import { SegmentForm } from '@/components/forms/segment-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditSegmentPage({
   params,
   searchParams,

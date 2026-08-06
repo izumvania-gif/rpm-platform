@@ -29,9 +29,9 @@ export default async function JtbdDetailPage({ params }: { params: { id: string 
     <main className="container py-12 max-w-2xl space-y-6">
       <RecentlyViewedTracker href={`/jtbd/${jtbd.id}`} title={jtbd.title} kind="JTBD" />
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{jtbd.title}</h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <PinButton pinned={jtbd.pinned} action={toggleJtbdPinnedWithId} />
             <CopyLinkButton />
             <Link

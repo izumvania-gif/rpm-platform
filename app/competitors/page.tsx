@@ -30,7 +30,7 @@ export default async function CompetitorsPage({
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">Конкуренты</h1>
         <Link href="/competitors/new" className={buttonVariants()}>
           Новый конкурент
@@ -55,7 +55,7 @@ export default async function CompetitorsPage({
       {competitors.length === 0 ? (
         <p className="text-muted-foreground">Конкурентов пока нет.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {competitors.map((competitor) => (
             <Link key={competitor.id} href={`/competitors/${competitor.id}`}>
               <Card className="h-full hover:border-primary transition-colors">

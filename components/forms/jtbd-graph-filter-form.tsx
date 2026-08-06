@@ -19,6 +19,7 @@ export function JtbdGraphFilterForm({
       <Select
         name="productId"
         defaultValue={productId}
+        aria-label="Продукт"
         className="w-auto"
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >
@@ -31,6 +32,7 @@ export function JtbdGraphFilterForm({
       <Select
         name="category"
         defaultValue={category ?? ''}
+        aria-label="Категория"
         className="w-auto"
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >

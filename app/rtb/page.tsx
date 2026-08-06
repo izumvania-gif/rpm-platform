@@ -23,7 +23,7 @@ export default async function RTBPage({ searchParams }: { searchParams: { sort?:
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">RTB</h1>
         <Link href="/rtb/new" className={buttonVariants()}>
           Новый RTB
@@ -47,7 +47,7 @@ export default async function RTBPage({ searchParams }: { searchParams: { sort?:
       {rtbs.length === 0 ? (
         <p className="text-muted-foreground">RTB пока нет.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rtbs.map((rtb) => (
             <Link key={rtb.id} href={`/rtb/${rtb.id}`}>
               <Card className="h-full hover:border-primary transition-colors">

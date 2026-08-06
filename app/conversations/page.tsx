@@ -40,7 +40,7 @@ export default async function ConversationsPage({
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">Разговоры</h1>
         <Link href="/conversations/new" className={buttonVariants()}>
           Новый разговор

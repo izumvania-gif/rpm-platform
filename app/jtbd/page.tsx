@@ -28,9 +28,9 @@ export default async function JtbdPage() {
 
   return (
     <main className="container py-12">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <h1 className="text-2xl font-bold">JTBD</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href="/jtbd/graph" className={buttonVariants({ variant: 'outline' })}>
             Граф JTBD
           </Link>
@@ -73,15 +73,15 @@ export default async function JtbdPage() {
                 {items.map((jtbd) => (
                   <li
                     key={jtbd.id}
-                    className="flex items-start justify-between gap-4 rounded-md border p-3"
+                    className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 rounded-md border p-3"
                   >
-                    <div>
+                    <div className="min-w-0">
                       <Link href={`/jtbd/${jtbd.id}`} className="hover:underline">
                         {jtbd.title}
                       </Link>
                       <p className="text-xs text-muted-foreground">{jtbd.product.name}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       {jtbd.confirmed && <Badge variant="secondary">Подтверждён</Badge>}
                       <PinButton
                         pinned={jtbd.pinned}

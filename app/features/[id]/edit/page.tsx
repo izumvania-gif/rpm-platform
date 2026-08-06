@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateFeature } from '@/lib/actions/features'
 import { FeatureForm } from '@/components/forms/feature-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditFeaturePage({
   params,
   searchParams,

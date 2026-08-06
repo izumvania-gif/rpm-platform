@@ -27,7 +27,7 @@ export default async function SegmentDetailPage({ params }: { params: { id: stri
     <main className="container py-12 max-w-2xl space-y-6">
       <RecentlyViewedTracker href={`/segments/${segment.id}`} title={segment.name} kind="Сегмент" />
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <span
               className="h-4 w-4 rounded-full shrink-0"
@@ -35,7 +35,7 @@ export default async function SegmentDetailPage({ params }: { params: { id: stri
             />
             <h1 className="text-2xl font-bold">{segment.name}</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <PinButton pinned={segment.pinned} action={toggleSegmentPinnedWithId} />
             <CopyLinkButton />
             <Link

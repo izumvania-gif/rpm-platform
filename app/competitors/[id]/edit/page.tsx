@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateCompetitor } from '@/lib/actions/competitors'
 import { CompetitorForm } from '@/components/forms/competitor-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditCompetitorPage({
   params,
   searchParams,

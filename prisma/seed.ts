@@ -726,6 +726,49 @@ async function seedDemoProduct(userId: string) {
     },
   })
 
+  await prisma.insight.create({
+    data: {
+      text:
+        '«Единого реестра нет. Часть сертификатов — в Excel, часть знает только конкретный ' +
+        'инженер. Полной картины нет ни у кого.»',
+      tags: ['цитата', 'учёт'],
+      pinned: true,
+      productId: product.id,
+      segmentId: segments.banks.id,
+      jtbdId: jtbds.inventory.id,
+      researchId: researches.interviews.id,
+      userId,
+      createdAt: daysAgo(58),
+    },
+  })
+  await prisma.insight.create({
+    data: {
+      text:
+        'Вывод: высокая готовность обсуждать пилот — есть выделенный бюджет на ИБ-инициативы ' +
+        'в этом квартале у банков топ-30.',
+      tags: ['вывод', 'бюджет'],
+      productId: product.id,
+      segmentId: segments.banks.id,
+      researchId: researches.interviews.id,
+      userId,
+      createdAt: daysAgo(58),
+    },
+  })
+  await prisma.insight.create({
+    data: {
+      text:
+        'Вывод: потребность в контроле сессионных сертификатов у промышленного холдинга есть, ' +
+        'но осознана только частично — решение пока не выбрано.',
+      tags: ['вывод', 'ib'],
+      productId: product.id,
+      segmentId: segments.industry.id,
+      jtbdId: jtbds.infosec.id,
+      researchId: researches.interviews.id,
+      userId,
+      createdAt: daysAgo(52),
+    },
+  })
+
   console.log('Демо-продукт «Рутокен CLM» создан.')
 }
 

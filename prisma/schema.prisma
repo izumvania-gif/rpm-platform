@@ -29,6 +29,7 @@ model User {
   productResources ProductResource[]
   features         Feature[]
   rtbs             RTB[]
+  insights         Insight[]
 }
 
 // Продукты
@@ -53,6 +54,7 @@ model Product {
   productResources ProductResource[]
   features         Feature[]
   rtbs             RTB[]
+  insights         Insight[]
 }
 
 enum Stage {
@@ -85,6 +87,7 @@ model Research {
   jtbds         JTBD[]
   hypotheses    Hypothesis[]
   conversations Conversation[]
+  insights      Insight[]
 }
 
 enum ResearchStatus {
@@ -124,6 +127,7 @@ model Segment {
   jtbds         JTBD[]
   hypotheses    Hypothesis[]
   conversations Conversation[]
+  insights      Insight[]
 
   @@unique([productId, slug])
 }
@@ -167,6 +171,7 @@ model JTBD {
 
   hypotheses Hypothesis[]
   features   Feature[]
+  insights   Insight[]
 
   parentId String?
   parent   JTBD?   @relation("JtbdHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
@@ -256,6 +261,8 @@ model Conversation {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  insights Insight[]
 }
 
 // Конкуренты
@@ -335,4 +342,33 @@ model RTB {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   features Feature[]
+}
+
+// Атомарные инсайты — цитата или вывод из исследования/разговора, с привязкой
+// к сегменту/JTBD (вместо того чтобы держать всё внутри одного транскрипта Conversation)
+model Insight {
+  id        String   @id @default(cuid())
+  text      String   @db.Text
+  tags      String[]
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  segmentId String?
+  segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  jtbdId String?
+  jtbd   JTBD? @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
+
+  researchId String?
+  research   Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
+
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

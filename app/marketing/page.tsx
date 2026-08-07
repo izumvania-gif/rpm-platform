@@ -12,11 +12,7 @@ export const dynamic = 'force-dynamic'
 
 const SORT_OPTIONS = [{ value: 'created_desc', label: 'Сначала новые' }]
 
-export default async function MarketingPage({
-  searchParams,
-}: {
-  searchParams: { sort?: string }
-}) {
+export default async function MarketingPage({ searchParams }: { searchParams: { sort?: string } }) {
   const sort = SORT_OPTIONS.some((o) => o.value === searchParams.sort)
     ? (searchParams.sort as string)
     : 'created_desc'
@@ -29,7 +25,8 @@ export default async function MarketingPage({
 
   const byProduct = new Map<string, { name: string; items: typeof rtbs }>()
   for (const rtb of rtbs) {
-    if (!byProduct.has(rtb.productId)) byProduct.set(rtb.productId, { name: rtb.product.name, items: [] })
+    if (!byProduct.has(rtb.productId))
+      byProduct.set(rtb.productId, { name: rtb.product.name, items: [] })
     byProduct.get(rtb.productId)!.items.push(rtb)
   }
   const groups = Array.from(byProduct.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
@@ -53,7 +50,8 @@ export default async function MarketingPage({
               <SortControl current={sort} options={SORT_OPTIONS} label="Сортировка" />
             </form>
             <p className="text-sm text-muted-foreground">
-              {groups.length} {groups.length === 1 ? 'продукт' : 'продуктов'} · {rtbs.length} записей
+              {groups.length} {groups.length === 1 ? 'продукт' : 'продуктов'} · {rtbs.length}{' '}
+              записей
             </p>
           </div>
           <CsvExportButton

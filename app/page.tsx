@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
 import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget'
 
 export const dynamic = 'force-dynamic'
@@ -27,6 +28,7 @@ export default async function Home() {
     competitorCount,
     featureCount,
     rtbCount,
+    insightCount,
     pinnedResearch,
     pinnedSegments,
     pinnedJtbds,
@@ -35,6 +37,7 @@ export default async function Home() {
     pinnedCompetitors,
     pinnedFeatures,
     pinnedRTBs,
+    pinnedInsights,
     recentProducts,
     recentResearch,
     recentSegments,
@@ -44,6 +47,7 @@ export default async function Home() {
     recentCompetitors,
     recentFeatures,
     recentRTBs,
+    recentInsights,
   ] = await Promise.all([
     prisma.product.count({ where: { userId } }),
     prisma.research.count({ where: { userId } }),
@@ -54,6 +58,7 @@ export default async function Home() {
     prisma.competitor.count({ where: { userId } }),
     prisma.feature.count({ where: { userId } }),
     prisma.rTB.count({ where: { userId } }),
+    prisma.insight.count({ where: { userId } }),
     prisma.research.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.segment.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.jTBD.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
@@ -68,6 +73,7 @@ export default async function Home() {
     }),
     prisma.feature.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.rTB.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
+    prisma.insight.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.product.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.research.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.segment.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
@@ -77,6 +83,7 @@ export default async function Home() {
     prisma.competitor.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.feature.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.rTB.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
+    prisma.insight.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
   ])
 
   const pinnedItems: FeedItem[] = [
@@ -127,6 +134,12 @@ export default async function Home() {
       title: r.statement,
       kind: 'RTB',
       updatedAt: r.updatedAt,
+    })),
+    ...pinnedInsights.map((i) => ({
+      href: `/insights/${i.id}`,
+      title: i.text,
+      kind: 'Инсайт',
+      updatedAt: i.updatedAt,
     })),
   ].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
 
@@ -194,6 +207,13 @@ export default async function Home() {
       updatedAt: r.updatedAt,
       createdAt: r.createdAt,
     })),
+    ...recentInsights.map((i) => ({
+      href: `/insights/${i.id}`,
+      title: i.text,
+      kind: 'Инсайт',
+      updatedAt: i.updatedAt,
+      createdAt: i.createdAt,
+    })),
   ]
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 15)
@@ -253,6 +273,12 @@ export default async function Home() {
       count: rtbCount,
       description: 'Маркетинговые обещания (RTB) на основе фич',
     },
+    {
+      href: '/insights',
+      label: 'Инсайты',
+      count: insightCount,
+      description: 'Атомарные цитаты и выводы из исследований',
+    },
   ]
 
   return (
@@ -275,6 +301,12 @@ export default async function Home() {
             </Card>
           </Link>
         ))}
+      </div>
+
+      <div className="mb-10">
+        <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+          Отчёты: матрица Сегменты × JTBD, пробелы →
+        </Link>
       </div>
 
       <RecentlyViewedWidget />

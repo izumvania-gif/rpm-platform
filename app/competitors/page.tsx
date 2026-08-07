@@ -59,8 +59,8 @@ export default async function CompetitorsPage({
               <SortControl current={sort} options={SORT_OPTIONS} label="Сортировка" />
             </form>
             <p className="text-sm text-muted-foreground">
-              {groups.length} {groups.length === 1 ? 'продукт' : 'продуктов'} ·{' '}
-              {competitors.length} записей
+              {groups.length} {groups.length === 1 ? 'продукт' : 'продуктов'} · {competitors.length}{' '}
+              записей
             </p>
           </div>
           <CsvExportButton

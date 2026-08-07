@@ -85,6 +85,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       productResources: { orderBy: { createdAt: 'desc' } },
       features: { orderBy: { createdAt: 'desc' } },
       rtbs: { orderBy: { createdAt: 'desc' } },
+      insights: { orderBy: { createdAt: 'desc' } },
     },
   })
 
@@ -209,6 +210,17 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             items={product.conversations.map((c) => ({
               href: `/conversations/${c.id}`,
               label: c.title,
+            }))}
+          />
+          <ProductSection
+            title="Инсайты"
+            count={product.insights.length}
+            addHref={`/insights/new?productId=${product.id}`}
+            addLabel="Добавить инсайт"
+            emptyLabel="Пока нет инсайтов."
+            items={product.insights.map((i) => ({
+              href: `/insights/${i.id}`,
+              label: i.text,
             }))}
           />
         </div>

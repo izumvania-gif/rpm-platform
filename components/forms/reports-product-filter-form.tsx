@@ -3,7 +3,7 @@
 import type { Product } from '@prisma/client'
 import { Select } from '@/components/ui/select'
 
-export function InsightsProductFilterForm({
+export function ReportsProductFilterForm({
   products,
   productId,
 }: {

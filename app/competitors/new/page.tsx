@@ -31,7 +31,10 @@ export default async function NewCompetitorPage({
           products={products}
           defaultValues={
             duplicateSource
-              ? { ...duplicateSource, productId: searchParams.productId ?? duplicateSource.productId }
+              ? {
+                  ...duplicateSource,
+                  productId: searchParams.productId ?? duplicateSource.productId,
+                }
               : { productId: searchParams.productId }
           }
           error={searchParams.error}

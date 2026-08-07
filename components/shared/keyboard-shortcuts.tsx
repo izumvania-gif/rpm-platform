@@ -13,6 +13,7 @@ const NEW_ROUTES: [string, string][] = [
   ['/competitors', '/competitors/new'],
   ['/features', '/features/new'],
   ['/marketing', '/marketing/new'],
+  ['/insights', '/insights/new'],
 ]
 
 const GOTO_ROUTES: Record<string, string> = {
@@ -25,6 +26,7 @@ const GOTO_ROUTES: Record<string, string> = {
   c: '/conversations',
   f: '/features',
   m: '/marketing',
+  i: '/insights',
 }
 
 function isTypingTarget(target: EventTarget | null) {

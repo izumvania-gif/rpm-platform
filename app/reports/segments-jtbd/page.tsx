@@ -1,7 +1,7 @@
 import type { Product } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { InsightsProductFilterForm } from '@/components/forms/insights-product-filter-form'
+import { ReportsProductFilterForm } from '@/components/forms/reports-product-filter-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,9 +21,8 @@ export default async function SegmentsJtbdMatrixPage({
       <div>
         <h1 className="text-2xl font-bold mb-2">Матрица: Сегменты × JTBD</h1>
         <p className="text-sm text-muted-foreground">
-          Какие задачи есть у каждого сегмента и насколько это подтверждено исследованиями.
-          Столбцы — категории JTBD, ячейка — «подтверждено / всего» задач сегмента в этой
-          категории.
+          Какие задачи есть у каждого сегмента и насколько это подтверждено исследованиями. Столбцы
+          — категории JTBD, ячейка — «подтверждено / всего» задач сегмента в этой категории.
         </p>
       </div>
 
@@ -99,12 +98,12 @@ async function MatrixSection({ productId, products }: { productId: string; produ
 
   return (
     <div className="space-y-4">
-      <InsightsProductFilterForm products={products} productId={productId} />
+      <ReportsProductFilterForm products={products} productId={productId} />
 
       {rows.length === 0 || categories.length === 0 ? (
         <p className="text-muted-foreground">
-          У этого продукта пока нет сегментов и JTBD одновременно — добавьте хотя бы по одной
-          записи каждого типа, чтобы построить матрицу.
+          У этого продукта пока нет сегментов и JTBD одновременно — добавьте хотя бы по одной записи
+          каждого типа, чтобы построить матрицу.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-md border">

@@ -50,7 +50,7 @@ export default async function JtbdPage() {
           </p>
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/insights/segments-jtbd"
+              href="/reports/segments-jtbd"
               className={buttonVariants({ variant: 'outline', size: 'sm' })}
             >
               Матрица Сегменты × JTBD

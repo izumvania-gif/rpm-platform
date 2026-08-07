@@ -48,17 +48,25 @@ export default async function JtbdPage() {
             {byCategory.size} {byCategory.size === 1 ? 'категория' : 'категорий'} · {jtbds.length}{' '}
             записей · {coverage}% подтверждено исследованиями
           </p>
-          <CsvExportButton
-            filename="jtbd.csv"
-            rows={jtbds.map((j) => ({
-              category: j.category,
-              jobType: jtbdJobTypeLabels[j.jobType],
-              title: j.title,
-              product: j.product.name,
-              confirmed: j.confirmed ? 'да' : 'нет',
-              tags: j.tags.join('; '),
-            }))}
-          />
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/insights/segments-jtbd"
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            >
+              Матрица Сегменты × JTBD
+            </Link>
+            <CsvExportButton
+              filename="jtbd.csv"
+              rows={jtbds.map((j) => ({
+                category: j.category,
+                jobType: jtbdJobTypeLabels[j.jobType],
+                title: j.title,
+                product: j.product.name,
+                confirmed: j.confirmed ? 'да' : 'нет',
+                tags: j.tags.join('; '),
+              }))}
+            />
+          </div>
         </div>
       )}
 

@@ -31,9 +31,17 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
     <main className="container py-12">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h1 className="text-2xl font-bold">Сегменты</h1>
-        <Link href="/segments/new" className={buttonVariants()}>
-          Новый сегмент
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/insights/segments-jtbd"
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            Матрица Сегменты × JTBD
+          </Link>
+          <Link href="/segments/new" className={buttonVariants()}>
+            Новый сегмент
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 mb-6">

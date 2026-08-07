@@ -1,5 +1,5 @@
 import { JtbdJobType } from '@prisma/client'
-import { signalToneColors } from '@/lib/signal-colors'
+import { signalToneColors, type SignalTone } from '@/lib/signal-colors'
 
 export const jtbdJobTypeOrder: JtbdJobType[] = [
   JtbdJobType.BIG_JOB,
@@ -33,3 +33,13 @@ export const jtbdJobTypeColors: Record<JtbdJobType, { bg: string; text: string; 
     SMALL_JOB: signalToneColors.blue,
     MICRO_JOB: signalToneColors.slate,
   }
+
+// Same mapping, as a SignalTone (Badge variant name) rather than resolved
+// colors — for callers building on top of <Badge variant={...}> (Фаза 2)
+// instead of inline styles.
+export const jtbdJobTypeTone: Record<JtbdJobType, SignalTone> = {
+  BIG_JOB: 'violet',
+  CORE_JOB: 'red',
+  SMALL_JOB: 'blue',
+  MICRO_JOB: 'slate',
+}

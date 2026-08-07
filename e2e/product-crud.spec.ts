@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, uniqueName } from './helpers'
+import { createProductViaUI, selectRadixOption, uniqueName } from './helpers'
 
 test('create, inline-edit, and delete a product', async ({ page }) => {
   const name = uniqueName('E2E Product')
@@ -30,9 +30,14 @@ test('create a product via the full edit form and change its stage', async ({ pa
   await page.goto('/products/new')
   await page.getByLabel('Название').fill(name)
   await page.getByLabel('Slug (eng)').fill(`e2e-${Date.now()}`)
-  await page.getByLabel('Стадия').selectOption('GROWTH')
+  await selectRadixOption(page, page.getByLabel('Стадия'), 'Рост')
   await page.getByRole('button', { name: 'Создать', exact: true }).click()
   await page.waitForURL(/\/products\/[^/]+$/)
 
-  await expect(page.getByText('Рост')).toBeVisible()
+  // Not getByText: Radix Select renders a visually-hidden (but not
+  // aria-hidden-excluded-from-DOM-text-search) native <select> mirror for
+  // native form/autofill fallback (components/ui/select.tsx), so a plain
+  // text search also matches that hidden option. getByRole respects
+  // aria-hidden and only resolves the one real, visible control.
+  await expect(page.getByRole('button', { name: 'Рост' })).toBeVisible()
 })

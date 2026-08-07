@@ -28,14 +28,16 @@ function ModuleTile({
   count: number
   tone?: SignalTone
 }) {
+  const Icon = module.icon
+  const accent = tone ? signalToneColors[tone].border : 'hsl(var(--primary))'
   return (
     <Link href={module.href}>
-      <Card
-        className="h-full border-t-4 shadow-sm transition-shadow hover:shadow-md"
-        style={{ borderTopColor: tone ? signalToneColors[tone].border : 'hsl(var(--primary))' }}
-      >
+      <Card variant="tile" className="h-full border-t-4" style={{ borderTopColor: accent }}>
         <CardHeader>
-          <CardTitle>{module.label}</CardTitle>
+          <div className="flex items-center gap-2">
+            <Icon size={16} style={{ color: accent }} strokeWidth={1.75} />
+            <CardTitle>{module.label}</CardTitle>
+          </div>
           <CardDescription>{module.description}</CardDescription>
         </CardHeader>
         <CardContent>

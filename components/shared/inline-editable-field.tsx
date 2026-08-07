@@ -61,7 +61,10 @@ export function InlineEditableField({
   const [isPending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const selectRef = useRef<HTMLSelectElement>(null)
+  // Targets the visible Radix trigger button (components/ui/select.tsx forwards
+  // its ref there, not to the hidden native <select> used for form submission)
+  // so entering edit mode moves keyboard focus somewhere the user can act on.
+  const selectRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!editing) return

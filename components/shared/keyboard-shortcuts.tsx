@@ -33,7 +33,16 @@ const GOTO_ROUTES: Record<string, string> = {
 function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false
   const tag = target.tagName
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable
+  // components/ui/select.tsx (Radix, Фаза 2) renders its visible, focusable
+  // control as a <button role="combobox"> rather than a native <select> — the
+  // tag check alone no longer catches it.
+  return (
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    tag === 'SELECT' ||
+    target.getAttribute('role') === 'combobox' ||
+    target.isContentEditable
+  )
 }
 
 export function KeyboardShortcuts() {

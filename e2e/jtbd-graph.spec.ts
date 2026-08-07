@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { createProductViaUI, selectOptionRobust, selectRadixOption, uniqueName } from './helpers'
 
 test('list/graph tab switcher and adding a JTBD node from the graph canvas', async ({ page }) => {
   const productName = uniqueName('Graph Product')
@@ -58,7 +58,8 @@ test('list/graph tab switcher and adding a JTBD node from the graph canvas', asy
 
 test('multi-segment JTBD gets an independent graph per segment', async ({ page }) => {
   const productName = uniqueName('Segmented Graph Product')
-  await createProductViaUI(page, productName)
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
 
   const segmentA = uniqueName('Segment A')
   await page.goto('/segments/new')
@@ -77,8 +78,11 @@ test('multi-segment JTBD gets an independent graph per segment', async ({ page }
   await page.waitForURL(/\/jtbd\/[^/]+$/)
   await expect(page.getByRole('heading', { name: jtbdTitle })).toBeVisible()
 
-  await page.goto('/jtbd/graph')
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
-  await page.getByLabel('Граф').selectOption({ label: segmentA })
+  // Navigate straight to the graph for our product via query param rather
+  // than clicking through the filter form's product <select> — see the
+  // comment on the test above documenting the same dev-mode hydration race
+  // with that specific interaction on this page.
+  await page.goto(`/jtbd/graph?productId=${productId}`)
+  await selectRadixOption(page, page.getByLabel('Граф'), segmentA)
   await expect(page.getByText(jtbdTitle)).toBeVisible()
 })

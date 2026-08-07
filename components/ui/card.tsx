@@ -1,13 +1,33 @@
 import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
-      {...props}
-    />
+// Two patterns instead of one flat `border + shadow-sm` default (Фаза 2,
+// plans/visual-redesign-plan.md §6): "content" cards (forms, detail-page
+// sections) sit flush against the page with just a hairline border — no
+// shadow, since they're not something you interact with as a unit. "tile"
+// cards (dashboard modules) are clickable-as-a-whole, so they get a resting
+// shadow that lifts further on hover — the shadow signals "this is a button",
+// which a static content card should never imply.
+const cardVariants = cva('rounded-lg border bg-card text-card-foreground', {
+  variants: {
+    variant: {
+      content: 'shadow-none',
+      tile: 'shadow-sm transition-shadow hover:shadow-md',
+    },
+  },
+  defaultVariants: {
+    variant: 'content',
+  },
+})
+
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, ...props }, ref) => (
+    <div ref={ref} className={cn(cardVariants({ variant }), className)} {...props} />
   )
 )
 Card.displayName = 'Card'

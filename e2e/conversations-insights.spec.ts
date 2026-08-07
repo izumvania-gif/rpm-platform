@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { createProductViaUI, selectOptionRobust, selectRadixOption, uniqueName } from './helpers'
 
 test('a conversation links to an insight created from it', async ({ page }) => {
   const productName = uniqueName('Conv Product')
@@ -18,7 +18,7 @@ test('a conversation links to an insight created from it', async ({ page }) => {
   await page.goto('/insights/new')
   await page.getByLabel('Цитата или вывод').fill(insightText)
   await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
-  await page.getByLabel('Разговор').selectOption({ label: convTitle })
+  await selectRadixOption(page, page.getByLabel('Разговор'), convTitle)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/insights\/[^/]+$/)
   await expect(page.getByText(insightText)).toBeVisible()

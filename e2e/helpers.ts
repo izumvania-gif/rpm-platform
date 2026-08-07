@@ -26,34 +26,54 @@ export async function createProductViaUI(page: Page, name: string): Promise<stri
 }
 
 /**
- * Selects an option by label, reloading the page a few times first if the
- * option isn't there yet. Next dev-mode has occasionally shown a record
- * created moments earlier missing from the very next page's server-rendered
- * <select> — reproducible only mid-suite, never in isolation, and never for
- * data that's had more than a beat to settle, which points at a dev-server
- * HMR/fast-refresh timing hiccup rather than a real data-consistency bug (the
- * write itself is already covered directly by the integration test suite).
+ * components/ui/select.tsx is a Radix Select (Фаза 2, plans/visual-redesign-plan.md)
+ * — a styled trigger button + a portal-rendered listbox, not a native
+ * <select>, so Playwright's built-in `.selectOption()` doesn't apply. Click
+ * the trigger (found by its label same as before), then click the matching
+ * `role="option"` — Radix renders the listbox in a portal appended to
+ * <body>, which `page.getByRole` reaches regardless of where the trigger
+ * itself lives in the tree.
+ */
+export async function selectRadixOption(
+  page: Page,
+  trigger: ReturnType<Page['getByLabel']>,
+  optionLabel: string
+): Promise<void> {
+  await trigger.click()
+  await page.getByRole('option', { name: optionLabel, exact: true }).click()
+}
+
+/**
+ * Same as selectRadixOption, but reopens the trigger and retries (reloading
+ * the page first) a few times if the option isn't there yet. Next dev-mode
+ * has occasionally shown a record created moments earlier missing from the
+ * very next page's server-rendered options — reproducible only mid-suite,
+ * never in isolation, and never for data that's had more than a beat to
+ * settle, which points at a dev-server HMR/fast-refresh timing hiccup rather
+ * than a real data-consistency bug (the write itself is already covered
+ * directly by the integration test suite).
  */
 export async function selectOptionRobust(
   page: Page,
-  select: ReturnType<Page['getByLabel']>,
-  label: string
+  trigger: ReturnType<Page['getByLabel']>,
+  optionLabel: string
 ): Promise<void> {
   for (let attempt = 0; attempt < 4; attempt++) {
     if (attempt > 0) {
       await page.reload()
       await page.waitForTimeout(300)
     }
-    const found = await select
-      .locator('option', { hasText: label })
-      .count()
-      .then((n) => n > 0)
+    await trigger.click()
+    const option = page.getByRole('option', { name: optionLabel, exact: true })
+    const found = await option.count().then((n) => n > 0)
     if (found) {
-      await select.selectOption({ label })
+      await option.click()
       return
     }
+    await page.keyboard.press('Escape')
   }
-  // Let the normal selectOption timeout/error fire with its usual diagnostics
-  // if it's still missing after retrying.
-  await select.selectOption({ label })
+  // Let the normal click/timeout error fire with its usual diagnostics if
+  // still missing after retrying.
+  await trigger.click()
+  await page.getByRole('option', { name: optionLabel, exact: true }).click()
 }

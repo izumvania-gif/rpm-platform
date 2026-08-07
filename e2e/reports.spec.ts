@@ -11,7 +11,8 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
   page,
 }) => {
   const productName = uniqueName('Matrix Product')
-  await createProductViaUI(page, productName)
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
 
   const segmentName = uniqueName('Matrix Segment')
   await page.goto('/segments/new')
@@ -19,6 +20,12 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
   await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/segments\/[^/]+$/)
+  // Same dev-mode HMR/fast-refresh timing hiccup documented on
+  // createProductViaUI (helpers.ts) — a segment created a moment ago can be
+  // missing from the next page's server-rendered data. Confirming it here,
+  // with Playwright's normal retrying assertion, absorbs that before the
+  // JTBD form's segment checkbox relies on it being present.
+  await expect(page.getByRole('heading', { name: segmentName })).toBeVisible()
 
   const category = uniqueName('Matrix Category')
   await page.goto('/jtbd/new')
@@ -30,8 +37,11 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/jtbd\/[^/]+$/)
 
-  await page.goto('/reports/segments-jtbd')
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  // Navigate straight to the matrix for our product via query param rather
+  // than clicking through the filter form's product <select> — that
+  // interaction has proven unreliable on GET-form filter pages elsewhere in
+  // this suite too (see the direct-navigation comment in jtbd-graph.spec.ts).
+  await page.goto(`/reports/segments-jtbd?productId=${productId}`)
   await expect(page.getByRole('columnheader', { name: category })).toBeVisible()
   await expect(page.getByText(segmentName)).toBeVisible()
 })

@@ -134,14 +134,16 @@
 
 Проверено: `npm run lint && npm run typecheck` чисто, весь набор автотестов (21 unit + 87 integration + 24 E2E) зелёный, dev-БД не тронута.
 
-### Фаза 2 — Примитивы `components/ui/*` и иконография
+### Фаза 2 — Примитивы `components/ui/*` и иконография ✅ сделано 7 августа 2026
 
-4. **`select.tsx`** — нативный `<select>` → Radix `Select` (`@radix-ui/react-select`) — самый заметный визуальный долг проекта. API (`value`/`onChange`/`children`-опции) не меняется, вызывающий код в `components/forms/*` не трогаем.
-5. `button.tsx` — чёткие варианты (`default`/`outline`/`ghost`) через тень+цвет, а не только `hover:opacity-90`; видимый `focus-visible:ring`.
-6. `card.tsx` — два паттерна вместо одного: «плитка модуля» (hover-тень, для дашборда) и «карточка контента» (только hairline-граница, для форм/деталей).
-7. `badge.tsx` — сигнальная палитра (`--signal-*`) как варианты бейджа напрямую, объединяя с `JobTypeBadge`/`SignalBadge`.
-8. `input.tsx`/`textarea.tsx` — точный `focus` (кольцо + граница одновременно), контрастнее `placeholder`.
-9. **Иконография как система** (см. §4) — набор `lucide-react`-иконок на модули дашборда, статусы гипотез, типы JTBD; единый размер/толщина обводки.
+4. ✅ **`select.tsx`** — нативный `<select>` → Radix `Select` (`@radix-ui/react-select`) — самый заметный визуальный долг проекта закрыт. Внешний API (`value`/`defaultValue`/`onChange`/`name`/`id`/`children`-как-`<option>`) не изменился — ни один из ~50 вызовов в `components/forms/*`/`components/shared/*` не тронут. Технические детали: пустая строка как значение (`<option value="">Не указан</option>`, много optional-relation-полей) обёрнута в sentinel-значение, поскольку Radix `Select.Item` запрещает `value=""`; `InlineEditableField`'s `selectRef` теперь целится в видимую Radix-кнопку-триггер, а не в скрытый нативный `<select>`; `KeyboardShortcuts`' детектор «печатающих» полей (`isTypingTarget`) расширен на `role="combobox"`, чтобы `g`/`n`-хоткеи не срабатывали при открытом Select. Playwright's `.selectOption()` (нативный API) больше не применим — заменено на клик по `role="option"` (`e2e/helpers.ts`'s `selectRadixOption`/`selectOptionRobust`).
+5. ✅ `button.tsx` — видимый `focus-visible:ring` на всех вариантах; `default`/`destructive` получили `shadow-sm hover:shadow`, `outline` — `hover:border-primary/50` в дополнение к фоновому hover.
+6. ✅ `card.tsx` — `cardVariants` (CVA): `content` (без тени, для форм/деталей) и `tile` (hover-тень, для дашборда) вместо одного паттерна на все случаи.
+7. ✅ `badge.tsx` — сигнальная палитра (`--signal-violet/red/blue/slate`) как варианты бейджа напрямую; `JobTypeBadge`/`SignalBadge` переписаны в тонкие обёртки над `Badge`.
+8. ✅ `input.tsx`/`textarea.tsx` — `focus-visible:border-primary` + `ring-ring/40` одновременно, контрастнее `placeholder` (`/80`).
+9. ✅ **Иконография как система** (см. §4) — иконка на каждый модуль дашборда (`lib/module-meta.ts`'s `ModuleMeta.icon`, отрисовка в `app/page.tsx`), типы JTBD получили тон через `jtbdJobTypeTone`; единый размер 16px, `stroke-width: 1.75`.
+
+Проверено: `npm run lint && npm run typecheck` чисто, весь набор автотестов (21 unit + 87 integration + 24 E2E) зелёный, dev-БД не тронута. Три реальных E2E-падения, всплывших при миграции Select (не флейки дев-режима), исправлены и задокументированы как уроки на будущее: (а) видимый Radix-триггер и скрытый нативный `<select>`-зеркало для FormData вместе дают на странице два элемента с одинаковым текстом — `getByText` находит оба (`aria-hidden` не исключает узел из текстового поиска Playwright, только из дерева доступности), решение — тестам, которые проверяют отображаемое значение поля, использовать `getByRole` (уважает `aria-hidden`), а не `getByText`; Radix `Select.Trigger` в форме дополнительно рендерит собственный скрытый `<select>` для нативного autofill-фоллбэка (`SelectBubbleInput`) — с тем же эффектом, устранить нельзя, только обходить в тестах; (б) на двух GET-фильтрах (`/jtbd/graph`, `/reports/segments-jtbd`) клик по Radix-опции «Продукт» с последующим `requestSubmit()`-навигацией ненадёжен в связке с немедленным следующим действием — там, где тест уже переходит на страницу по прямому URL с `productId`, это надёжнее клика по фильтру (тот же паттерн, что уже был задокументирован для одного теста в `jtbd-graph.spec.ts` до этой фазы, теперь применён последовательно).
 
 ### Фаза 3 — «Герои»: самые заметные, самые смелые решения
 

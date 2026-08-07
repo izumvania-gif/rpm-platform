@@ -26,6 +26,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
     "@prisma/client": "^5.15.0",
+    "@radix-ui/react-select": "^2.3.7",
     "@tanstack/react-query": "^5.45.0",
     "@xyflow/react": "^12.11.2",
     "bcryptjs": "^2.4.3",

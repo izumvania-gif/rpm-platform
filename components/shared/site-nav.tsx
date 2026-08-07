@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 interface NavLink {
   href: string
@@ -120,6 +121,7 @@ export function SiteNav() {
               })}
             </nav>
             <SearchBox />
+            <ThemeToggle />
           </div>
         </div>
       </div>

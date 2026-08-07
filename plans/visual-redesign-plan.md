@@ -124,13 +124,15 @@
 
 ## 6. Фазы
 
-### Фаза 1 — Фундамент токенов
+### Фаза 1 — Фундамент токенов ✅ сделано 7 августа 2026
 
 Эффект виден сразу на 100% экранов, без правки разметки страниц.
 
-1. `app/globals.css` — уточнённая палитра light/dark (§4: primary, background, border, тени), расширенная шкала типографики (`h1–h6` с разными `font-size`/`line-height`/`letter-spacing`, не дефолт Tailwind), единая transition-кривая как CSS-переменная.
-2. `tailwind.config.ts` — уменьшенный `--radius`, кастомная `fontSize`-шкала, `letterSpacing`.
-3. **Тёмная тема подключается по-настоящему**: переключатель в `SiteNav`, сохранение в `localStorage`, дефолт — системная `prefers-color-scheme`, инлайн-скрипт в `app/layout.tsx` до первой отрисовки (без FOUC). Закрывает известный пробел из `plans/backlog.md` бесплатно в рамках этой же задачи.
+1. ✅ `app/globals.css` — уточнённая палитра light/dark (§4: primary → более глубокий `hsl(4 68% 42%)`, тёплый off-white фон `hsl(30 20% 98.5%)`, хайрлайн-границы, уточнённый dark), расширенная типографика (`h1–h6` с раздельным весом), `--ease-signature` как CSS-переменная.
+2. ✅ `tailwind.config.ts` — `--radius` уменьшен до `0.375rem`, кастомная `fontSize`-шкала (те же rem-размеры, что у Tailwind, но с продуманными `line-height`/`letter-spacing` — ничего не переверстало макет), `transitionTimingFunction.DEFAULT` переопределён на `--ease-signature` — все существующие `transition-*`-утилиты в проекте получили фирменную кривую без единой правки компонентов.
+3. ✅ **Тёмная тема подключена по-настоящему**: `components/shared/theme-toggle.tsx` (переключатель в `SiteNav`), `localStorage` + `prefers-color-scheme` по умолчанию, инлайн-скрипт в `app/layout.tsx` до первой отрисовки (без FOUC, `suppressHydrationWarning` на `<html>`). Закрыло пробел из `plans/backlog.md`/`plans/ui-improvement-plan.md`.
+
+Проверено: `npm run lint && npm run typecheck` чисто, весь набор автотестов (21 unit + 87 integration + 24 E2E) зелёный, dev-БД не тронута.
 
 ### Фаза 2 — Примитивы `components/ui/*` и иконография
 

@@ -4,31 +4,42 @@
 
 @layer base {
   :root {
-    /* Rutoken-style corporate palette: red primary on white */
-    --background: 0 0% 100%;
+    /* Rutoken-style corporate palette: deepened "oxidized" red on a warm
+       off-white canvas (Фаза 1, plans/visual-redesign-plan.md §4) — cards
+       stay pure white, which reads as depth against the warm background
+       without adding a single extra shadow. */
+    --background: 30 20% 98.5%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 0 72.2% 50.6%;
+    --primary: 4 68% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 20% 96.5%;
+    --secondary: 20 14% 95%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 20% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 0 30% 95.5%;
-    --accent-foreground: 0 72.2% 40%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 215.4 16.3% 40%;
+    --accent: 4 45% 95%;
+    --accent-foreground: 4 60% 35%;
     --destructive: 0 74% 36%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214.3 25% 90%;
-    --input: 214.3 25% 90%;
-    --ring: 0 72.2% 50.6%;
-    --radius: 0.5rem;
+    --border: 220 14% 90%;
+    --input: 220 14% 88%;
+    --ring: 4 68% 42%;
+    --radius: 0.375rem;
 
-    /* Signal taxonomy — app-wide semantic color system (see plans/growth-plan.md §2.7 "Реестр").
-       Originated as JTBD job-type colors (big/core/small/micro job); formalized here for reuse
-       anywhere a record's type/status/confidence needs a consistent color, not just the graph. */
+    /* Signature transition curve (Фаза 1) — the one non-default token every
+       hover/focus/settle transition in the app shares, instead of Tailwind's
+       generic ease. See tailwind.config.ts's transitionTimingFunction.DEFAULT,
+       which wires this into every `transition-*` utility with zero markup
+       changes; kept here too as a plain CSS var for one-off arbitrary uses. */
+    --ease-signature: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Signal taxonomy — app-wide semantic color system (see plans/archive/growth-plan.md §2.7
+       "Реестр"). Originated as JTBD job-type colors (big/core/small/micro job); formalized here
+       for reuse anywhere a record's type/status/confidence needs a consistent color, not just
+       the graph. */
     --signal-violet-bg: 250 89% 96%;
     --signal-violet-text: 263 69% 42%;
     --signal-violet-border: 262 83% 58%;
@@ -46,23 +57,23 @@
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 7.5%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 7.5%;
     --popover-foreground: 210 40% 98%;
-    --primary: 0 72.2% 58%;
+    --primary: 4 65% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217.2 25% 15%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 217.2 25% 15%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 0 30% 20%;
-    --accent-foreground: 0 72.2% 80%;
+    --accent: 4 35% 18%;
+    --accent-foreground: 4 65% 80%;
     --destructive: 0 62.8% 40%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 0 72.2% 58%;
+    --border: 217.2 20% 16%;
+    --input: 217.2 20% 18%;
+    --ring: 4 65% 55%;
 
     /* Signal taxonomy — dark variants */
     --signal-violet-bg: 263 40% 20%;
@@ -89,7 +100,22 @@
   }
   h1,
   h2,
-  h3 {
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display tracking-tight;
+  }
+  h1,
+  h2 {
+    @apply font-bold;
+  }
+  h3,
+  h4 {
+    @apply font-semibold;
+  }
+  h5,
+  h6 {
+    @apply font-medium;
   }
 }

@@ -63,10 +63,37 @@ const config = {
         display: ['var(--font-display)', ...defaultTheme.fontFamily.sans],
         mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
       },
+      // Same rem sizes as Tailwind's stock scale (nothing reflows) — the
+      // deliberate part is negative tracking on lg+ ("optical sizing": larger
+      // text sits tighter) plus a slightly roomier `base` line-height for
+      // long-form body text. Every `text-*` utility already used across the
+      // app picks this up with zero markup changes (Фаза 1).
+      fontSize: {
+        xs: ['0.75rem', { lineHeight: '1rem' }],
+        sm: ['0.875rem', { lineHeight: '1.25rem' }],
+        base: ['1rem', { lineHeight: '1.6rem' }],
+        lg: ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '-0.006em' }],
+        xl: ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.011em' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.014em' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.017em' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em' }],
+        '5xl': ['3rem', { lineHeight: '1.1', letterSpacing: '-0.022em' }],
+        '6xl': ['3.75rem', { lineHeight: '1.1', letterSpacing: '-0.024em' }],
+        '7xl': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.024em' }],
+        '8xl': ['6rem', { lineHeight: '1', letterSpacing: '-0.024em' }],
+        '9xl': ['8rem', { lineHeight: '1', letterSpacing: '-0.024em' }],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      // Signature easing (see --ease-signature in globals.css) as the new
+      // DEFAULT for every `transition-*` utility — every existing hover/focus
+      // transition in the app (button, card, nav link, inline field…) picks
+      // this up automatically, no component file touched.
+      transitionTimingFunction: {
+        DEFAULT: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
       keyframes: {
         'accordion-down': {

@@ -607,9 +607,21 @@ async function seedDemoProduct(userId: string) {
         'Собственная разработка внутри компании — типовой статус-кво у крупных заказчиков ' +
         'до появления CLM-решения на рынке.',
       features: ['ручная ротация', 'нет единого UI', 'высокая стоимость поддержки'],
+      pricingModel: 'Внутренние затраты на разработку и поддержку (CAPEX+OPEX), прямой цены нет',
+      companySize: 'Внутренняя команда, 2-3 инженера',
+      lastCheckedAt: daysAgo(10),
       productId: product.id,
       userId,
       createdAt: daysAgo(100),
+      newsItems: {
+        create: [
+          {
+            title: 'Заказчик Х анонсировал переход с самописного решения на CLM-платформу',
+            note: 'Со слов заказчика — не справились с ростом числа сертификатов после 500 узлов.',
+            date: daysAgo(20),
+          },
+        ],
+      },
     },
   })
   await prisma.competitor.create({
@@ -619,6 +631,9 @@ async function seedDemoProduct(userId: string) {
         'Ограничен одним удостоверяющим центром, без мультипротокольности — не подходит ' +
         'заказчикам с несколькими УЦ в разных контурах.',
       features: ['работает только с одним УЦ', 'нет инвентаризации', 'нет дашборда'],
+      pricingModel: 'Включён в стоимость лицензии УЦ, отдельно не продаётся',
+      companySize: 'Функция вендора УЦ, отдельной команды нет',
+      lastCheckedAt: daysAgo(30),
       productId: product.id,
       userId,
       createdAt: daysAgo(95),

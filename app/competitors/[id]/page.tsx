@@ -4,18 +4,20 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteCompetitor, toggleCompetitorPinned } from '@/lib/actions/competitors'
 import { buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { CompetitorNewsList } from '@/components/shared/competitor-news-list'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CompetitorDetailPage({ params }: { params: { id: string } }) {
   const competitor = await prisma.competitor.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true },
+    include: { product: true, newsItems: { orderBy: { date: 'desc' } } },
   })
 
   if (!competitor) notFound()
@@ -73,7 +75,43 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
         {competitor.positioning && (
           <p className="text-muted-foreground">{competitor.positioning}</p>
         )}
+        {(competitor.pricingModel || competitor.companySize || competitor.lastCheckedAt) && (
+          <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+            {competitor.pricingModel && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Модель ценообразования</dt>
+                <dd>{competitor.pricingModel}</dd>
+              </div>
+            )}
+            {competitor.companySize && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Размер компании / стадия</dt>
+                <dd>{competitor.companySize}</dd>
+              </div>
+            )}
+            {competitor.lastCheckedAt && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Последняя проверка</dt>
+                <dd>{competitor.lastCheckedAt.toLocaleDateString('ru-RU')}</dd>
+              </div>
+            )}
+          </dl>
+        )}
       </div>
+
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">
+            Новости и наблюдения{' '}
+            <span className="font-normal text-muted-foreground">
+              ({competitor.newsItems.length})
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CompetitorNewsList competitorId={competitor.id} initialItems={competitor.newsItems} />
+        </CardContent>
+      </Card>
     </main>
   )
 }

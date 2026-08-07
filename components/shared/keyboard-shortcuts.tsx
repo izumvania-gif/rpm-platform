@@ -27,6 +27,7 @@ const GOTO_ROUTES: Record<string, string> = {
   f: '/features',
   m: '/marketing',
   i: '/insights',
+  k: '/competitors',
 }
 
 function isTypingTarget(target: EventTarget | null) {

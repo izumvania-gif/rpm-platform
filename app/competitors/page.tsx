@@ -43,16 +43,12 @@ export default async function CompetitorsPage({
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <SectionHeading title="Конкуренты" description={moduleByHref['/competitors'].description} />
         <Link href="/competitors/new" className={buttonVariants()}>
           Новый конкурент
         </Link>
       </div>
-      <p className="text-sm text-muted-foreground mb-6">
-        Обычно открывается из карточки продукта — этот список объединяет конкурентов по всем
-        продуктам сразу.
-      </p>
 
       {competitors.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-2 mb-6">

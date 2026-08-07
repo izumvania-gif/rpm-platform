@@ -17,7 +17,10 @@ const links: NavLink[] = [
     href: '/products',
     label: 'Продукты',
     match: ['/products', '/features', '/competitors'],
-    subLinks: [{ href: '/features', label: 'Фичи' }],
+    subLinks: [
+      { href: '/features', label: 'Фичи' },
+      { href: '/competitors', label: 'Конкуренты' },
+    ],
   },
   { href: '/segments', label: 'Сегменты', match: ['/segments'] },
   {

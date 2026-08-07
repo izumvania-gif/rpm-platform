@@ -14,7 +14,15 @@ export interface CompetitorFormValues {
   url?: string | null
   positioning?: string | null
   features?: string[]
+  lastCheckedAt?: Date | null
+  pricingModel?: string | null
+  companySize?: string | null
   productId?: string
+}
+
+function toDateInputValue(date?: Date | null) {
+  if (!date) return ''
+  return date.toISOString().slice(0, 10)
 }
 
 export function CompetitorForm({
@@ -87,6 +95,33 @@ export function CompetitorForm({
       <div className="space-y-2">
         <Label htmlFor="features">Фичи конкурента (через запятую)</Label>
         <Input id="features" name="features" defaultValue={defaultValues?.features?.join(', ')} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="pricingModel">Модель ценообразования</Label>
+          <Input
+            id="pricingModel"
+            name="pricingModel"
+            defaultValue={defaultValues?.pricingModel ?? ''}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="companySize">Размер компании / стадия</Label>
+          <Input
+            id="companySize"
+            name="companySize"
+            defaultValue={defaultValues?.companySize ?? ''}
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="lastCheckedAt">Дата последней проверки информации</Label>
+        <Input
+          id="lastCheckedAt"
+          name="lastCheckedAt"
+          type="date"
+          defaultValue={toDateInputValue(defaultValues?.lastCheckedAt)}
+        />
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

@@ -12,6 +12,10 @@ export function optionalNumber(schema: z.ZodNumber) {
   return z.preprocess((val) => (val === '' || val == null ? undefined : val), schema.optional())
 }
 
+export function optionalDate(schema: z.ZodDate = z.coerce.date()) {
+  return z.preprocess((val) => (val === '' || val == null ? undefined : val), schema.optional())
+}
+
 export function toTagsArray(tags?: string): string[] {
   if (!tags) return []
   return tags

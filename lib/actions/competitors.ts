@@ -6,13 +6,16 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalString, toTagsArray } from '@/lib/validation'
+import { optionalDate, optionalString, toTagsArray } from '@/lib/validation'
 
 const competitorSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
   url: optionalString(),
   positioning: optionalString(),
   features: optionalString(),
+  lastCheckedAt: optionalDate(),
+  pricingModel: optionalString(),
+  companySize: optionalString(),
   productId: z.string().trim().min(1, 'Продукт обязателен'),
 })
 
@@ -22,6 +25,9 @@ function parseCompetitorForm(formData: FormData) {
     url: formData.get('url'),
     positioning: formData.get('positioning'),
     features: formData.get('features'),
+    lastCheckedAt: formData.get('lastCheckedAt'),
+    pricingModel: formData.get('pricingModel'),
+    companySize: formData.get('companySize'),
     productId: formData.get('productId'),
   })
 }

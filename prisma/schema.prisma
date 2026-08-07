@@ -287,20 +287,37 @@ model Conversation {
 
 // Конкуренты
 model Competitor {
-  id          String   @id @default(cuid())
-  name        String
-  url         String?
-  positioning String?  @db.Text
-  features    String[] // краткий список фич конкурента
-  pinned      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(cuid())
+  name          String
+  url           String?
+  positioning   String?   @db.Text
+  features      String[] // краткий список фич конкурента
+  lastCheckedAt DateTime?
+  pricingModel  String?
+  companySize   String?
+  pinned        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  newsItems CompetitorNewsItem[]
+}
+
+model CompetitorNewsItem {
+  id        String   @id @default(cuid())
+  title     String
+  url       String?
+  date      DateTime @default(now())
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }
 
 // Ресурсы продукта (sales-kit, dev-docs, ссылки на Confluence/Jira)

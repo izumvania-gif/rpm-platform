@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ArrowUpRight, Star } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -13,8 +14,10 @@ import {
   researchModules,
   positioningGroupMeta,
   positioningModules,
+  moduleByHref,
   type ModuleMeta,
 } from '@/lib/module-meta'
+import { stageLabels } from '@/lib/labels'
 import { signalToneColors, type SignalTone } from '@/lib/signal-colors'
 
 export const dynamic = 'force-dynamic'
@@ -52,6 +55,7 @@ interface FeedItem {
   href: string
   title: string
   kind: string
+  moduleHref: string
   updatedAt: Date
   createdAt?: Date
 }
@@ -131,54 +135,63 @@ export default async function Home() {
       href: `/research/${r.id}`,
       title: `#${r.number} ${r.title}`,
       kind: 'Исследование',
+      moduleHref: '/research',
       updatedAt: r.updatedAt,
     })),
     ...pinnedSegments.map((s) => ({
       href: `/segments/${s.id}`,
       title: s.name,
       kind: 'Сегмент',
+      moduleHref: '/segments',
       updatedAt: s.updatedAt,
     })),
     ...pinnedJtbds.map((j) => ({
       href: `/jtbd/${j.id}`,
       title: j.title,
       kind: 'JTBD',
+      moduleHref: '/jtbd',
       updatedAt: j.updatedAt,
     })),
     ...pinnedHypotheses.map((h) => ({
       href: `/hypotheses/${h.id}`,
       title: h.statement,
       kind: 'Гипотеза',
+      moduleHref: '/hypotheses',
       updatedAt: h.updatedAt,
     })),
     ...pinnedConversations.map((c) => ({
       href: `/conversations/${c.id}`,
       title: c.title,
       kind: 'Разговор',
+      moduleHref: '/conversations',
       updatedAt: c.updatedAt,
     })),
     ...pinnedCompetitors.map((c) => ({
       href: `/competitors/${c.id}`,
       title: c.name,
       kind: 'Конкурент',
+      moduleHref: '/competitors',
       updatedAt: c.updatedAt,
     })),
     ...pinnedFeatures.map((f) => ({
       href: `/features/${f.id}`,
       title: f.name,
       kind: 'Фича',
+      moduleHref: '/features',
       updatedAt: f.updatedAt,
     })),
     ...pinnedRTBs.map((r) => ({
       href: `/marketing/${r.id}`,
       title: r.statement,
       kind: 'RTB',
+      moduleHref: '/marketing',
       updatedAt: r.updatedAt,
     })),
     ...pinnedInsights.map((i) => ({
       href: `/insights/${i.id}`,
       title: i.text,
       kind: 'Инсайт',
+      moduleHref: '/insights',
       updatedAt: i.updatedAt,
     })),
   ].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
@@ -188,6 +201,7 @@ export default async function Home() {
       href: `/products/${p.id}`,
       title: p.name,
       kind: 'Продукт',
+      moduleHref: '/products',
       updatedAt: p.updatedAt,
       createdAt: p.createdAt,
     })),
@@ -195,6 +209,7 @@ export default async function Home() {
       href: `/research/${r.id}`,
       title: `#${r.number} ${r.title}`,
       kind: 'Исследование',
+      moduleHref: '/research',
       updatedAt: r.updatedAt,
       createdAt: r.createdAt,
     })),
@@ -202,6 +217,7 @@ export default async function Home() {
       href: `/segments/${s.id}`,
       title: s.name,
       kind: 'Сегмент',
+      moduleHref: '/segments',
       updatedAt: s.updatedAt,
       createdAt: s.createdAt,
     })),
@@ -209,6 +225,7 @@ export default async function Home() {
       href: `/jtbd/${j.id}`,
       title: j.title,
       kind: 'JTBD',
+      moduleHref: '/jtbd',
       updatedAt: j.updatedAt,
       createdAt: j.createdAt,
     })),
@@ -216,6 +233,7 @@ export default async function Home() {
       href: `/hypotheses/${h.id}`,
       title: h.statement,
       kind: 'Гипотеза',
+      moduleHref: '/hypotheses',
       updatedAt: h.updatedAt,
       createdAt: h.createdAt,
     })),
@@ -223,6 +241,7 @@ export default async function Home() {
       href: `/conversations/${c.id}`,
       title: c.title,
       kind: 'Разговор',
+      moduleHref: '/conversations',
       updatedAt: c.updatedAt,
       createdAt: c.createdAt,
     })),
@@ -230,6 +249,7 @@ export default async function Home() {
       href: `/competitors/${c.id}`,
       title: c.name,
       kind: 'Конкурент',
+      moduleHref: '/competitors',
       updatedAt: c.updatedAt,
       createdAt: c.createdAt,
     })),
@@ -237,6 +257,7 @@ export default async function Home() {
       href: `/features/${f.id}`,
       title: f.name,
       kind: 'Фича',
+      moduleHref: '/features',
       updatedAt: f.updatedAt,
       createdAt: f.createdAt,
     })),
@@ -244,6 +265,7 @@ export default async function Home() {
       href: `/marketing/${r.id}`,
       title: r.statement,
       kind: 'RTB',
+      moduleHref: '/marketing',
       updatedAt: r.updatedAt,
       createdAt: r.createdAt,
     })),
@@ -251,6 +273,7 @@ export default async function Home() {
       href: `/insights/${i.id}`,
       title: i.text,
       kind: 'Инсайт',
+      moduleHref: '/insights',
       updatedAt: i.updatedAt,
       createdAt: i.createdAt,
     })),
@@ -271,6 +294,8 @@ export default async function Home() {
     '/insights': insightCount,
   }
 
+  const featuredProduct = recentProducts[0]
+
   return (
     <main className="container py-12">
       <h1 className="text-3xl font-bold mb-2">RPM Platform</h1>
@@ -278,9 +303,55 @@ export default async function Home() {
         Платформа для управления продуктовыми исследованиями и сегментами клиентов
       </p>
 
-      <div className="mb-8 max-w-xs">
-        <ModuleTile module={productModule} count={counts[productModule.href]} />
-      </div>
+      {featuredProduct ? (
+        <Card variant="content" className="mb-8 border-l-4 border-primary">
+          <CardContent className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5">
+            <div className="min-w-0">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <productModule.icon size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
+                <Link
+                  href={`/products/${featuredProduct.id}`}
+                  className="truncate font-display text-xl font-bold hover:underline"
+                >
+                  {featuredProduct.name}
+                </Link>
+                <Badge variant="outline">{stageLabels[featuredProduct.stage]}</Badge>
+              </div>
+              {featuredProduct.description && (
+                <p className="max-w-2xl truncate text-sm text-muted-foreground">
+                  {featuredProduct.description}
+                </p>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="font-mono text-sm text-muted-foreground">
+                {productCount} {productCount === 1 ? 'продукт' : 'продуктов'}
+              </span>
+              <Link
+                href="/products"
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                Все продукты
+                <ArrowUpRight size={14} />
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card variant="content" className="mb-8 border-l-4 border-primary">
+          <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
+            <div>
+              <p className="font-medium">Пока нет ни одного продукта</p>
+              <p className="text-sm text-muted-foreground">
+                Начните с создания продукта — остальные разделы строятся вокруг него.
+              </p>
+            </div>
+            <Link href="/products/new" className={buttonVariants({ size: 'sm' })}>
+              Создать продукт
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mb-8 space-y-4">
         <SectionHeading title={researchGroupMeta.title} description={researchGroupMeta.description} />
@@ -323,52 +394,71 @@ export default async function Home() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {pinnedItems.length > 0 && (
-          <Card>
+          <Card variant="content">
             <CardHeader className="border-l-4 border-primary">
-              <CardTitle className="text-base">Закреплённое</CardTitle>
+              <CardTitle className="flex items-center gap-1.5 text-base">
+                <Star size={15} strokeWidth={1.75} className="text-primary" />
+                Закреплённое
+              </CardTitle>
               <CardDescription>Важные записи, отмеченные звёздочкой</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="flex flex-wrap gap-2">
-                {pinnedItems.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="inline-block rounded-md border px-3 py-1.5 text-sm hover:border-primary"
-                    >
-                      <span className="text-muted-foreground">{item.kind}:</span> {item.title}
-                    </Link>
-                  </li>
-                ))}
+            <CardContent className="p-0">
+              <ul className="divide-y">
+                {pinnedItems.map((item) => {
+                  const Icon = moduleByHref[item.moduleHref]?.icon
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-2.5 px-6 py-2.5 text-sm hover:bg-accent/60"
+                      >
+                        {Icon && (
+                          <Icon size={14} strokeWidth={1.75} className="shrink-0 text-muted-foreground" />
+                        )}
+                        <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">{item.kind}</span>
+                      </Link>
+                    </li>
+                  )
+                })}
               </ul>
             </CardContent>
           </Card>
         )}
 
         {activityItems.length > 0 && (
-          <Card>
+          <Card variant="content">
             <CardHeader className="border-l-4 border-primary">
               <CardTitle className="text-base">Последняя активность</CardTitle>
               <CardDescription>Что изменилось в последних записях</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-                {activityItems.map((item) => (
-                  <li key={item.href} className="flex items-center gap-2 text-sm">
-                    <Badge variant="outline" className="shrink-0">
-                      {item.kind}
-                    </Badge>
-                    <Link href={item.href} className="min-w-0 flex-1 truncate hover:underline">
-                      {item.title}
-                    </Link>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
-                        ? 'создано'
-                        : 'обновлено'}{' '}
-                      {item.updatedAt.toLocaleString('ru-RU')}
-                    </span>
-                  </li>
-                ))}
+            <CardContent className="max-h-[420px] overflow-y-auto p-0">
+              <ul className="divide-y">
+                {activityItems.map((item) => {
+                  const Icon = moduleByHref[item.moduleHref]?.icon
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-2.5 px-6 py-2.5 text-sm hover:bg-accent/60"
+                      >
+                        {Icon && (
+                          <Icon size={14} strokeWidth={1.75} className="shrink-0 text-muted-foreground" />
+                        )}
+                        <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                        <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                          {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
+                            ? 'создано'
+                            : 'изменено'}{' '}
+                          {item.updatedAt.toLocaleDateString('ru-RU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                          })}
+                        </span>
+                      </Link>
+                    </li>
+                  )
+                })}
               </ul>
             </CardContent>
           </Card>

@@ -27,7 +27,12 @@ import { JtbdNode } from './jtbd-node'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { jtbdJobTypeColors, jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
+import {
+  jtbdJobTypeColors,
+  jtbdJobTypeIcon,
+  jtbdJobTypeLabels,
+  jtbdJobTypeOrder,
+} from '@/lib/jtbd-job-types'
 import { layoutTree, OVERALL_VIEW_KEY, type LayoutPosition } from '@/lib/jtbd-graph-layout'
 import {
   createJtbdQuick,
@@ -46,19 +51,21 @@ function Legend() {
       className="!m-2 rounded-md border bg-background/95 p-2.5 text-xs shadow-sm backdrop-blur"
     >
       <p className="mb-1.5 font-semibold text-muted-foreground">Типы задач</p>
-      <div className="mb-2 grid grid-cols-2 gap-x-3 gap-y-1">
-        {jtbdJobTypeOrder.map((type) => (
-          <div key={type} className="flex items-center gap-1.5">
-            <span
-              className="h-2.5 w-2.5 shrink-0 rounded-sm border"
-              style={{
-                backgroundColor: jtbdJobTypeColors[type].bg,
-                borderColor: jtbdJobTypeColors[type].border,
-              }}
-            />
-            <span className="truncate">{jtbdJobTypeLabels[type]}</span>
-          </div>
-        ))}
+      <div className="mb-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
+        {jtbdJobTypeOrder.map((type) => {
+          const Icon = jtbdJobTypeIcon[type]
+          return (
+            <div key={type} className="flex items-center gap-1.5">
+              <Icon
+                size={12}
+                strokeWidth={1.75}
+                className="shrink-0"
+                style={{ color: jtbdJobTypeColors[type].border }}
+              />
+              <span className="truncate">{jtbdJobTypeLabels[type]}</span>
+            </div>
+          )
+        })}
       </div>
       <p className="mb-1 font-semibold text-muted-foreground">Связи</p>
       <div className="flex flex-col gap-1">
@@ -78,8 +85,15 @@ function Legend() {
         </div>
         <div className="flex items-center gap-1.5">
           <svg width="24" height="8" className="shrink-0">
-            <line x1="0" y1="4" x2="20" y2="4" stroke="#3B82F6" strokeWidth="1.5" />
-            <polygon points="20,1 24,4 20,7" fill="#3B82F6" />
+            <line
+              x1="0"
+              y1="4"
+              x2="20"
+              y2="4"
+              stroke="hsl(var(--signal-blue-border))"
+              strokeWidth="1.5"
+            />
+            <polygon points="20,1 24,4 20,7" fill="hsl(var(--signal-blue-border))" />
           </svg>
           <span>Следует за (sequence)</span>
         </div>
@@ -151,7 +165,11 @@ function AddJtbdPanel({
               <option key={c} value={c} />
             ))}
           </datalist>
-          <Select value={jobType} onChange={(e) => setJobType(e.target.value as JtbdJobType)}>
+          <Select
+            aria-label="Тип задачи"
+            value={jobType}
+            onChange={(e) => setJobType(e.target.value as JtbdJobType)}
+          >
             {jtbdJobTypeOrder.map((type) => (
               <option key={type} value={type}>
                 {jtbdJobTypeLabels[type]}
@@ -240,8 +258,8 @@ function GraphInner({
         id: `s-${e.id}`,
         source: e.fromJtbdId,
         target: e.toJtbdId,
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#3B82F6' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(var(--signal-blue-border))' },
+        style: { stroke: 'hsl(var(--signal-blue-border))' },
         data: { kind: 'sequence', edgeId: e.id },
       }))
 
@@ -366,7 +384,15 @@ function GraphInner({
           >
             <Background />
             <Controls />
-            <MiniMap pannable zoomable />
+            <MiniMap
+              pannable
+              zoomable
+              bgColor="hsl(var(--card))"
+              maskColor="hsl(var(--muted) / 0.6)"
+              nodeColor="hsl(var(--muted-foreground) / 0.4)"
+              nodeStrokeWidth={0}
+              className="!border !border-border"
+            />
             <AddJtbdPanel productId={productId} categories={categories} segmentId={segmentId} />
             <Panel position="top-right" className="!m-2">
               <Button
@@ -443,7 +469,11 @@ function AddJtbdPanelInline({
           <option key={c} value={c} />
         ))}
       </datalist>
-      <Select value={jobType} onChange={(e) => setJobType(e.target.value as JtbdJobType)}>
+      <Select
+            aria-label="Тип задачи"
+            value={jobType}
+            onChange={(e) => setJobType(e.target.value as JtbdJobType)}
+          >
         {jtbdJobTypeOrder.map((type) => (
           <option key={type} value={type}>
             {jtbdJobTypeLabels[type]}

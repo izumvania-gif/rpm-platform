@@ -5,6 +5,7 @@ import {
   ResearchType,
   Stage,
 } from '@prisma/client'
+import { CircleCheck, CircleX, Eye, FileEdit, type LucideIcon } from 'lucide-react'
 import type { SignalTone } from '@/lib/signal-colors'
 
 export const stageLabels: Record<Stage, string> = {
@@ -51,6 +52,15 @@ export const hypothesisStatusTone: Record<HypothesisStatus, SignalTone> = {
   IN_REVIEW: 'blue',
   CONFIRMED: 'violet',
   REJECTED: 'red',
+}
+
+// Фаза 3 kanban-card redesign (plans/visual-redesign-plan.md §4) — a status
+// icon on each card in addition to the column's color stripe.
+export const hypothesisStatusIcon: Record<HypothesisStatus, LucideIcon> = {
+  DRAFT: FileEdit,
+  IN_REVIEW: Eye,
+  CONFIRMED: CircleCheck,
+  REJECTED: CircleX,
 }
 
 export const productResourceKindLabels: Record<ProductResourceKind, string> = {

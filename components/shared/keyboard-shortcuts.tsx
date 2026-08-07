@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { gotoShortcuts } from '@/lib/keyboard-shortcuts-data'
 
 const NEW_ROUTES: [string, string][] = [
   ['/products', '/products/new'],
@@ -16,21 +17,11 @@ const NEW_ROUTES: [string, string][] = [
   ['/insights', '/insights/new'],
 ]
 
-const GOTO_ROUTES: Record<string, string> = {
-  d: '/',
-  p: '/products',
-  r: '/research',
-  s: '/segments',
-  j: '/jtbd',
-  h: '/hypotheses',
-  c: '/conversations',
-  f: '/features',
-  m: '/marketing',
-  i: '/insights',
-  k: '/competitors',
-}
+const GOTO_ROUTES: Record<string, string> = Object.fromEntries(
+  gotoShortcuts.map((s) => [s.key, s.href])
+)
 
-function isTypingTarget(target: EventTarget | null) {
+export function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false
   const tag = target.tagName
   // components/ui/select.tsx (Radix, Фаза 2) renders its visible, focusable

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { KeyboardShortcutsOverlay } from '@/components/shared/keyboard-shortcuts-overlay'
 
 interface NavLink {
   href: string
@@ -121,6 +122,7 @@ export function SiteNav() {
               })}
             </nav>
             <SearchBox />
+            <KeyboardShortcutsOverlay />
             <ThemeToggle />
           </div>
         </div>

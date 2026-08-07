@@ -6,7 +6,12 @@ import { HypothesisStatus, type Hypothesis, type Product } from '@prisma/client'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { PinButton } from '@/components/shared/pin-button'
 import { toggleHypothesisPinned, updateHypothesisStatus } from '@/lib/actions/hypotheses'
-import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
+import {
+  hypothesisStatusIcon,
+  hypothesisStatusLabels,
+  hypothesisStatusOrder,
+  hypothesisStatusTone,
+} from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 import { cn } from '@/lib/utils'
 
@@ -72,44 +77,59 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
               {hypothesisStatusLabels[status]} ({columnItems.length})
             </h2>
             <div className="space-y-3">
-              {columnItems.map((h) => (
-                <div
-                  key={h.id}
-                  draggable
-                  onDragStart={() => setDraggingId(h.id)}
-                  onDragEnd={() => {
-                    setDraggingId(null)
-                    setDragOverStatus(null)
-                  }}
-                  onClick={() => router.push(`/hypotheses/${h.id}`)}
-                  className={cn(
-                    'cursor-grab active:cursor-grabbing',
-                    draggingId === h.id && 'opacity-40'
-                  )}
-                >
-                  <Card
+              {columnItems.map((h) => {
+                const StatusIcon = hypothesisStatusIcon[h.status]
+                return (
+                  <div
+                    key={h.id}
+                    draggable
+                    onDragStart={() => setDraggingId(h.id)}
+                    onDragEnd={() => {
+                      setDraggingId(null)
+                      setDragOverStatus(null)
+                    }}
+                    onClick={() => router.push(`/hypotheses/${h.id}`)}
                     className={cn(
-                      'border-l-4 shadow-sm transition-shadow hover:shadow-md',
-                      settledId === h.id && 'motion-safe:animate-card-settle'
+                      'cursor-grab active:cursor-grabbing',
+                      draggingId === h.id && 'opacity-40'
                     )}
-                    style={{ borderLeftColor: tone.border }}
-                    onAnimationEnd={() => setSettledId((prev) => (prev === h.id ? null : prev))}
                   >
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
+                    <Card
+                      className={cn(
+                        'border-l-4 shadow-sm transition-shadow hover:shadow-md hover:-translate-y-0.5',
+                        settledId === h.id && 'motion-safe:animate-card-settle'
+                      )}
+                      style={{ borderLeftColor: tone.border }}
+                      onAnimationEnd={() => setSettledId((prev) => (prev === h.id ? null : prev))}
+                    >
+                      <CardHeader>
+                        <div className="flex items-center justify-between gap-2">
+                          <div
+                            className="flex items-center gap-1.5"
+                            style={{ color: tone.border }}
+                          >
+                            <StatusIcon size={13} strokeWidth={2} />
+                            <span className="font-mono text-[10.5px] uppercase tracking-wide">
+                              {h.updatedAt.toLocaleDateString('ru-RU', {
+                                day: '2-digit',
+                                month: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                          <PinButton
+                            pinned={h.pinned}
+                            action={toggleHypothesisPinned.bind(null, h.id, !h.pinned)}
+                          />
+                        </div>
                         <CardTitle className="text-sm font-medium line-clamp-3">
                           {h.statement}
                         </CardTitle>
-                        <PinButton
-                          pinned={h.pinned}
-                          action={toggleHypothesisPinned.bind(null, h.id, !h.pinned)}
-                        />
-                      </div>
-                      <CardDescription>{h.product.name}</CardDescription>
-                    </CardHeader>
-                  </Card>
-                </div>
-              ))}
+                        <CardDescription>{h.product.name}</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )

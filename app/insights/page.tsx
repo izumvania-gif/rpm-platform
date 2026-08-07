@@ -7,7 +7,9 @@ import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { TagBadges } from '@/components/shared/tag-badges'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleInsightPinned } from '@/lib/actions/insights'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,8 +37,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <h1 className="text-2xl font-bold">Инсайты</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+        <SectionHeading title="Инсайты" description={moduleByHref['/insights'].description} />
         <Link href="/insights/new" className={buttonVariants()}>
           Новый инсайт
         </Link>

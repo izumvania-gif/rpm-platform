@@ -5,8 +5,10 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { FeatureFilterForm } from '@/components/forms/feature-filter-form'
 import { toggleFeaturePinned } from '@/lib/actions/features'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,8 +66,8 @@ export default async function FeaturesPage({
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
-        <h1 className="text-2xl font-bold">Фичи</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <SectionHeading title="Фичи" description={moduleByHref['/features'].description} />
         <Link href="/features/new" className={buttonVariants()}>
           Новая фича
         </Link>
@@ -124,7 +126,9 @@ export default async function FeaturesPage({
                     <Card className="h-full hover:border-primary transition-colors">
                       <CardHeader>
                         <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="truncate">{feature.name}</CardTitle>
+                          <CardTitle className="line-clamp-2" title={feature.name}>
+                            {feature.name}
+                          </CardTitle>
                           <PinButton
                             pinned={feature.pinned}
                             action={toggleFeaturePinned.bind(null, feature.id, !feature.pinned)}

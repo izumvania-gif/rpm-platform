@@ -6,7 +6,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleCompetitorPinned } from '@/lib/actions/competitors'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,8 +43,8 @@ export default async function CompetitorsPage({
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <h1 className="text-2xl font-bold">Конкуренты</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+        <SectionHeading title="Конкуренты" description={moduleByHref['/competitors'].description} />
         <Link href="/competitors/new" className={buttonVariants()}>
           Новый конкурент
         </Link>
@@ -91,7 +93,9 @@ export default async function CompetitorsPage({
                     <Card className="h-full hover:border-primary transition-colors">
                       <CardHeader>
                         <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="truncate">{competitor.name}</CardTitle>
+                          <CardTitle className="line-clamp-2" title={competitor.name}>
+                            {competitor.name}
+                          </CardTitle>
                           <PinButton
                             pinned={competitor.pinned}
                             action={toggleCompetitorPinned.bind(

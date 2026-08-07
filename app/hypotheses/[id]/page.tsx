@@ -8,7 +8,6 @@ import {
   updateHypothesisStatus,
 } from '@/lib/actions/hypotheses'
 import { buttonVariants } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { SubmitButton } from '@/components/shared/submit-button'
@@ -16,7 +15,8 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
-import { hypothesisStatusLabels, hypothesisStatusOrder } from '@/lib/labels'
+import { SignalBadge } from '@/components/shared/signal-badge'
+import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,7 +70,9 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <Badge>{hypothesisStatusLabels[hypothesis.status]}</Badge>
+          <SignalBadge tone={hypothesisStatusTone[hypothesis.status]}>
+            {hypothesisStatusLabels[hypothesis.status]}
+          </SignalBadge>
           <Link
             href={`/products/${hypothesis.product.id}`}
             className="text-sm text-muted-foreground hover:underline"

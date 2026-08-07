@@ -7,9 +7,11 @@ import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { JobTypeBadge } from '@/components/shared/job-type-badge'
 import { TagBadges } from '@/components/shared/tag-badges'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleJtbdPinned } from '@/lib/actions/jtbd'
 import { jtbdJobTypeLabels } from '@/lib/jtbd-job-types'
 import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,8 +34,8 @@ export default async function JtbdPage() {
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <h1 className="text-2xl font-bold">JTBD</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+        <SectionHeading title="JTBD" description={moduleByHref['/jtbd'].description} />
         <div className="flex flex-wrap items-center gap-2">
           <JtbdViewTabs active="list" />
           <Link href="/jtbd/new" className={buttonVariants()}>

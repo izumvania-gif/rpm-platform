@@ -5,6 +5,7 @@ import {
   ResearchType,
   Stage,
 } from '@prisma/client'
+import type { SignalTone } from '@/lib/signal-colors'
 
 export const stageLabels: Record<Stage, string> = {
   IDEA: 'Идея',
@@ -41,6 +42,16 @@ export const hypothesisStatusOrder: HypothesisStatus[] = [
   HypothesisStatus.CONFIRMED,
   HypothesisStatus.REJECTED,
 ]
+
+// Signal tone per pipeline stage: neutral while unevaluated, active while in motion,
+// strongest signal once validated, brand-red (already the "stop/negative" color via
+// --destructive) once rejected. See plans/growth-plan.md §2.7.
+export const hypothesisStatusTone: Record<HypothesisStatus, SignalTone> = {
+  DRAFT: 'slate',
+  IN_REVIEW: 'blue',
+  CONFIRMED: 'violet',
+  REJECTED: 'red',
+}
 
 export const productResourceKindLabels: Record<ProductResourceKind, string> = {
   SALES_KIT: 'Sales-kit',

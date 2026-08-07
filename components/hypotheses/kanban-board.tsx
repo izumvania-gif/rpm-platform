@@ -6,7 +6,8 @@ import { HypothesisStatus, type Hypothesis, type Product } from '@prisma/client'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { PinButton } from '@/components/shared/pin-button'
 import { toggleHypothesisPinned, updateHypothesisStatus } from '@/lib/actions/hypotheses'
-import { hypothesisStatusLabels, hypothesisStatusOrder } from '@/lib/labels'
+import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
+import { signalToneColors } from '@/lib/signal-colors'
 import { cn } from '@/lib/utils'
 
 type HypothesisWithProduct = Hypothesis & { product: Product }
@@ -42,6 +43,7 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       {hypothesisStatusOrder.map((status) => {
         const columnItems = items.filter((h) => h.status === status)
+        const tone = signalToneColors[hypothesisStatusTone[status]]
         return (
           <div
             key={status}
@@ -59,7 +61,12 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
               dragOverStatus === status && 'bg-accent ring-2 ring-primary/40'
             )}
           >
-            <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
+            <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ backgroundColor: tone.border }}
+              />
               {hypothesisStatusLabels[status]} ({columnItems.length})
             </h2>
             <div className="space-y-3">
@@ -78,7 +85,10 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
                     draggingId === h.id && 'opacity-40'
                   )}
                 >
-                  <Card className="hover:border-primary transition-colors">
+                  <Card
+                    className="border-l-4 shadow-sm transition-shadow hover:shadow-md"
+                    style={{ borderLeftColor: tone.border }}
+                  >
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <CardTitle className="text-sm font-medium line-clamp-3">

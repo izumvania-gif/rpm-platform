@@ -6,7 +6,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { stageLabels } from '@/lib/labels'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,8 +29,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
-        <h1 className="text-2xl font-bold">Продукты</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <SectionHeading title="Продукты" description={moduleByHref['/products'].description} />
         <Link href="/products/new" className={buttonVariants()}>
           Новый продукт
         </Link>

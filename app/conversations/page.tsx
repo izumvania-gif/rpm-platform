@@ -6,7 +6,9 @@ import { TagBadges } from '@/components/shared/tag-badges'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleConversationPinned } from '@/lib/actions/conversations'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,8 +42,8 @@ export default async function ConversationsPage({
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
-        <h1 className="text-2xl font-bold">Разговоры</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <SectionHeading title="Разговоры" description={moduleByHref['/conversations'].description} />
         <Link href="/conversations/new" className={buttonVariants()}>
           Новый разговор
         </Link>

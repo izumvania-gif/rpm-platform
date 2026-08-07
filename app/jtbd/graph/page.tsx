@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { JtbdGraphFilterForm } from '@/components/forms/jtbd-graph-filter-form'
 import { JtbdGraphCanvas } from '@/components/jtbd-graph/canvas'
 import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
+import { SectionHeading } from '@/components/shared/section-heading'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,8 +20,8 @@ export default async function JtbdGraphPage({
 
   return (
     <main className="container py-12 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Граф JTBD</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <SectionHeading title="Граф JTBD" description={moduleByHref['/jtbd'].description} />
         <JtbdViewTabs active="graph" />
       </div>
 

@@ -7,9 +7,11 @@ import { Badge } from '@/components/ui/badge'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { TagBadges } from '@/components/shared/tag-badges'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleResearchPinned } from '@/lib/actions/research'
 import { statusLabels, typeLabels } from '@/lib/labels'
 import { ResearchFilterForm } from '@/components/forms/research-filter-form'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,8 +48,8 @@ export default async function ResearchPage({
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
-        <h1 className="text-2xl font-bold">Исследования</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <SectionHeading title="Исследования" description={moduleByHref['/research'].description} />
         <Link href="/research/new" className={buttonVariants()}>
           Новое исследование
         </Link>

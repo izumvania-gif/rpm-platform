@@ -4,7 +4,9 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { HypothesisKanbanBoard } from '@/components/hypotheses/kanban-board'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { hypothesisStatusLabels } from '@/lib/labels'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,8 +19,8 @@ export default async function HypothesesPage() {
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
-        <h1 className="text-2xl font-bold">Гипотезы</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <SectionHeading title="Гипотезы" description={moduleByHref['/hypotheses'].description} />
         <Link href="/hypotheses/new" className={buttonVariants()}>
           Новая гипотеза
         </Link>

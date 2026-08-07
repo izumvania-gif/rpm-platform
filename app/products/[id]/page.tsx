@@ -13,6 +13,7 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { SectionHeading } from '@/components/shared/section-heading'
+import { researchGroupMeta, positioningGroupMeta } from '@/lib/module-meta'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
@@ -150,10 +151,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       </div>
 
       <div className="space-y-5">
-        <SectionHeading
-          title="Исследование клиентов"
-          description="Кто клиенты, какие у них задачи и что подтверждено исследованиями"
-        />
+        <SectionHeading title={researchGroupMeta.title} description={researchGroupMeta.description} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <ProductSection
             title="Исследования"
@@ -220,8 +218,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
       <div className="space-y-5">
         <SectionHeading
-          title="Позиционирование"
-          description="Как продукт решает задачи клиентов и чем отличается от конкурентов"
+          title={positioningGroupMeta.title}
+          description={positioningGroupMeta.description}
         />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <ProductSection

@@ -7,7 +7,9 @@ import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { TagBadges } from '@/components/shared/tag-badges'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleSegmentPinned } from '@/lib/actions/segments'
+import { moduleByHref } from '@/lib/module-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,8 +31,8 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
 
   return (
     <main className="container py-12">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
-        <h1 className="text-2xl font-bold">Сегменты</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <SectionHeading title="Сегменты" description={moduleByHref['/segments'].description} />
         <div className="flex flex-wrap gap-2">
           <Link href="/reports/segments-jtbd" className={buttonVariants({ variant: 'outline' })}>
             Матрица Сегменты × JTBD

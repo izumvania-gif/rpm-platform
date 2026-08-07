@@ -5,8 +5,45 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget'
+import { SectionHeading } from '@/components/shared/section-heading'
+import {
+  productModule,
+  researchGroupMeta,
+  researchModules,
+  positioningGroupMeta,
+  positioningModules,
+  type ModuleMeta,
+} from '@/lib/module-meta'
+import { signalToneColors, type SignalTone } from '@/lib/signal-colors'
 
 export const dynamic = 'force-dynamic'
+
+function ModuleTile({
+  module,
+  count,
+  tone,
+}: {
+  module: ModuleMeta
+  count: number
+  tone?: SignalTone
+}) {
+  return (
+    <Link href={module.href}>
+      <Card
+        className="h-full border-t-4 shadow-sm transition-shadow hover:shadow-md"
+        style={{ borderTopColor: tone ? signalToneColors[tone].border : 'hsl(var(--primary))' }}
+      >
+        <CardHeader>
+          <CardTitle>{module.label}</CardTitle>
+          <CardDescription>{module.description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <span className="font-mono text-3xl font-bold">{count}</span>
+        </CardContent>
+      </Card>
+    </Link>
+  )
+}
 
 interface FeedItem {
   href: string
@@ -218,68 +255,18 @@ export default async function Home() {
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 15)
 
-  const cards = [
-    {
-      href: '/products',
-      label: 'Продукты',
-      count: productCount,
-      description: 'Профили продуктов и их стадии',
-    },
-    {
-      href: '/research',
-      label: 'Исследования',
-      count: researchCount,
-      description: 'Репозиторий клиентских исследований',
-    },
-    {
-      href: '/segments',
-      label: 'Сегменты',
-      count: segmentCount,
-      description: 'Сегменты клиентов по продуктам',
-    },
-    {
-      href: '/jtbd',
-      label: 'JTBD',
-      count: jtbdCount,
-      description: 'Задачи клиентов по категориям',
-    },
-    {
-      href: '/hypotheses',
-      label: 'Гипотезы',
-      count: hypothesisCount,
-      description: 'Пайплайн гипотез по статусам',
-    },
-    {
-      href: '/conversations',
-      label: 'Разговоры',
-      count: conversationCount,
-      description: 'База CustDev-разговоров',
-    },
-    {
-      href: '/competitors',
-      label: 'Конкуренты',
-      count: competitorCount,
-      description: 'Конкурентное окружение по продуктам',
-    },
-    {
-      href: '/features',
-      label: 'Фичи',
-      count: featureCount,
-      description: 'Как продукт закрывает JTBD',
-    },
-    {
-      href: '/marketing',
-      label: 'Маркетинг',
-      count: rtbCount,
-      description: 'Маркетинговые обещания (RTB) на основе фич',
-    },
-    {
-      href: '/insights',
-      label: 'Инсайты',
-      count: insightCount,
-      description: 'Атомарные цитаты и выводы из исследований',
-    },
-  ]
+  const counts: Record<string, number> = {
+    '/products': productCount,
+    '/research': researchCount,
+    '/segments': segmentCount,
+    '/jtbd': jtbdCount,
+    '/hypotheses': hypothesisCount,
+    '/conversations': conversationCount,
+    '/competitors': competitorCount,
+    '/features': featureCount,
+    '/marketing': rtbCount,
+    '/insights': insightCount,
+  }
 
   return (
     <main className="container py-12">
@@ -287,20 +274,40 @@ export default async function Home() {
       <p className="text-muted-foreground mb-8">
         Платформа для управления продуктовыми исследованиями и сегментами клиентов
       </p>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5 mb-10">
-        {cards.map((card) => (
-          <Link key={card.href} href={card.href}>
-            <Card className="h-full hover:border-primary transition-colors">
-              <CardHeader>
-                <CardTitle>{card.label}</CardTitle>
-                <CardDescription>{card.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="text-3xl font-bold">{card.count}</span>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+
+      <div className="mb-8 max-w-xs">
+        <ModuleTile module={productModule} count={counts[productModule.href]} />
+      </div>
+
+      <div className="mb-8 space-y-4">
+        <SectionHeading title={researchGroupMeta.title} description={researchGroupMeta.description} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {researchModules.map((module) => (
+            <ModuleTile
+              key={module.href}
+              module={module}
+              count={counts[module.href]}
+              tone={researchGroupMeta.tone}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-10 space-y-4">
+        <SectionHeading
+          title={positioningGroupMeta.title}
+          description={positioningGroupMeta.description}
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {positioningModules.map((module) => (
+            <ModuleTile
+              key={module.href}
+              module={module}
+              count={counts[module.href]}
+              tone={positioningGroupMeta.tone}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="mb-10">

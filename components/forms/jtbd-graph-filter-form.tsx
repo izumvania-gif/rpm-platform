@@ -40,6 +40,7 @@ export function JtbdGraphFilterForm({
         aria-label="Граф"
         className="w-auto"
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
+        title="У каждого графа — общего и по каждому сегменту — своя независимая раскладка узлов"
       >
         <option value={OVERALL_VIEW_KEY}>Общий граф</option>
         {segments.map((s) => (

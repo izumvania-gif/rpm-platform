@@ -142,6 +142,10 @@ export function JtbdForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Сегменты</Label>
+          <p className="text-xs text-muted-foreground">
+            Можно выбрать несколько — у каждого сегмента будет свой независимый граф JTBD с
+            собственной раскладкой узлов.
+          </p>
           {productSegments.length === 0 ? (
             <p className="text-sm text-muted-foreground">У выбранного продукта пока нет сегментов.</p>
           ) : (

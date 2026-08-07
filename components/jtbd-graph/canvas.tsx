@@ -369,7 +369,13 @@ function GraphInner({
             <MiniMap pannable zoomable />
             <AddJtbdPanel productId={productId} categories={categories} segmentId={segmentId} />
             <Panel position="top-right" className="!m-2">
-              <Button type="button" size="sm" variant="outline" onClick={handleAutoArrange}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleAutoArrange}
+                title="Пересчитает позиции всех узлов текущего представления по иерархии и перезапишет ручную раскладку — только для этого графа (общего или сегмента), другие представления не затронет"
+              >
                 Автоматически расставить
               </Button>
             </Panel>

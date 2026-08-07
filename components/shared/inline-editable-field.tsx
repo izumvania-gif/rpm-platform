@@ -123,6 +123,7 @@ export function InlineEditableField({
       <button
         type="button"
         onClick={startEdit}
+        title="Нажмите, чтобы отредактировать"
         className={cn(
           'rounded px-1 -mx-1 text-left transition-colors hover:bg-accent/60',
           !saved && 'italic text-muted-foreground',

@@ -18,6 +18,7 @@ import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-track
 import { SignalBadge } from '@/components/shared/signal-badge'
 import { JobTypeDot } from '@/components/shared/job-type-dot'
 import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
+import { signalToneColors } from '@/lib/signal-colors'
 
 export const dynamic = 'force-dynamic'
 
@@ -117,13 +118,20 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
           <div className="flex flex-wrap gap-2">
             {hypothesisStatusOrder.map((status) => {
               const setStatus = updateHypothesisStatus.bind(null, hypothesis.id, status)
+              const isCurrent = status === hypothesis.status
+              const tone = signalToneColors[hypothesisStatusTone[status]]
               return (
                 <form key={status} action={setStatus}>
                   <SubmitButton
-                    variant={status === hypothesis.status ? 'default' : 'outline'}
+                    variant={isCurrent ? 'default' : 'outline'}
                     size="sm"
-                    disabled={status === hypothesis.status}
+                    disabled={isCurrent}
                     pendingText="..."
+                    style={
+                      isCurrent
+                        ? { backgroundColor: tone.border, borderColor: tone.border, color: '#fff' }
+                        : undefined
+                    }
                   >
                     {hypothesisStatusLabels[status]}
                   </SubmitButton>

@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
@@ -77,24 +76,25 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
                 {group.name}{' '}
                 <span className="text-muted-foreground font-normal">({group.items.length})</span>
               </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="divide-y rounded-md border">
                 {group.items.map((rtb) => (
-                  <Link key={rtb.id} href={`/marketing/${rtb.id}`}>
-                    <Card className="h-full hover:border-primary transition-colors">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="line-clamp-3 text-base">{rtb.statement}</CardTitle>
-                          <PinButton
-                            pinned={rtb.pinned}
-                            action={toggleRTBPinned.bind(null, rtb.id, !rtb.pinned)}
-                          />
-                        </div>
-                        <CardDescription>{rtb.features.length} фич</CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </Link>
+                  <li key={rtb.id}>
+                    <Link
+                      href={`/marketing/${rtb.id}`}
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm hover:bg-accent/50"
+                    >
+                      <span className="min-w-0 flex-1 truncate">{rtb.statement}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {rtb.features.length} фич
+                      </span>
+                      <PinButton
+                        pinned={rtb.pinned}
+                        action={toggleRTBPinned.bind(null, rtb.id, !rtb.pinned)}
+                      />
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ))}
         </div>

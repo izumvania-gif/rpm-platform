@@ -34,52 +34,54 @@ export function ProductForm({
   const [slug, setSlug] = useState(defaultValues?.slug ?? '')
 
   return (
-    <form action={action} className="space-y-4 max-w-xl">
+    <form action={action} className="max-w-2xl space-y-4">
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="name">Название</Label>
-        <Input
-          id="name"
-          name="name"
-          required
-          defaultValue={defaultValues?.name}
-          onChange={(e) => {
-            if (!slugTouched) setSlug(slugify(e.target.value))
-          }}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="slug">Slug (eng)</Label>
-        <Input
-          id="slug"
-          name="slug"
-          required
-          value={slug}
-          onChange={(e) => {
-            setSlugTouched(true)
-            setSlug(e.target.value)
-          }}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="stage">Стадия</Label>
-        <Select id="stage" name="stage" defaultValue={defaultValues?.stage ?? Stage.IDEA}>
-          {Object.values(Stage).map((stage) => (
-            <option key={stage} value={stage}>
-              {stageLabels[stage]}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">Описание</Label>
-        <Textarea
-          id="description"
-          name="description"
-          defaultValue={defaultValues?.description ?? ''}
-        />
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="name">Название</Label>
+          <Input
+            id="name"
+            name="name"
+            required
+            defaultValue={defaultValues?.name}
+            onChange={(e) => {
+              if (!slugTouched) setSlug(slugify(e.target.value))
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="slug">Slug (eng)</Label>
+          <Input
+            id="slug"
+            name="slug"
+            required
+            value={slug}
+            onChange={(e) => {
+              setSlugTouched(true)
+              setSlug(e.target.value)
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="stage">Стадия</Label>
+          <Select id="stage" name="stage" defaultValue={defaultValues?.stage ?? Stage.IDEA}>
+            {Object.values(Stage).map((stage) => (
+              <option key={stage} value={stage}>
+                {stageLabels[stage]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="description">Описание</Label>
+          <Textarea
+            id="description"
+            name="description"
+            defaultValue={defaultValues?.description ?? ''}
+          />
+        </div>
       </div>
       {showOnboardingOption ? (
         <div className="space-y-2">

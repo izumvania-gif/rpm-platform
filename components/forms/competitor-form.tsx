@@ -53,50 +53,50 @@ export function CompetitorForm({
   }, [productId])
 
   return (
-    <form action={action} className="space-y-4 max-w-xl">
+    <form action={action} className="max-w-2xl space-y-4">
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="name">Название</Label>
-        <Input id="name" name="name" required defaultValue={defaultValues?.name} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="productId">Продукт</Label>
-        <Select
-          id="productId"
-          name="productId"
-          required
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-        >
-          <option value="" disabled>
-            Выберите продукт
-          </option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="name">Название</Label>
+          <Input id="name" name="name" required defaultValue={defaultValues?.name} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="productId">Продукт</Label>
+          <Select
+            id="productId"
+            name="productId"
+            required
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+          >
+            <option value="" disabled>
+              Выберите продукт
             </option>
-          ))}
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="url">Сайт</Label>
-        <Input id="url" name="url" type="url" defaultValue={defaultValues?.url ?? ''} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="positioning">Позиционирование</Label>
-        <Textarea
-          id="positioning"
-          name="positioning"
-          defaultValue={defaultValues?.positioning ?? ''}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="features">Фичи конкурента (через запятую)</Label>
-        <Input id="features" name="features" defaultValue={defaultValues?.features?.join(', ')} />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="url">Сайт</Label>
+          <Input id="url" name="url" type="url" defaultValue={defaultValues?.url ?? ''} />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="positioning">Позиционирование</Label>
+          <Textarea
+            id="positioning"
+            name="positioning"
+            defaultValue={defaultValues?.positioning ?? ''}
+          />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="features">Фичи конкурента (через запятую)</Label>
+          <Input id="features" name="features" defaultValue={defaultValues?.features?.join(', ')} />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="pricingModel">Модель ценообразования</Label>
           <Input
@@ -113,15 +113,15 @@ export function CompetitorForm({
             defaultValue={defaultValues?.companySize ?? ''}
           />
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="lastCheckedAt">Дата последней проверки информации</Label>
-        <Input
-          id="lastCheckedAt"
-          name="lastCheckedAt"
-          type="date"
-          defaultValue={toDateInputValue(defaultValues?.lastCheckedAt)}
-        />
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="lastCheckedAt">Дата последней проверки информации</Label>
+          <Input
+            id="lastCheckedAt"
+            name="lastCheckedAt"
+            type="date"
+            defaultValue={toDateInputValue(defaultValues?.lastCheckedAt)}
+          />
+        </div>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

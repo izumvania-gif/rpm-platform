@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
@@ -61,38 +60,33 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
       {segments.length === 0 ? (
         <p className="text-muted-foreground">Сегментов пока нет.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="divide-y rounded-md border">
           {segments.map((segment) => (
-            <Link key={segment.id} href={`/segments/${segment.id}`}>
-              <Card className="h-full hover:border-primary transition-colors">
-                <CardHeader>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="h-3 w-3 rounded-full shrink-0"
-                        style={{ backgroundColor: segment.color }}
-                      />
-                      <CardTitle className="truncate">{segment.name}</CardTitle>
-                    </div>
-                    <PinButton
-                      pinned={segment.pinned}
-                      action={toggleSegmentPinned.bind(null, segment.id, !segment.pinned)}
-                    />
-                  </div>
-                  <CardDescription>{segment.product.name}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {segment.audienceShare != null && (
-                    <p className="text-sm text-muted-foreground">
-                      {segment.audienceShare}% аудитории
-                    </p>
-                  )}
-                  <TagBadges tags={segment.tags} />
-                </CardContent>
-              </Card>
-            </Link>
+            <li key={segment.id}>
+              <Link
+                href={`/segments/${segment.id}`}
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm hover:bg-accent/50"
+              >
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: segment.color }}
+                />
+                <span className="min-w-0 flex-1 font-medium">{segment.name}</span>
+                <span className="shrink-0 text-muted-foreground">{segment.product.name}</span>
+                {segment.audienceShare != null && (
+                  <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                    {segment.audienceShare}% аудитории
+                  </span>
+                )}
+                <TagBadges tags={segment.tags} />
+                <PinButton
+                  pinned={segment.pinned}
+                  action={toggleSegmentPinned.bind(null, segment.id, !segment.pinned)}
+                />
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </main>
   )

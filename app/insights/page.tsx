@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
@@ -82,31 +81,28 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
                 {group.name}{' '}
                 <span className="text-muted-foreground font-normal">({group.items.length})</span>
               </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="divide-y rounded-md border">
                 {group.items.map((insight) => (
-                  <Link key={insight.id} href={`/insights/${insight.id}`}>
-                    <Card className="h-full hover:border-primary transition-colors">
-                      <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
-                        <p className="line-clamp-4 text-sm">{insight.text}</p>
-                        <PinButton
-                          pinned={insight.pinned}
-                          action={toggleInsightPinned.bind(null, insight.id, !insight.pinned)}
-                        />
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {(insight.segment || insight.jtbd) && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {[insight.segment?.name, insight.jtbd?.title]
-                              .filter(Boolean)
-                              .join(' · ')}
-                          </p>
-                        )}
-                        <TagBadges tags={insight.tags} />
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <li key={insight.id}>
+                    <Link
+                      href={`/insights/${insight.id}`}
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm hover:bg-accent/50"
+                    >
+                      <span className="min-w-0 flex-1 truncate">{insight.text}</span>
+                      {(insight.segment || insight.jtbd) && (
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {[insight.segment?.name, insight.jtbd?.title].filter(Boolean).join(' · ')}
+                        </span>
+                      )}
+                      <TagBadges tags={insight.tags} />
+                      <PinButton
+                        pinned={insight.pinned}
+                        action={toggleInsightPinned.bind(null, insight.id, !insight.pinned)}
+                      />
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ))}
         </div>

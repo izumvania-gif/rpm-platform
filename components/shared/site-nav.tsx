@@ -77,7 +77,7 @@ export function SiteNav() {
             </span>
           </Link>
           <div className="flex min-w-0 items-center gap-4 sm:gap-6">
-            <nav className="flex min-w-0 items-stretch gap-4 overflow-x-visible sm:gap-6">
+            <nav className="flex min-w-0 items-center gap-1 overflow-x-visible sm:gap-1.5">
               {links.map((link) => {
                 const active = isActive(pathname, link.match)
                 return (
@@ -85,8 +85,8 @@ export function SiteNav() {
                     <Link
                       href={link.href}
                       className={cn(
-                        'flex shrink-0 items-center gap-1 whitespace-nowrap border-b-2 border-transparent py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
-                        active && 'border-primary text-foreground'
+                        'flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground',
+                        active && 'bg-primary/10 font-semibold text-primary hover:bg-primary/10 hover:text-primary'
                       )}
                     >
                       {link.label}

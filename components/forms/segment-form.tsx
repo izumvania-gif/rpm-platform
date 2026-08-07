@@ -50,55 +50,55 @@ export function SegmentForm({
   }, [productId])
 
   return (
-    <form action={action} className="space-y-4 max-w-xl">
+    <form action={action} className="max-w-2xl space-y-4">
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="name">Название</Label>
-        <Input
-          id="name"
-          name="name"
-          required
-          defaultValue={defaultValues?.name}
-          onChange={(e) => {
-            if (!slugTouched) setSlug(slugify(e.target.value))
-          }}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="slug">Slug (eng)</Label>
-        <Input
-          id="slug"
-          name="slug"
-          required
-          value={slug}
-          onChange={(e) => {
-            setSlugTouched(true)
-            setSlug(e.target.value)
-          }}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="productId">Продукт</Label>
-        <Select
-          id="productId"
-          name="productId"
-          required
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-        >
-          <option value="" disabled>
-            Выберите продукт
-          </option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="name">Название</Label>
+          <Input
+            id="name"
+            name="name"
+            required
+            defaultValue={defaultValues?.name}
+            onChange={(e) => {
+              if (!slugTouched) setSlug(slugify(e.target.value))
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="slug">Slug (eng)</Label>
+          <Input
+            id="slug"
+            name="slug"
+            required
+            value={slug}
+            onChange={(e) => {
+              setSlugTouched(true)
+              setSlug(e.target.value)
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="productId">Продукт</Label>
+          <Select
+            id="productId"
+            name="productId"
+            required
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+          >
+            <option value="" disabled>
+              Выберите продукт
             </option>
-          ))}
-        </Select>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="audienceShare">Доля аудитории (%)</Label>
           <Input
@@ -121,18 +121,18 @@ export function SegmentForm({
             className="h-10 px-1"
           />
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">Описание</Label>
-        <Textarea
-          id="description"
-          name="description"
-          defaultValue={defaultValues?.description ?? ''}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="tags">Теги (через запятую)</Label>
-        <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="tags">Теги (через запятую)</Label>
+          <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="description">Описание</Label>
+          <Textarea
+            id="description"
+            name="description"
+            defaultValue={defaultValues?.description ?? ''}
+          />
+        </div>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

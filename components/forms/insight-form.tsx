@@ -76,34 +76,34 @@ export function InsightForm({
   )
 
   return (
-    <form action={action} className="space-y-4 max-w-xl">
+    <form action={action} className="max-w-2xl space-y-4">
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="text">Цитата или вывод</Label>
-        <Textarea id="text" name="text" required defaultValue={defaultValues?.text} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="productId">Продукт</Label>
-        <Select
-          id="productId"
-          name="productId"
-          required
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-        >
-          <option value="" disabled>
-            Выберите продукт
-          </option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="text">Цитата или вывод</Label>
+          <Textarea id="text" name="text" required defaultValue={defaultValues?.text} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="productId">Продукт</Label>
+          <Select
+            id="productId"
+            name="productId"
+            required
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+          >
+            <option value="" disabled>
+              Выберите продукт
             </option>
-          ))}
-        </Select>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="segmentId">Сегмент</Label>
           <Select
@@ -138,8 +138,6 @@ export function InsightForm({
             ))}
           </Select>
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="researchId">Исследование</Label>
           <Select id="researchId" name="researchId" defaultValue={defaultValues?.researchId ?? ''}>
@@ -166,10 +164,10 @@ export function InsightForm({
             ))}
           </Select>
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="tags">Теги (через запятую)</Label>
-        <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="tags">Теги (через запятую)</Label>
+          <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
+        </div>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

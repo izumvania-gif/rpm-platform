@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
@@ -83,36 +82,31 @@ export default async function CompetitorsPage({
                 {group.name}{' '}
                 <span className="text-muted-foreground font-normal">({group.items.length})</span>
               </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="divide-y rounded-md border">
                 {group.items.map((competitor) => (
-                  <Link key={competitor.id} href={`/competitors/${competitor.id}`}>
-                    <Card className="h-full hover:border-primary transition-colors">
-                      <CardHeader>
-                        <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="line-clamp-2" title={competitor.name}>
-                            {competitor.name}
-                          </CardTitle>
-                          <PinButton
-                            pinned={competitor.pinned}
-                            action={toggleCompetitorPinned.bind(
-                              null,
-                              competitor.id,
-                              !competitor.pinned
-                            )}
-                          />
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {competitor.positioning && (
-                          <p className="text-sm text-muted-foreground line-clamp-3">
-                            {competitor.positioning}
-                          </p>
+                  <li key={competitor.id}>
+                    <Link
+                      href={`/competitors/${competitor.id}`}
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm hover:bg-accent/50"
+                    >
+                      <span className="min-w-0 shrink-0 font-medium">{competitor.name}</span>
+                      {competitor.positioning && (
+                        <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                          {competitor.positioning}
+                        </span>
+                      )}
+                      <PinButton
+                        pinned={competitor.pinned}
+                        action={toggleCompetitorPinned.bind(
+                          null,
+                          competitor.id,
+                          !competitor.pinned
                         )}
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      />
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ))}
         </div>

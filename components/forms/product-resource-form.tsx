@@ -46,58 +46,60 @@ export function ProductResourceForm({
   }, [productId])
 
   return (
-    <form action={action} className="space-y-4 max-w-xl">
+    <form action={action} className="max-w-2xl space-y-4">
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="title">Название</Label>
-        <Input id="title" name="title" required defaultValue={defaultValues?.title} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="productId">Продукт</Label>
-        <Select
-          id="productId"
-          name="productId"
-          required
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-        >
-          <option value="" disabled>
-            Выберите продукт
-          </option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="title">Название</Label>
+          <Input id="title" name="title" required defaultValue={defaultValues?.title} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="productId">Продукт</Label>
+          <Select
+            id="productId"
+            name="productId"
+            required
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+          >
+            <option value="" disabled>
+              Выберите продукт
             </option>
-          ))}
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="kind">Тип</Label>
-        <Select
-          id="kind"
-          name="kind"
-          defaultValue={defaultValues?.kind ?? ProductResourceKind.OTHER}
-        >
-          {Object.values(ProductResourceKind).map((kind) => (
-            <option key={kind} value={kind}>
-              {productResourceKindLabels[kind]}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="url">Ссылка</Label>
-        <Input id="url" name="url" type="url" defaultValue={defaultValues?.url ?? ''} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">Описание</Label>
-        <Textarea
-          id="description"
-          name="description"
-          defaultValue={defaultValues?.description ?? ''}
-        />
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="kind">Тип</Label>
+          <Select
+            id="kind"
+            name="kind"
+            defaultValue={defaultValues?.kind ?? ProductResourceKind.OTHER}
+          >
+            {Object.values(ProductResourceKind).map((kind) => (
+              <option key={kind} value={kind}>
+                {productResourceKindLabels[kind]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="url">Ссылка</Label>
+          <Input id="url" name="url" type="url" defaultValue={defaultValues?.url ?? ''} />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="description">Описание</Label>
+          <Textarea
+            id="description"
+            name="description"
+            defaultValue={defaultValues?.description ?? ''}
+          />
+        </div>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

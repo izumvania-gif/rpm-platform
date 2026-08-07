@@ -2,16 +2,16 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteJtbd, toggleJtbdPinned } from '@/lib/actions/jtbd'
+import { deleteJtbd, toggleJtbdPinned, updateJtbdField } from '@/lib/actions/jtbd'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
-import { JobTypeBadge } from '@/components/shared/job-type-badge'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 import { isStale } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -47,7 +47,13 @@ export default async function JtbdDetailPage({
       )}
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">{jtbd.title}</h1>
+          <h1 className="text-2xl font-bold">
+            <InlineEditableField
+              value={jtbd.title}
+              type="textarea"
+              action={updateJtbdField.bind(null, jtbd.id, 'title')}
+            />
+          </h1>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={jtbd.pinned} action={toggleJtbdPinnedWithId} />
             <CopyLinkButton />
@@ -67,8 +73,19 @@ export default async function JtbdDetailPage({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <JobTypeBadge jobType={jtbd.jobType} />
-          <Badge variant="outline">{jtbd.category}</Badge>
+          <InlineEditableField
+            value={jtbd.jobType}
+            type="select"
+            options={jtbdJobTypeOrder.map((type) => ({ value: type, label: jtbdJobTypeLabels[type] }))}
+            action={updateJtbdField.bind(null, jtbd.id, 'jobType')}
+            display="jobType"
+          />
+          <InlineEditableField
+            value={jtbd.category}
+            action={updateJtbdField.bind(null, jtbd.id, 'category')}
+            display="badge"
+            badgeVariant="outline"
+          />
           {jtbd.confirmed && <Badge variant="secondary">Подтверждён</Badge>}
           {isStale(jtbd.updatedAt) && (
             <Badge variant="outline" className="text-muted-foreground">
@@ -99,12 +116,21 @@ export default async function JtbdDetailPage({
             </Link>
           )}
         </div>
-        {jtbd.tags.length > 0 && (
-          <div className="mb-4">
-            <TagBadges tags={jtbd.tags} />
-          </div>
-        )}
-        {jtbd.description && <p className="text-muted-foreground">{jtbd.description}</p>}
+        <div className="mb-4">
+          <InlineEditableField
+            value={jtbd.tags.join(', ')}
+            action={updateJtbdField.bind(null, jtbd.id, 'tags')}
+            placeholder="+ добавить теги"
+            display="tags"
+          />
+        </div>
+        <p className="text-muted-foreground">
+          <InlineEditableField
+            value={jtbd.description ?? ''}
+            type="textarea"
+            action={updateJtbdField.bind(null, jtbd.id, 'description')}
+          />
+        </p>
       </div>
 
       <Card>

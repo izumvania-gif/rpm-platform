@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteProduct } from '@/lib/actions/products'
+import { deleteProduct, updateProductField } from '@/lib/actions/products'
 import { deleteProductResource } from '@/lib/actions/product-resources'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { SectionHeading } from '@/components/shared/section-heading'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { researchGroupMeta, positioningGroupMeta } from '@/lib/module-meta'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 
@@ -125,7 +126,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       {isNearEmpty && <WelcomeChecklist productId={product.id} items={checklistItems} />}
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">{product.name}</h1>
+          <h1 className="text-2xl font-bold">
+            <InlineEditableField
+              value={product.name}
+              action={updateProductField.bind(null, product.id, 'name')}
+            />
+          </h1>
           <div className="flex flex-wrap gap-2 print:hidden">
             <PrintButton />
             <CopyLinkButton />
@@ -142,12 +148,23 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           </div>
         </div>
         <div className="flex items-center gap-3 mb-4">
-          <Badge variant="secondary">{stageLabels[product.stage]}</Badge>
+          <InlineEditableField
+            value={product.stage}
+            type="select"
+            options={Object.entries(stageLabels).map(([value, label]) => ({ value, label }))}
+            action={updateProductField.bind(null, product.id, 'stage')}
+            display="badge"
+            labels={stageLabels}
+          />
           <span className="text-sm text-muted-foreground">{product.slug}</span>
         </div>
-        {product.description && (
-          <p className="text-muted-foreground max-w-2xl">{product.description}</p>
-        )}
+        <p className="text-muted-foreground max-w-2xl">
+          <InlineEditableField
+            value={product.description ?? ''}
+            type="textarea"
+            action={updateProductField.bind(null, product.id, 'description')}
+          />
+        </p>
       </div>
 
       <div className="space-y-5">

@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalString } from '@/lib/validation'
+import { optionalString, type InlineFieldResult } from '@/lib/validation'
 
 const featureSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
@@ -98,4 +98,25 @@ export async function createFeatureQuick(
   revalidatePath('/features')
   revalidatePath(`/products/${productId}/onboarding/features`)
   return { ok: true, feature }
+}
+
+export async function updateFeatureField(
+  id: string,
+  field: 'name' | 'description',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'name': {
+      const name = value.trim()
+      if (!name) return { ok: false, error: 'Название не может быть пустым' }
+      await prisma.feature.update({ where: { id }, data: { name } })
+      break
+    }
+    case 'description':
+      await prisma.feature.update({ where: { id }, data: { description: value.trim() || null } })
+      break
+  }
+  revalidatePath('/features')
+  revalidatePath(`/features/${id}`)
+  return { ok: true }
 }

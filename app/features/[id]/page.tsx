@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteFeature, toggleFeaturePinned } from '@/lib/actions/features'
+import { deleteFeature, toggleFeaturePinned, updateFeatureField } from '@/lib/actions/features'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
@@ -10,6 +10,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { JobTypeDot } from '@/components/shared/job-type-dot'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,12 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
       <RecentlyViewedTracker href={`/features/${feature.id}`} title={feature.name} kind="Фича" />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">{feature.name}</h1>
+          <h1 className="text-2xl font-bold">
+            <InlineEditableField
+              value={feature.name}
+              action={updateFeatureField.bind(null, feature.id, 'name')}
+            />
+          </h1>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={feature.pinned} action={toggleFeaturePinnedWithId} />
             <CopyLinkButton />
@@ -54,7 +60,13 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
         >
           {feature.product.name}
         </Link>
-        {feature.description && <p className="text-muted-foreground mt-4">{feature.description}</p>}
+        <p className="text-muted-foreground mt-4">
+          <InlineEditableField
+            value={feature.description ?? ''}
+            type="textarea"
+            action={updateFeatureField.bind(null, feature.id, 'description')}
+          />
+        </p>
       </div>
 
       <Card>

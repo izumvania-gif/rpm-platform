@@ -2,15 +2,19 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteConversation, toggleConversationPinned } from '@/lib/actions/conversations'
+import {
+  deleteConversation,
+  toggleConversationPinned,
+  updateConversationField,
+} from '@/lib/actions/conversations'
 import { buttonVariants } from '@/components/ui/button'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { QuickAddInsight } from '@/components/shared/quick-add-insight'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,7 +54,12 @@ export default async function ConversationDetailPage({ params }: { params: { id:
       />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">{conversation.title}</h1>
+          <h1 className="text-2xl font-bold">
+            <InlineEditableField
+              value={conversation.title}
+              action={updateConversationField.bind(null, conversation.id, 'title')}
+            />
+          </h1>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={conversation.pinned} action={toggleConversationPinnedWithId} />
             <CopyLinkButton />
@@ -92,18 +101,30 @@ export default async function ConversationDetailPage({ params }: { params: { id:
               #{conversation.research.number} {conversation.research.title}
             </Link>
           )}
-          <span className="text-sm text-muted-foreground">
-            {conversation.date.toLocaleDateString('ru-RU')}
-          </span>
+          <InlineEditableField
+            value={conversation.date.toISOString().slice(0, 10)}
+            type="date"
+            action={updateConversationField.bind(null, conversation.id, 'date')}
+            display="date"
+            className="text-sm text-muted-foreground"
+          />
         </div>
-        {conversation.tags.length > 0 && (
-          <div className="mb-4">
-            <TagBadges tags={conversation.tags} />
-          </div>
-        )}
-        {conversation.transcript && (
-          <p className="text-muted-foreground whitespace-pre-wrap">{conversation.transcript}</p>
-        )}
+        <div className="mb-4">
+          <InlineEditableField
+            value={conversation.tags.join(', ')}
+            action={updateConversationField.bind(null, conversation.id, 'tags')}
+            placeholder="+ добавить теги"
+            display="tags"
+          />
+        </div>
+        <p className="text-muted-foreground whitespace-pre-wrap">
+          <InlineEditableField
+            value={conversation.transcript ?? ''}
+            type="textarea"
+            placeholder="+ добавить транскрипт"
+            action={updateConversationField.bind(null, conversation.id, 'transcript')}
+          />
+        </p>
       </div>
 
       <Card>

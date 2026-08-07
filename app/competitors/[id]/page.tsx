@@ -2,15 +2,19 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteCompetitor, toggleCompetitorPinned } from '@/lib/actions/competitors'
+import {
+  deleteCompetitor,
+  toggleCompetitorPinned,
+  updateCompetitorField,
+} from '@/lib/actions/competitors'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { CompetitorNewsList } from '@/components/shared/competitor-news-list'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,7 +42,12 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
       />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">{competitor.name}</h1>
+          <h1 className="text-2xl font-bold">
+            <InlineEditableField
+              value={competitor.name}
+              action={updateCompetitorField.bind(null, competitor.id, 'name')}
+            />
+          </h1>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={competitor.pinned} action={toggleCompetitorPinnedWithId} />
             <CopyLinkButton />
@@ -61,42 +70,61 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
           <Link href={`/products/${competitor.product.id}`} className="hover:underline">
             {competitor.product.name}
           </Link>
-          {competitor.url && (
-            <a href={competitor.url} target="_blank" rel="noreferrer" className="hover:underline">
-              {competitor.url}
-            </a>
-          )}
+          <InlineEditableField
+            value={competitor.url ?? ''}
+            placeholder="+ добавить сайт"
+            action={updateCompetitorField.bind(null, competitor.id, 'url')}
+            display="link"
+          />
         </div>
-        {competitor.features.length > 0 && (
-          <div className="mb-4">
-            <TagBadges tags={competitor.features} />
+        <div className="mb-4">
+          <InlineEditableField
+            value={competitor.features.join(', ')}
+            action={updateCompetitorField.bind(null, competitor.id, 'features')}
+            placeholder="+ добавить фичи конкурента"
+            display="tags"
+          />
+        </div>
+        <p className="text-muted-foreground">
+          <InlineEditableField
+            value={competitor.positioning ?? ''}
+            type="textarea"
+            action={updateCompetitorField.bind(null, competitor.id, 'positioning')}
+          />
+        </p>
+        <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="text-xs text-muted-foreground">Модель ценообразования</dt>
+            <dd>
+              <InlineEditableField
+                value={competitor.pricingModel ?? ''}
+                action={updateCompetitorField.bind(null, competitor.id, 'pricingModel')}
+              />
+            </dd>
           </div>
-        )}
-        {competitor.positioning && (
-          <p className="text-muted-foreground">{competitor.positioning}</p>
-        )}
-        {(competitor.pricingModel || competitor.companySize || competitor.lastCheckedAt) && (
-          <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-            {competitor.pricingModel && (
-              <div>
-                <dt className="text-xs text-muted-foreground">Модель ценообразования</dt>
-                <dd>{competitor.pricingModel}</dd>
-              </div>
-            )}
-            {competitor.companySize && (
-              <div>
-                <dt className="text-xs text-muted-foreground">Размер компании / стадия</dt>
-                <dd>{competitor.companySize}</dd>
-              </div>
-            )}
-            {competitor.lastCheckedAt && (
-              <div>
-                <dt className="text-xs text-muted-foreground">Последняя проверка</dt>
-                <dd>{competitor.lastCheckedAt.toLocaleDateString('ru-RU')}</dd>
-              </div>
-            )}
-          </dl>
-        )}
+          <div>
+            <dt className="text-xs text-muted-foreground">Размер компании / стадия</dt>
+            <dd>
+              <InlineEditableField
+                value={competitor.companySize ?? ''}
+                action={updateCompetitorField.bind(null, competitor.id, 'companySize')}
+              />
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Последняя проверка</dt>
+            <dd>
+              <InlineEditableField
+                value={
+                  competitor.lastCheckedAt ? competitor.lastCheckedAt.toISOString().slice(0, 10) : ''
+                }
+                type="date"
+                action={updateCompetitorField.bind(null, competitor.id, 'lastCheckedAt')}
+                display="date"
+              />
+            </dd>
+          </div>
+        </dl>
       </div>
 
       <Card>

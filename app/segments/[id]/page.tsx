@@ -2,13 +2,13 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteSegment, toggleSegmentPinned } from '@/lib/actions/segments'
+import { deleteSegment, toggleSegmentPinned, updateSegmentField } from '@/lib/actions/segments'
 import { buttonVariants } from '@/components/ui/button'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,7 +33,12 @@ export default async function SegmentDetailPage({ params }: { params: { id: stri
               className="h-4 w-4 rounded-full shrink-0"
               style={{ backgroundColor: segment.color }}
             />
-            <h1 className="text-2xl font-bold">{segment.name}</h1>
+            <h1 className="text-2xl font-bold">
+              <InlineEditableField
+                value={segment.name}
+                action={updateSegmentField.bind(null, segment.id, 'name')}
+              />
+            </h1>
           </div>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={segment.pinned} action={toggleSegmentPinnedWithId} />
@@ -58,14 +63,29 @@ export default async function SegmentDetailPage({ params }: { params: { id: stri
             {segment.product.name}
           </Link>
           <span>{segment.slug}</span>
-          {segment.audienceShare != null && <span>{segment.audienceShare}% аудитории</span>}
+          <InlineEditableField
+            value={segment.audienceShare != null ? String(segment.audienceShare) : ''}
+            type="number"
+            placeholder="+ добавить долю аудитории"
+            action={updateSegmentField.bind(null, segment.id, 'audienceShare')}
+            suffix="% аудитории"
+          />
         </div>
-        {segment.tags.length > 0 && (
-          <div className="mb-4">
-            <TagBadges tags={segment.tags} />
-          </div>
-        )}
-        {segment.description && <p className="text-muted-foreground">{segment.description}</p>}
+        <div className="mb-4">
+          <InlineEditableField
+            value={segment.tags.join(', ')}
+            action={updateSegmentField.bind(null, segment.id, 'tags')}
+            placeholder="+ добавить теги"
+            display="tags"
+          />
+        </div>
+        <p className="text-muted-foreground">
+          <InlineEditableField
+            value={segment.description ?? ''}
+            type="textarea"
+            action={updateSegmentField.bind(null, segment.id, 'description')}
+          />
+        </p>
       </div>
     </main>
   )

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import type { InlineFieldResult } from '@/lib/validation'
 
 const productSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
@@ -77,4 +78,31 @@ export async function deleteProduct(id: string) {
   await prisma.product.delete({ where: { id } })
   revalidatePath('/products')
   redirect('/products')
+}
+
+export async function updateProductField(
+  id: string,
+  field: 'name' | 'description' | 'stage',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'name': {
+      const name = value.trim()
+      if (!name) return { ok: false, error: 'Название не может быть пустым' }
+      await prisma.product.update({ where: { id }, data: { name } })
+      break
+    }
+    case 'description':
+      await prisma.product.update({ where: { id }, data: { description: value.trim() || null } })
+      break
+    case 'stage':
+      if (!Object.values(Stage).includes(value as Stage)) {
+        return { ok: false, error: 'Некорректная стадия' }
+      }
+      await prisma.product.update({ where: { id }, data: { stage: value as Stage } })
+      break
+  }
+  revalidatePath('/products')
+  revalidatePath(`/products/${id}`)
+  return { ok: true }
 }

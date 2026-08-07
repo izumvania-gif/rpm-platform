@@ -5,6 +5,7 @@ import { getCurrentUserId } from '@/lib/current-user'
 import {
   deleteHypothesis,
   toggleHypothesisPinned,
+  updateHypothesisField,
   updateHypothesisStatus,
 } from '@/lib/actions/hypotheses'
 import { buttonVariants } from '@/components/ui/button'
@@ -13,10 +14,10 @@ import { DeleteButton } from '@/components/shared/delete-button'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { SignalBadge } from '@/components/shared/signal-badge'
 import { JobTypeDot } from '@/components/shared/job-type-dot'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 
@@ -52,7 +53,13 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
       />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">{hypothesis.statement}</h1>
+          <h1 className="text-2xl font-bold">
+            <InlineEditableField
+              value={hypothesis.statement}
+              type="textarea"
+              action={updateHypothesisField.bind(null, hypothesis.id, 'statement')}
+            />
+          </h1>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={hypothesis.pinned} action={toggleHypothesisPinnedWithId} />
             <CopyLinkButton />
@@ -106,8 +113,21 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
               #{hypothesis.research.number} {hypothesis.research.title}
             </Link>
           )}
+          <InlineEditableField
+            value={hypothesis.priority != null ? String(hypothesis.priority) : ''}
+            type="number"
+            placeholder="+ добавить приоритет"
+            action={updateHypothesisField.bind(null, hypothesis.id, 'priority')}
+            prefix="Приоритет: "
+            className="text-sm text-muted-foreground"
+          />
         </div>
-        {hypothesis.tags.length > 0 && <TagBadges tags={hypothesis.tags} />}
+        <InlineEditableField
+          value={hypothesis.tags.join(', ')}
+          action={updateHypothesisField.bind(null, hypothesis.id, 'tags')}
+          placeholder="+ добавить теги"
+          display="tags"
+        />
       </div>
 
       <Card>

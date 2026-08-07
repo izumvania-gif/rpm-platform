@@ -6,7 +6,12 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalNumber, optionalString, toTagsArray } from '@/lib/validation'
+import {
+  optionalNumber,
+  optionalString,
+  toTagsArray,
+  type InlineFieldResult,
+} from '@/lib/validation'
 
 const hypothesisSchema = z.object({
   statement: z.string().trim().min(1, 'Формулировка обязательна'),
@@ -121,4 +126,35 @@ export async function createHypothesisQuick(
   revalidatePath('/hypotheses')
   revalidatePath(`/products/${productId}/onboarding/hypotheses`)
   return { ok: true, hypothesis }
+}
+
+export async function updateHypothesisField(
+  id: string,
+  field: 'statement' | 'priority' | 'tags',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'statement': {
+      const statement = value.trim()
+      if (!statement) return { ok: false, error: 'Формулировка не может быть пустой' }
+      await prisma.hypothesis.update({ where: { id }, data: { statement } })
+      break
+    }
+    case 'priority': {
+      if (value.trim() === '') {
+        await prisma.hypothesis.update({ where: { id }, data: { priority: null } })
+        break
+      }
+      const priority = Number(value)
+      if (!Number.isInteger(priority)) return { ok: false, error: 'Приоритет: целое число' }
+      await prisma.hypothesis.update({ where: { id }, data: { priority } })
+      break
+    }
+    case 'tags':
+      await prisma.hypothesis.update({ where: { id }, data: { tags: toTagsArray(value) } })
+      break
+  }
+  revalidatePath('/hypotheses')
+  revalidatePath(`/hypotheses/${id}`)
+  return { ok: true }
 }

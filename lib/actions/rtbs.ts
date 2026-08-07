@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import type { InlineFieldResult } from '@/lib/validation'
 
 const rtbSchema = z.object({
   statement: z.string().trim().min(1, 'Формулировка обязательна'),
@@ -92,4 +93,13 @@ export async function createRTBQuick(
   revalidatePath('/marketing')
   revalidatePath(`/products/${productId}/onboarding/features`)
   return { ok: true, rtb }
+}
+
+export async function updateRTBField(id: string, value: string): Promise<InlineFieldResult> {
+  const statement = value.trim()
+  if (!statement) return { ok: false, error: 'Формулировка не может быть пустой' }
+  await prisma.rTB.update({ where: { id }, data: { statement } })
+  revalidatePath('/marketing')
+  revalidatePath(`/marketing/${id}`)
+  return { ok: true }
 }

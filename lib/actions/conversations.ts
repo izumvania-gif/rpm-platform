@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalString, toTagsArray } from '@/lib/validation'
+import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const conversationSchema = z.object({
   title: z.string().trim().min(1, 'Название обязательно'),
@@ -98,4 +98,37 @@ export async function createConversationQuick(
   revalidatePath('/conversations')
   revalidatePath(`/products/${productId}/onboarding/research`)
   return { ok: true, conversation }
+}
+
+export async function updateConversationField(
+  id: string,
+  field: 'title' | 'transcript' | 'date' | 'tags',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'title': {
+      const title = value.trim()
+      if (!title) return { ok: false, error: 'Название не может быть пустым' }
+      await prisma.conversation.update({ where: { id }, data: { title } })
+      break
+    }
+    case 'transcript':
+      await prisma.conversation.update({
+        where: { id },
+        data: { transcript: value.trim() || null },
+      })
+      break
+    case 'date': {
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) return { ok: false, error: 'Некорректная дата' }
+      await prisma.conversation.update({ where: { id }, data: { date } })
+      break
+    }
+    case 'tags':
+      await prisma.conversation.update({ where: { id }, data: { tags: toTagsArray(value) } })
+      break
+  }
+  revalidatePath('/conversations')
+  revalidatePath(`/conversations/${id}`)
+  return { ok: true }
 }

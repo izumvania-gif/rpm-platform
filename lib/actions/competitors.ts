@@ -6,7 +6,12 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalDate, optionalString, toTagsArray } from '@/lib/validation'
+import {
+  optionalDate,
+  optionalString,
+  toTagsArray,
+  type InlineFieldResult,
+} from '@/lib/validation'
 
 const competitorSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
@@ -97,4 +102,63 @@ export async function createCompetitorQuick(
   revalidatePath('/competitors')
   revalidatePath(`/products/${productId}/onboarding/competitors`)
   return { ok: true, competitor }
+}
+
+export async function updateCompetitorField(
+  id: string,
+  field:
+    | 'name'
+    | 'url'
+    | 'positioning'
+    | 'features'
+    | 'pricingModel'
+    | 'companySize'
+    | 'lastCheckedAt',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'name': {
+      const name = value.trim()
+      if (!name) return { ok: false, error: 'Название не может быть пустым' }
+      await prisma.competitor.update({ where: { id }, data: { name } })
+      break
+    }
+    case 'url':
+      await prisma.competitor.update({ where: { id }, data: { url: value.trim() || null } })
+      break
+    case 'positioning':
+      await prisma.competitor.update({
+        where: { id },
+        data: { positioning: value.trim() || null },
+      })
+      break
+    case 'features':
+      await prisma.competitor.update({ where: { id }, data: { features: toTagsArray(value) } })
+      break
+    case 'pricingModel':
+      await prisma.competitor.update({
+        where: { id },
+        data: { pricingModel: value.trim() || null },
+      })
+      break
+    case 'companySize':
+      await prisma.competitor.update({
+        where: { id },
+        data: { companySize: value.trim() || null },
+      })
+      break
+    case 'lastCheckedAt': {
+      if (value.trim() === '') {
+        await prisma.competitor.update({ where: { id }, data: { lastCheckedAt: null } })
+        break
+      }
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) return { ok: false, error: 'Некорректная дата' }
+      await prisma.competitor.update({ where: { id }, data: { lastCheckedAt: date } })
+      break
+    }
+  }
+  revalidatePath('/competitors')
+  revalidatePath(`/competitors/${id}`)
+  return { ok: true }
 }

@@ -2,17 +2,17 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteResearch, toggleResearchPinned } from '@/lib/actions/research'
+import { deleteResearch, toggleResearchPinned, updateResearchField } from '@/lib/actions/research'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { Eyebrow } from '@/components/shared/eyebrow'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { QuickAddInsight } from '@/components/shared/quick-add-insight'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { statusLabels, typeLabels } from '@/lib/labels'
 import { isStale } from '@/lib/utils'
 
@@ -45,7 +45,12 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
       <div>
         <Eyebrow number={research.number} label="Исследование" className="mb-1" />
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">{research.title}</h1>
+          <h1 className="text-2xl font-bold">
+            <InlineEditableField
+              value={research.title}
+              action={updateResearchField.bind(null, research.id, 'title')}
+            />
+          </h1>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={research.pinned} action={toggleResearchPinnedWithId} />
             <CopyLinkButton />
@@ -65,10 +70,24 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <Badge variant={research.status === 'COMPLETED' ? 'default' : 'secondary'}>
-            {statusLabels[research.status]}
-          </Badge>
-          <Badge variant="outline">{typeLabels[research.type]}</Badge>
+          <InlineEditableField
+            value={research.status}
+            type="select"
+            options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))}
+            action={updateResearchField.bind(null, research.id, 'status')}
+            display="badge"
+            labels={statusLabels}
+            badgeVariant={{ IN_PROGRESS: 'secondary', COMPLETED: 'default' }}
+          />
+          <InlineEditableField
+            value={research.type}
+            type="select"
+            options={Object.entries(typeLabels).map(([value, label]) => ({ value, label }))}
+            action={updateResearchField.bind(null, research.id, 'type')}
+            display="badge"
+            labels={typeLabels}
+            badgeVariant="outline"
+          />
           {isStale(research.updatedAt) && (
             <Badge variant="outline" className="text-muted-foreground">
               Давно не обновлялось
@@ -80,16 +99,29 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
           >
             {research.product.name}
           </Link>
-          <span className="text-sm text-muted-foreground">
-            {research.date.toLocaleDateString('ru-RU')}
-          </span>
+          <InlineEditableField
+            value={research.date.toISOString().slice(0, 10)}
+            type="date"
+            action={updateResearchField.bind(null, research.id, 'date')}
+            display="date"
+            className="text-sm text-muted-foreground"
+          />
         </div>
-        {research.tags.length > 0 && (
-          <div className="mb-4">
-            <TagBadges tags={research.tags} />
-          </div>
-        )}
-        {research.description && <p className="text-muted-foreground">{research.description}</p>}
+        <div className="mb-4">
+          <InlineEditableField
+            value={research.tags.join(', ')}
+            action={updateResearchField.bind(null, research.id, 'tags')}
+            placeholder="+ добавить теги"
+            display="tags"
+          />
+        </div>
+        <p className="text-muted-foreground">
+          <InlineEditableField
+            value={research.description ?? ''}
+            type="textarea"
+            action={updateResearchField.bind(null, research.id, 'description')}
+          />
+        </p>
       </div>
 
       <Card>

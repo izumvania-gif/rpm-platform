@@ -16,6 +16,10 @@ export function optionalDate(schema: z.ZodDate = z.coerce.date()) {
   return z.preprocess((val) => (val === '' || val == null ? undefined : val), schema.optional())
 }
 
+// Shared return shape for the inline-editable-field Server Actions (§2.9.5) —
+// one per model, each switching over a whitelisted set of field names.
+export type InlineFieldResult = { ok: true } | { ok: false; error: string }
+
 export function toTagsArray(tags?: string): string[] {
   if (!tags) return []
   return tags

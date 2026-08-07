@@ -6,7 +6,12 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalNumber, optionalString, toTagsArray } from '@/lib/validation'
+import {
+  optionalNumber,
+  optionalString,
+  toTagsArray,
+  type InlineFieldResult,
+} from '@/lib/validation'
 import { slugify } from '@/lib/utils'
 
 const segmentSchema = z.object({
@@ -140,4 +145,40 @@ export async function createSegmentQuick(
     }
     throw e
   }
+}
+
+export async function updateSegmentField(
+  id: string,
+  field: 'name' | 'description' | 'audienceShare' | 'tags',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'name': {
+      const name = value.trim()
+      if (!name) return { ok: false, error: 'Название не может быть пустым' }
+      await prisma.segment.update({ where: { id }, data: { name } })
+      break
+    }
+    case 'description':
+      await prisma.segment.update({ where: { id }, data: { description: value.trim() || null } })
+      break
+    case 'audienceShare': {
+      if (value.trim() === '') {
+        await prisma.segment.update({ where: { id }, data: { audienceShare: null } })
+        break
+      }
+      const audienceShare = Number(value)
+      if (!Number.isFinite(audienceShare) || audienceShare < 0 || audienceShare > 100) {
+        return { ok: false, error: 'Доля аудитории: число от 0 до 100' }
+      }
+      await prisma.segment.update({ where: { id }, data: { audienceShare } })
+      break
+    }
+    case 'tags':
+      await prisma.segment.update({ where: { id }, data: { tags: toTagsArray(value) } })
+      break
+  }
+  revalidatePath('/segments')
+  revalidatePath(`/segments/${id}`)
+  return { ok: true }
 }

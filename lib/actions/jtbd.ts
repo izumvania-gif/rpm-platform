@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalString, toTagsArray } from '@/lib/validation'
+import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const jtbdSchema = z.object({
   title: z.string().trim().min(1, 'Формулировка обязательна'),
@@ -84,4 +84,40 @@ export async function toggleJtbdPinned(id: string, pinned: boolean) {
   revalidatePath('/jtbd')
   revalidatePath(`/jtbd/${id}`)
   revalidatePath('/')
+}
+
+export async function updateJtbdField(
+  id: string,
+  field: 'title' | 'category' | 'description' | 'jobType' | 'tags',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'title': {
+      const title = value.trim()
+      if (!title) return { ok: false, error: 'Формулировка не может быть пустой' }
+      await prisma.jTBD.update({ where: { id }, data: { title } })
+      break
+    }
+    case 'category': {
+      const category = value.trim()
+      if (!category) return { ok: false, error: 'Категория не может быть пустой' }
+      await prisma.jTBD.update({ where: { id }, data: { category } })
+      break
+    }
+    case 'description':
+      await prisma.jTBD.update({ where: { id }, data: { description: value.trim() || null } })
+      break
+    case 'jobType':
+      if (!Object.values(JtbdJobType).includes(value as JtbdJobType)) {
+        return { ok: false, error: 'Некорректный тип задачи' }
+      }
+      await prisma.jTBD.update({ where: { id }, data: { jobType: value as JtbdJobType } })
+      break
+    case 'tags':
+      await prisma.jTBD.update({ where: { id }, data: { tags: toTagsArray(value) } })
+      break
+  }
+  revalidatePath('/jtbd')
+  revalidatePath(`/jtbd/${id}`)
+  return { ok: true }
 }

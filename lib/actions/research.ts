@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { toTagsArray } from '@/lib/validation'
+import { toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const researchSchema = z.object({
   title: z.string().trim().min(1, 'Название обязательно'),
@@ -98,4 +98,46 @@ export async function createResearchQuick(
   revalidatePath('/research')
   revalidatePath(`/products/${productId}/onboarding/research`)
   return { ok: true, research }
+}
+
+export async function updateResearchField(
+  id: string,
+  field: 'title' | 'description' | 'date' | 'status' | 'type' | 'tags',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'title': {
+      const title = value.trim()
+      if (!title) return { ok: false, error: 'Название не может быть пустым' }
+      await prisma.research.update({ where: { id }, data: { title } })
+      break
+    }
+    case 'description':
+      await prisma.research.update({ where: { id }, data: { description: value.trim() || null } })
+      break
+    case 'date': {
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) return { ok: false, error: 'Некорректная дата' }
+      await prisma.research.update({ where: { id }, data: { date } })
+      break
+    }
+    case 'status':
+      if (!Object.values(ResearchStatus).includes(value as ResearchStatus)) {
+        return { ok: false, error: 'Некорректный статус' }
+      }
+      await prisma.research.update({ where: { id }, data: { status: value as ResearchStatus } })
+      break
+    case 'type':
+      if (!Object.values(ResearchType).includes(value as ResearchType)) {
+        return { ok: false, error: 'Некорректный тип' }
+      }
+      await prisma.research.update({ where: { id }, data: { type: value as ResearchType } })
+      break
+    case 'tags':
+      await prisma.research.update({ where: { id }, data: { tags: toTagsArray(value) } })
+      break
+  }
+  revalidatePath('/research')
+  revalidatePath(`/research/${id}`)
+  return { ok: true }
 }

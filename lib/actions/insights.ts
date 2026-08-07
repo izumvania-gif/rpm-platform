@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalString, toTagsArray } from '@/lib/validation'
+import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const insightSchema = z.object({
   text: z.string().trim().min(1, 'Текст обязателен'),
@@ -100,4 +100,25 @@ export async function createInsightQuick(
   revalidatePath('/insights')
   revalidatePath(`/products/${productId}/onboarding/research`)
   return { ok: true, insight }
+}
+
+export async function updateInsightField(
+  id: string,
+  field: 'text' | 'tags',
+  value: string
+): Promise<InlineFieldResult> {
+  switch (field) {
+    case 'text': {
+      const text = value.trim()
+      if (!text) return { ok: false, error: 'Текст не может быть пустым' }
+      await prisma.insight.update({ where: { id }, data: { text } })
+      break
+    }
+    case 'tags':
+      await prisma.insight.update({ where: { id }, data: { tags: toTagsArray(value) } })
+      break
+  }
+  revalidatePath('/insights')
+  revalidatePath(`/insights/${id}`)
+  return { ok: true }
 }

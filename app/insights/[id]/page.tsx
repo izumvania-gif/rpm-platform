@@ -9,6 +9,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { JobTypeDot } from '@/components/shared/job-type-dot'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,8 +66,9 @@ export default async function InsightDetailPage({ params }: { params: { id: stri
           {insight.jtbd && (
             <Link
               href={`/jtbd/${insight.jtbd.id}`}
-              className="text-sm text-muted-foreground hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:underline"
             >
+              <JobTypeDot jobType={insight.jtbd.jobType} />
               {insight.jtbd.title}
             </Link>
           )}

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget'
 import { SectionHeading } from '@/components/shared/section-heading'
+import { CountUp } from '@/components/shared/count-up'
 import {
   productModule,
   researchGroupMeta,
@@ -38,7 +39,7 @@ function ModuleTile({
           <CardDescription>{module.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <span className="font-mono text-3xl font-bold">{count}</span>
+          <CountUp value={count} className="font-mono text-3xl font-bold" />
         </CardContent>
       </Card>
     </Link>

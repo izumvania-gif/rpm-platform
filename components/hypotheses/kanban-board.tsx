@@ -18,6 +18,7 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
   const [, startTransition] = useTransition()
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverStatus, setDragOverStatus] = useState<HypothesisStatus | null>(null)
+  const [settledId, setSettledId] = useState<string | null>(null)
 
   useEffect(() => {
     setItems(hypotheses)
@@ -33,6 +34,7 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
     if (!hyp || hyp.status === status) return
 
     setItems((prev) => prev.map((h) => (h.id === id ? { ...h, status } : h)))
+    setSettledId(id)
     startTransition(async () => {
       await updateHypothesisStatus(id, status)
       router.refresh()
@@ -86,8 +88,12 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
                   )}
                 >
                   <Card
-                    className="border-l-4 shadow-sm transition-shadow hover:shadow-md"
+                    className={cn(
+                      'border-l-4 shadow-sm transition-shadow hover:shadow-md',
+                      settledId === h.id && 'motion-safe:animate-card-settle'
+                    )}
                     style={{ borderLeftColor: tone.border }}
+                    onAnimationEnd={() => setSettledId((prev) => (prev === h.id ? null : prev))}
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">

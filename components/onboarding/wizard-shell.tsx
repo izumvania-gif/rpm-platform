@@ -40,7 +40,7 @@ export function WizardShell({
                       : 'text-muted-foreground hover:bg-accent'
                 )}
               >
-                {i + 1}. {step.label}
+                <span className="font-mono">{i + 1}.</span> {step.label}
               </Link>
             </li>
           ))}
@@ -54,6 +54,9 @@ export function WizardShell({
       </div>
 
       <div>
+        <p className="mb-1 font-mono text-xs uppercase tracking-wide text-muted-foreground">
+          Шаг {activeIndex + 1} из {WIZARD_STEPS.length}
+        </p>
         <h1 className="mb-1 text-2xl font-bold">{title}</h1>
         <p className="text-muted-foreground">{subtitle}</p>
       </div>

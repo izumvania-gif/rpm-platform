@@ -9,6 +9,7 @@ import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { JobTypeDot } from '@/components/shared/job-type-dot'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,7 +71,11 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
             <ul className="space-y-2">
               {feature.jtbds.map((j) => (
                 <li key={j.id}>
-                  <Link href={`/jtbd/${j.id}`} className="text-sm hover:underline">
+                  <Link
+                    href={`/jtbd/${j.id}`}
+                    className="inline-flex items-center gap-1.5 text-sm hover:underline"
+                  >
+                    <JobTypeDot jobType={j.jobType} />
                     {j.title}
                   </Link>
                 </li>

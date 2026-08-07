@@ -16,6 +16,7 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { SignalBadge } from '@/components/shared/signal-badge'
+import { JobTypeDot } from '@/components/shared/job-type-dot'
 import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
@@ -82,8 +83,9 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
           {hypothesis.jtbd && (
             <Link
               href={`/jtbd/${hypothesis.jtbd.id}`}
-              className="text-sm text-muted-foreground hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:underline"
             >
+              <JobTypeDot jobType={hypothesis.jtbd.jobType} />
               {hypothesis.jtbd.title}
             </Link>
           )}

@@ -65,7 +65,8 @@ export async function createJtbdQuick(
   productId: string,
   title: string,
   category: string,
-  jobType: JtbdJobType
+  jobType: JtbdJobType,
+  segmentId?: string | null
 ): Promise<{ ok: true; jtbd: JTBD } | { ok: false; error: string }> {
   const trimmedTitle = title.trim()
   const trimmedCategory = category.trim()
@@ -82,10 +83,12 @@ export async function createJtbdQuick(
       category: trimmedCategory,
       jobType,
       productId,
+      segmentId: segmentId || undefined,
       userId: getCurrentUserId(),
     },
   })
   revalidatePath('/jtbd/graph')
   revalidatePath('/jtbd')
+  revalidatePath(`/products/${productId}/onboarding/jtbd`)
   return { ok: true, jtbd }
 }

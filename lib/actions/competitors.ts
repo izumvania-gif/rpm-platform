@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import type { Competitor } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -66,4 +67,28 @@ export async function toggleCompetitorPinned(id: string, pinned: boolean) {
   revalidatePath('/competitors')
   revalidatePath(`/competitors/${id}`)
   revalidatePath('/')
+}
+
+export async function createCompetitorQuick(
+  productId: string,
+  name: string,
+  positioning?: string
+): Promise<{ ok: true; competitor: Competitor } | { ok: false; error: string }> {
+  const trimmedName = name.trim()
+  if (!productId || !trimmedName) {
+    return { ok: false, error: 'Укажите продукт и название' }
+  }
+
+  const competitor = await prisma.competitor.create({
+    data: {
+      name: trimmedName,
+      positioning: positioning?.trim() || undefined,
+      features: [],
+      productId,
+      userId: getCurrentUserId(),
+    },
+  })
+  revalidatePath('/competitors')
+  revalidatePath(`/products/${productId}/onboarding/competitors`)
+  return { ok: true, competitor }
 }

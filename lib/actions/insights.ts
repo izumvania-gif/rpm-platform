@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import type { Insight } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -70,4 +71,33 @@ export async function toggleInsightPinned(id: string, pinned: boolean) {
   revalidatePath('/insights')
   revalidatePath(`/insights/${id}`)
   revalidatePath('/')
+}
+
+export async function createInsightQuick(
+  productId: string,
+  text: string,
+  segmentId?: string | null,
+  jtbdId?: string | null,
+  researchId?: string | null,
+  conversationId?: string | null
+): Promise<{ ok: true; insight: Insight } | { ok: false; error: string }> {
+  const trimmedText = text.trim()
+  if (!productId || !trimmedText) {
+    return { ok: false, error: 'Укажите продукт и текст' }
+  }
+
+  const insight = await prisma.insight.create({
+    data: {
+      text: trimmedText,
+      productId,
+      segmentId: segmentId || undefined,
+      jtbdId: jtbdId || undefined,
+      researchId: researchId || undefined,
+      conversationId: conversationId || undefined,
+      userId: getCurrentUserId(),
+    },
+  })
+  revalidatePath('/insights')
+  revalidatePath(`/products/${productId}/onboarding/research`)
+  return { ok: true, insight }
 }

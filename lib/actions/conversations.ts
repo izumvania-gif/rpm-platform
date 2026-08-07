@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import type { Conversation } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -72,4 +73,29 @@ export async function toggleConversationPinned(id: string, pinned: boolean) {
   revalidatePath('/conversations')
   revalidatePath(`/conversations/${id}`)
   revalidatePath('/')
+}
+
+export async function createConversationQuick(
+  productId: string,
+  title: string,
+  segmentId?: string | null,
+  researchId?: string | null
+): Promise<{ ok: true; conversation: Conversation } | { ok: false; error: string }> {
+  const trimmedTitle = title.trim()
+  if (!productId || !trimmedTitle) {
+    return { ok: false, error: 'Укажите продукт и название' }
+  }
+
+  const conversation = await prisma.conversation.create({
+    data: {
+      title: trimmedTitle,
+      productId,
+      segmentId: segmentId || undefined,
+      researchId: researchId || undefined,
+      userId: getCurrentUserId(),
+    },
+  })
+  revalidatePath('/conversations')
+  revalidatePath(`/products/${productId}/onboarding/research`)
+  return { ok: true, conversation }
 }

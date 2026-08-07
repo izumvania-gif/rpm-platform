@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { HypothesisStatus } from '@prisma/client'
+import { HypothesisStatus, type Hypothesis } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -94,4 +94,31 @@ export async function toggleHypothesisPinned(id: string, pinned: boolean) {
   revalidatePath('/hypotheses')
   revalidatePath(`/hypotheses/${id}`)
   revalidatePath('/')
+}
+
+export async function createHypothesisQuick(
+  productId: string,
+  statement: string,
+  jtbdId?: string | null,
+  segmentId?: string | null
+): Promise<{ ok: true; hypothesis: Hypothesis } | { ok: false; error: string }> {
+  const trimmedStatement = statement.trim()
+  if (!productId || !trimmedStatement) {
+    return { ok: false, error: 'Укажите продукт и формулировку' }
+  }
+
+  const hypothesis = await prisma.hypothesis.create({
+    data: {
+      statement: trimmedStatement,
+      status: HypothesisStatus.DRAFT,
+      productId,
+      jtbdId: jtbdId || undefined,
+      segmentId: segmentId || undefined,
+      userId: getCurrentUserId(),
+      statusChanges: { create: { status: HypothesisStatus.DRAFT } },
+    },
+  })
+  revalidatePath('/hypotheses')
+  revalidatePath(`/products/${productId}/onboarding/hypotheses`)
+  return { ok: true, hypothesis }
 }

@@ -33,12 +33,14 @@ export async function createProduct(formData: FormData) {
     redirect(`/products/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  const onboarding = formData.get('mode') === 'onboarding'
+
   try {
     const product = await prisma.product.create({
       data: { ...parsed.data, userId: getCurrentUserId() },
     })
     revalidatePath('/products')
-    redirect(`/products/${product.id}`)
+    redirect(onboarding ? `/products/${product.id}/onboarding/segments` : `/products/${product.id}`)
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
       redirect(`/products/new?error=${encodeURIComponent('Продукт с таким slug уже существует')}`)

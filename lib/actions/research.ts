@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { ResearchStatus, ResearchType } from '@prisma/client'
+import { ResearchStatus, ResearchType, type Research } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -71,4 +71,31 @@ export async function toggleResearchPinned(id: string, pinned: boolean) {
   revalidatePath('/research')
   revalidatePath(`/research/${id}`)
   revalidatePath('/')
+}
+
+export async function createResearchQuick(
+  productId: string,
+  title: string,
+  type: ResearchType
+): Promise<{ ok: true; research: Research } | { ok: false; error: string }> {
+  const trimmedTitle = title.trim()
+  if (!productId || !trimmedTitle) {
+    return { ok: false, error: 'Укажите продукт и название' }
+  }
+  if (!Object.values(ResearchType).includes(type)) {
+    return { ok: false, error: 'Некорректный тип исследования' }
+  }
+
+  const research = await prisma.research.create({
+    data: {
+      title: trimmedTitle,
+      type,
+      status: ResearchStatus.IN_PROGRESS,
+      productId,
+      userId: getCurrentUserId(),
+    },
+  })
+  revalidatePath('/research')
+  revalidatePath(`/products/${productId}/onboarding/research`)
+  return { ok: true, research }
 }

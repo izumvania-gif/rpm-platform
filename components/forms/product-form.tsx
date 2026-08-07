@@ -22,11 +22,13 @@ export function ProductForm({
   defaultValues,
   error,
   submitLabel,
+  showOnboardingOption,
 }: {
   action: (formData: FormData) => void
   defaultValues?: ProductFormValues
   error?: string
   submitLabel: string
+  showOnboardingOption?: boolean
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [slug, setSlug] = useState(defaultValues?.slug ?? '')
@@ -79,7 +81,24 @@ export function ProductForm({
           defaultValue={defaultValues?.description ?? ''}
         />
       </div>
-      <SubmitButton>{submitLabel}</SubmitButton>
+      {showOnboardingOption ? (
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <SubmitButton name="mode" value="direct" variant="outline">
+              {submitLabel}
+            </SubmitButton>
+            <SubmitButton name="mode" value="onboarding">
+              {submitLabel} и настроить →
+            </SubmitButton>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            «{submitLabel} и настроить» проведёт по коротким шагам: сегменты, задачи клиентов,
+            исследования, гипотезы, конкуренты, фичи — удобно для совсем нового продукта.
+          </p>
+        </div>
+      ) : (
+        <SubmitButton>{submitLabel}</SubmitButton>
+      )}
     </form>
   )
 }

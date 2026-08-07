@@ -1,7 +1,7 @@
 'use client'
 
-const RECENTLY_VIEWED_KEY = 'echo:recently-viewed'
-const DEFAULT_PRODUCT_KEY = 'echo:default-product-id'
+const RECENTLY_VIEWED_KEY = 'rpm:recently-viewed'
+const DEFAULT_PRODUCT_KEY = 'rpm:default-product-id'
 const RECENTLY_VIEWED_LIMIT = 8
 
 export interface RecentlyViewedEntry {

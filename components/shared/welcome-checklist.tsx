@@ -18,7 +18,7 @@ export function WelcomeChecklist({
   items: ChecklistItem[]
 }) {
   const [dismissed, setDismissed] = useState(true)
-  const storageKey = `echo:welcome-dismissed:${productId}`
+  const storageKey = `rpm:welcome-dismissed:${productId}`
 
   useEffect(() => {
     try {

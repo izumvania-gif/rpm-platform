@@ -5,7 +5,12 @@ export default function NewProductPage({ searchParams }: { searchParams: { error
   return (
     <main className="container py-12">
       <h1 className="text-2xl font-bold mb-8">Новый продукт</h1>
-      <ProductForm action={createProduct} error={searchParams.error} submitLabel="Создать" />
+      <ProductForm
+        action={createProduct}
+        error={searchParams.error}
+        submitLabel="Создать"
+        showOnboardingOption
+      />
     </main>
   )
 }

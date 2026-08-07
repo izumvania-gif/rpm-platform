@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import type { RTB } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -68,4 +69,27 @@ export async function toggleRTBPinned(id: string, pinned: boolean) {
   revalidatePath('/marketing')
   revalidatePath(`/marketing/${id}`)
   revalidatePath('/')
+}
+
+export async function createRTBQuick(
+  productId: string,
+  statement: string,
+  featureIds: string[] = []
+): Promise<{ ok: true; rtb: RTB } | { ok: false; error: string }> {
+  const trimmedStatement = statement.trim()
+  if (!productId || !trimmedStatement) {
+    return { ok: false, error: 'Укажите продукт и формулировку' }
+  }
+
+  const rtb = await prisma.rTB.create({
+    data: {
+      statement: trimmedStatement,
+      productId,
+      userId: getCurrentUserId(),
+      features: { connect: featureIds.map((id) => ({ id })) },
+    },
+  })
+  revalidatePath('/marketing')
+  revalidatePath(`/products/${productId}/onboarding/features`)
+  return { ok: true, rtb }
 }

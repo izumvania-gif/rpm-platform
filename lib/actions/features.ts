@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import type { Feature } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -74,4 +75,27 @@ export async function toggleFeaturePinned(id: string, pinned: boolean) {
   revalidatePath('/features')
   revalidatePath(`/features/${id}`)
   revalidatePath('/')
+}
+
+export async function createFeatureQuick(
+  productId: string,
+  name: string,
+  jtbdIds: string[] = []
+): Promise<{ ok: true; feature: Feature } | { ok: false; error: string }> {
+  const trimmedName = name.trim()
+  if (!productId || !trimmedName) {
+    return { ok: false, error: 'Укажите продукт и название' }
+  }
+
+  const feature = await prisma.feature.create({
+    data: {
+      name: trimmedName,
+      productId,
+      userId: getCurrentUserId(),
+      jtbds: { connect: jtbdIds.map((id) => ({ id })) },
+    },
+  })
+  revalidatePath('/features')
+  revalidatePath(`/products/${productId}/onboarding/features`)
+  return { ok: true, feature }
 }

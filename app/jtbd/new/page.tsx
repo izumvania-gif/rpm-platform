@@ -21,7 +21,10 @@ export default async function NewJtbdPage({
       distinct: ['category'],
     }),
     searchParams.duplicateFrom
-      ? prisma.jTBD.findFirst({ where: { id: searchParams.duplicateFrom, userId } })
+      ? prisma.jTBD.findFirst({
+          where: { id: searchParams.duplicateFrom, userId },
+          include: { segments: { select: { id: true } } },
+        })
       : null,
   ])
   const categories = categoryRows.map((c) => c.category)
@@ -45,6 +48,7 @@ export default async function NewJtbdPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  segmentIds: duplicateSource.segments.map((s) => s.id),
                 }
               : { productId: searchParams.productId }
           }

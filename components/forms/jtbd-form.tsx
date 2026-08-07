@@ -19,7 +19,7 @@ export interface JtbdFormValues {
   confirmed?: boolean
   tags?: string[]
   productId?: string
-  segmentId?: string | null
+  segmentIds?: string[]
   researchId?: string | null
 }
 
@@ -59,7 +59,7 @@ export function JtbdForm({
   }, [productId])
 
   const [localSegments, setLocalSegments] = useState(segments)
-  const [segmentId, setSegmentId] = useState(defaultValues?.segmentId ?? '')
+  const [segmentIds, setSegmentIds] = useState<string[]>(defaultValues?.segmentIds ?? [])
   const [jobType, setJobType] = useState<JtbdJobType>(
     defaultValues?.jobType ?? JtbdJobType.SMALL_JOB
   )
@@ -141,25 +141,35 @@ export function JtbdForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="segmentId">Сегмент</Label>
-          <Select
-            id="segmentId"
-            name="segmentId"
-            value={segmentId}
-            onChange={(e) => setSegmentId(e.target.value)}
-          >
-            <option value="">Не указан</option>
-            {productSegments.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </Select>
+          <Label>Сегменты</Label>
+          {productSegments.length === 0 ? (
+            <p className="text-sm text-muted-foreground">У выбранного продукта пока нет сегментов.</p>
+          ) : (
+            <div className="space-y-1 max-h-48 overflow-y-auto rounded-md border p-2">
+              {productSegments.map((s) => (
+                <label key={s.id} className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    name="segmentIds"
+                    value={s.id}
+                    defaultChecked={segmentIds.includes(s.id)}
+                    onChange={(e) => {
+                      setSegmentIds((prev) =>
+                        e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id)
+                      )
+                    }}
+                    className="mt-1 h-4 w-4 rounded border-input"
+                  />
+                  {s.name}
+                </label>
+              ))}
+            </div>
+          )}
           <InlineCreateSegment
             productId={productId}
             onCreated={(segment) => {
               setLocalSegments((prev) => [...prev, segment])
-              setSegmentId(segment.id)
+              setSegmentIds((prev) => [...prev, segment.id])
             }}
           />
         </div>

@@ -16,7 +16,7 @@ export default async function OnboardingJtbdPage({ params }: { params: { id: str
     prisma.jTBD.findMany({
       where: { productId: product.id, userId },
       orderBy: { createdAt: 'asc' },
-      include: { segment: true },
+      include: { segments: true },
     }),
   ])
   const categories = Array.from(new Set(jtbds.map((j) => j.category))).sort()

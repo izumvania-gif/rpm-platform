@@ -28,58 +28,16 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { jtbdJobTypeColors, jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
+import { layoutTree, OVERALL_VIEW_KEY, type LayoutPosition } from '@/lib/jtbd-graph-layout'
 import {
   createJtbdQuick,
   createJtbdSequenceEdge,
   deleteJtbdSequenceEdge,
+  saveJtbdGraphPositions,
   setJtbdParent,
 } from '@/lib/actions/jtbd-graph'
 
 const nodeTypes = { jtbd: JtbdNode }
-
-interface LayoutPosition {
-  x: number
-  y: number
-}
-
-const NODE_WIDTH = 260
-const LEVEL_HEIGHT = 160
-
-function layoutTree(jtbds: JTBD[]): Map<string, LayoutPosition> {
-  const nodeMap = new Map(jtbds.map((j) => [j.id, j]))
-  const childrenMap = new Map<string, JTBD[]>()
-  for (const j of jtbds) {
-    if (j.parentId && nodeMap.has(j.parentId)) {
-      if (!childrenMap.has(j.parentId)) childrenMap.set(j.parentId, [])
-      childrenMap.get(j.parentId)!.push(j)
-    }
-  }
-  for (const children of childrenMap.values()) {
-    children.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-  }
-  const roots = jtbds
-    .filter((j) => !j.parentId || !nodeMap.has(j.parentId))
-    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-
-  const positions = new Map<string, LayoutPosition>()
-  let leafCounter = 0
-
-  function visit(node: JTBD, depth: number) {
-    const children = childrenMap.get(node.id) ?? []
-    if (children.length === 0) {
-      positions.set(node.id, { x: leafCounter * NODE_WIDTH, y: depth * LEVEL_HEIGHT })
-      leafCounter++
-    } else {
-      for (const child of children) visit(child, depth + 1)
-      const childXs = children.map((c) => positions.get(c.id)!.x)
-      const x = (Math.min(...childXs) + Math.max(...childXs)) / 2
-      positions.set(node.id, { x, y: depth * LEVEL_HEIGHT })
-    }
-  }
-
-  for (const root of roots) visit(root, 0)
-  return positions
-}
 
 function Legend() {
   return (
@@ -130,7 +88,15 @@ function Legend() {
   )
 }
 
-function AddJtbdPanel({ productId, categories }: { productId: string; categories: string[] }) {
+function AddJtbdPanel({
+  productId,
+  categories,
+  segmentId,
+}: {
+  productId: string
+  categories: string[]
+  segmentId: string | null
+}) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -141,7 +107,13 @@ function AddJtbdPanel({ productId, categories }: { productId: string; categories
 
   function submit() {
     startTransition(async () => {
-      const result = await createJtbdQuick(productId, title, category, jobType)
+      const result = await createJtbdQuick(
+        productId,
+        title,
+        category,
+        jobType,
+        segmentId ? [segmentId] : undefined
+      )
       if (!result.ok) {
         setError(result.error)
         return
@@ -220,30 +192,35 @@ function GraphInner({
   sequenceEdges,
   categories,
   category,
+  viewKey,
+  savedPositions,
 }: {
   productId: string
   jtbds: JTBD[]
   sequenceEdges: JtbdSequenceEdge[]
   categories: string[]
   category?: string
+  viewKey: string
+  savedPositions: Record<string, LayoutPosition>
 }) {
   const router = useRouter()
   const { getIntersectingNodes } = useReactFlow()
   const [, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const segmentId = viewKey === OVERALL_VIEW_KEY ? null : viewKey
 
   const initial = useMemo(() => {
     const visibleIds = category
       ? new Set(jtbds.filter((j) => j.category === category).map((j) => j.id))
       : null
-    const positions = layoutTree(jtbds)
+    const fallbackPositions = layoutTree(jtbds)
 
     const nodes: Node[] = jtbds
       .filter((j) => !visibleIds || visibleIds.has(j.id))
       .map((j) => ({
         id: j.id,
         type: 'jtbd',
-        position: positions.get(j.id) ?? { x: 0, y: 0 },
+        position: savedPositions[j.id] ?? fallbackPositions.get(j.id) ?? { x: 0, y: 0 },
         data: { title: j.title, category: j.category, confirmed: j.confirmed, jobType: j.jobType },
       }))
 
@@ -269,7 +246,7 @@ function GraphInner({
       }))
 
     return { nodes, edges: [...hierarchyEdges, ...seqEdges] }
-  }, [jtbds, sequenceEdges, category])
+  }, [jtbds, sequenceEdges, category, savedPositions])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges)
@@ -299,20 +276,42 @@ function GraphInner({
   const onNodeDragStop: OnNodeDrag = useCallback(
     (_event, node) => {
       const intersections = getIntersectingNodes(node).filter((n) => n.id !== node.id)
-      if (intersections.length === 0) return
-      const target = intersections[0]
+      if (intersections.length > 0) {
+        const target = intersections[0]
+        startTransition(async () => {
+          const result = await setJtbdParent(node.id, target.id)
+          if (!result.ok) {
+            setError(result.error)
+            return
+          }
+          setError(null)
+          router.refresh()
+        })
+        return
+      }
       startTransition(async () => {
-        const result = await setJtbdParent(node.id, target.id)
-        if (!result.ok) {
-          setError(result.error)
-          return
-        }
-        setError(null)
-        router.refresh()
+        await saveJtbdGraphPositions(
+          [{ jtbdId: node.id, x: node.position.x, y: node.position.y }],
+          viewKey
+        )
       })
     },
-    [getIntersectingNodes, router]
+    [getIntersectingNodes, router, viewKey]
   )
+
+  const handleAutoArrange = useCallback(() => {
+    const positions = layoutTree(jtbds)
+    setNodes((prev) => prev.map((n) => ({ ...n, position: positions.get(n.id) ?? n.position })))
+    const entries = nodes
+      .filter((n) => positions.has(n.id))
+      .map((n) => {
+        const pos = positions.get(n.id)!
+        return { jtbdId: n.id, x: pos.x, y: pos.y }
+      })
+    startTransition(async () => {
+      await saveJtbdGraphPositions(entries, viewKey)
+    })
+  }, [jtbds, nodes, setNodes, viewKey])
 
   const onNodeClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -349,7 +348,7 @@ function GraphInner({
             <p className="text-muted-foreground">
               {category ? 'Нет JTBD в этой категории.' : 'У этого продукта пока нет JTBD.'}
             </p>
-            <AddJtbdPanelInline productId={productId} categories={categories} />
+            <AddJtbdPanelInline productId={productId} categories={categories} segmentId={segmentId} />
           </div>
         ) : (
           <ReactFlow
@@ -368,7 +367,12 @@ function GraphInner({
             <Background />
             <Controls />
             <MiniMap pannable zoomable />
-            <AddJtbdPanel productId={productId} categories={categories} />
+            <AddJtbdPanel productId={productId} categories={categories} segmentId={segmentId} />
+            <Panel position="top-right" className="!m-2">
+              <Button type="button" size="sm" variant="outline" onClick={handleAutoArrange}>
+                Автоматически расставить
+              </Button>
+            </Panel>
             <Legend />
           </ReactFlow>
         )}
@@ -385,9 +389,11 @@ function GraphInner({
 function AddJtbdPanelInline({
   productId,
   categories,
+  segmentId,
 }: {
   productId: string
   categories: string[]
+  segmentId: string | null
 }) {
   const router = useRouter()
   const [title, setTitle] = useState('')
@@ -398,7 +404,13 @@ function AddJtbdPanelInline({
 
   function submit() {
     startTransition(async () => {
-      const result = await createJtbdQuick(productId, title, category, jobType)
+      const result = await createJtbdQuick(
+        productId,
+        title,
+        category,
+        jobType,
+        segmentId ? [segmentId] : undefined
+      )
       if (!result.ok) {
         setError(result.error)
         return
@@ -451,6 +463,8 @@ export function JtbdGraphCanvas(props: {
   sequenceEdges: JtbdSequenceEdge[]
   categories: string[]
   category?: string
+  viewKey: string
+  savedPositions: Record<string, LayoutPosition>
 }) {
   return (
     <ReactFlowProvider>

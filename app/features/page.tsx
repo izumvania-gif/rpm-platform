@@ -37,7 +37,7 @@ export default async function FeaturesPage({
         userId,
         ...(searchParams.jtbdId ? { jtbds: { some: { id: searchParams.jtbdId } } } : {}),
         ...(searchParams.segmentId
-          ? { jtbds: { some: { segmentId: searchParams.segmentId } } }
+          ? { jtbds: { some: { segments: { some: { id: searchParams.segmentId } } } } }
           : {}),
       },
       orderBy: sort === 'name_asc' ? { name: 'asc' } : { createdAt: 'desc' },

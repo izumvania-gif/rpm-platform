@@ -10,7 +10,7 @@ import { createJtbdQuick } from '@/lib/actions/jtbd-graph'
 import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 import { WizardEntryList } from './wizard-entry-list'
 
-type JtbdWithSegment = JTBD & { segment: Segment | null }
+type JtbdWithSegments = JTBD & { segments: Segment[] }
 
 export function JtbdStepForm({
   productId,
@@ -20,29 +20,30 @@ export function JtbdStepForm({
 }: {
   productId: string
   segments: Segment[]
-  initialJtbds: JtbdWithSegment[]
+  initialJtbds: JtbdWithSegments[]
   categories: string[]
 }) {
   const [jtbds, setJtbds] = useState(initialJtbds)
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
   const [jobType, setJobType] = useState<JtbdJobType>(JtbdJobType.SMALL_JOB)
-  const [segmentId, setSegmentId] = useState('')
+  const [segmentIds, setSegmentIds] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function submit() {
     if (!title.trim() || !category.trim()) return
     startTransition(async () => {
-      const result = await createJtbdQuick(productId, title, category, jobType, segmentId || null)
+      const result = await createJtbdQuick(productId, title, category, jobType, segmentIds)
       if (!result.ok) {
         setError(result.error)
         return
       }
-      const segment = segments.find((s) => s.id === segmentId) ?? null
-      setJtbds((prev) => [...prev, { ...result.jtbd, segment }])
+      const jtbdSegments = segments.filter((s) => segmentIds.includes(s.id))
+      setJtbds((prev) => [...prev, { ...result.jtbd, segments: jtbdSegments }])
       setTitle('')
       setCategory('')
+      setSegmentIds([])
       setError(null)
     })
   }
@@ -74,15 +75,26 @@ export function JtbdStepForm({
               </option>
             ))}
           </Select>
-          <Select value={segmentId} onChange={(e) => setSegmentId(e.target.value)}>
-            <option value="">Сегмент не указан</option>
-            {segments.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </Select>
         </div>
+        {segments.length > 0 && (
+          <div className="flex flex-wrap gap-3">
+            {segments.map((s) => (
+              <label key={s.id} className="flex items-center gap-1.5 text-sm">
+                <input
+                  type="checkbox"
+                  checked={segmentIds.includes(s.id)}
+                  onChange={(e) =>
+                    setSegmentIds((prev) =>
+                      e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id)
+                    )
+                  }
+                  className="h-4 w-4 rounded border-input"
+                />
+                {s.name}
+              </label>
+            ))}
+          </div>
+        )}
         <Button
           type="button"
           disabled={isPending || !title.trim() || !category.trim()}
@@ -97,7 +109,9 @@ export function JtbdStepForm({
         items={jtbds.map((j) => ({
           id: j.id,
           label: j.title,
-          meta: [j.category, jtbdJobTypeLabels[j.jobType], j.segment?.name].filter(Boolean).join(' · '),
+          meta: [j.category, jtbdJobTypeLabels[j.jobType], j.segments.map((s) => s.name).join(', ')]
+            .filter(Boolean)
+            .join(' · '),
         }))}
         emptyLabel="JTBD пока нет — добавьте первую задачу выше."
       />

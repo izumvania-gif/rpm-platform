@@ -25,7 +25,7 @@ export default async function JtbdDetailPage({
 }) {
   const jtbd = await prisma.jTBD.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true, segment: true, research: true, hypotheses: true, features: true },
+    include: { product: true, segments: true, research: true, hypotheses: true, features: true },
   })
 
   if (!jtbd) notFound()
@@ -81,14 +81,15 @@ export default async function JtbdDetailPage({
           >
             {jtbd.product.name}
           </Link>
-          {jtbd.segment && (
+          {jtbd.segments.map((segment) => (
             <Link
-              href={`/segments/${jtbd.segment.id}`}
+              key={segment.id}
+              href={`/segments/${segment.id}`}
               className="text-sm text-muted-foreground hover:underline"
             >
-              {jtbd.segment.name}
+              {segment.name}
             </Link>
-          )}
+          ))}
           {jtbd.research && (
             <Link
               href={`/research/${jtbd.research.id}`}

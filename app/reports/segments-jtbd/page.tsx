@@ -41,13 +41,16 @@ async function MatrixSection({ productId, products }: { productId: string; produ
   const userId = getCurrentUserId()
   const [segments, jtbds] = await Promise.all([
     prisma.segment.findMany({ where: { productId, userId }, orderBy: { name: 'asc' } }),
-    prisma.jTBD.findMany({ where: { productId, userId } }),
+    prisma.jTBD.findMany({
+      where: { productId, userId },
+      include: { segments: { select: { id: true } } },
+    }),
   ])
 
   const categories = Array.from(new Set(jtbds.map((j) => j.category))).sort((a, b) =>
     a.localeCompare(b, 'ru')
   )
-  const hasUnsegmented = jtbds.some((j) => !j.segmentId)
+  const hasUnsegmented = jtbds.some((j) => j.segments.length === 0)
 
   const rows: { key: string; label: string; color?: string }[] = [
     ...segments.map((s) => ({ key: s.id, label: s.name, color: s.color })),
@@ -56,12 +59,14 @@ async function MatrixSection({ productId, products }: { productId: string; produ
 
   const cells = new Map<string, { total: number; confirmed: number }>()
   for (const jtbd of jtbds) {
-    const rowKey = jtbd.segmentId ?? NONE_KEY
-    const key = `${rowKey}::${jtbd.category}`
-    const cell = cells.get(key) ?? { total: 0, confirmed: 0 }
-    cell.total += 1
-    if (jtbd.confirmed) cell.confirmed += 1
-    cells.set(key, cell)
+    const rowKeys = jtbd.segments.length > 0 ? jtbd.segments.map((s) => s.id) : [NONE_KEY]
+    for (const rowKey of rowKeys) {
+      const key = `${rowKey}::${jtbd.category}`
+      const cell = cells.get(key) ?? { total: 0, confirmed: 0 }
+      cell.total += 1
+      if (jtbd.confirmed) cell.confirmed += 1
+      cells.set(key, cell)
+    }
   }
 
   function cellAt(rowKey: string, category: string) {

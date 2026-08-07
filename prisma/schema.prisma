@@ -160,8 +160,10 @@ model JTBD {
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  segmentId String?
-  segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  // Many-to-many (was a single optional segmentId until §2.9 Фаза 2) — a JTBD can
+  // apply to more than one customer segment; the JTBD graph then has one layout
+  // per segment plus an "overall" layout, see JtbdGraphLayout below.
+  segments Segment[]
 
   researchId String?
   research   Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
@@ -179,6 +181,24 @@ model JTBD {
 
   sequenceFrom JtbdSequenceEdge[] @relation("JtbdSequenceFrom")
   sequenceTo   JtbdSequenceEdge[] @relation("JtbdSequenceTo")
+
+  graphLayouts JtbdGraphLayout[]
+}
+
+// Позиция узла JTBD на канвасе графа — по представлению ("overall" для общего
+// графа продукта, или id сегмента для графа конкретного сегмента), а не одна
+// на задачу: один и тот же JTBD может быть по-разному расставлен в разных
+// представлениях. См. plans/growth-plan.md §2.9.1.
+model JtbdGraphLayout {
+  id        String   @id @default(cuid())
+  jtbdId    String
+  jtbd      JTBD     @relation(fields: [jtbdId], references: [id], onDelete: Cascade)
+  viewKey   String
+  x         Float
+  y         Float
+  updatedAt DateTime @updatedAt
+
+  @@unique([jtbdId, viewKey])
 }
 
 // Рёбра последовательности JTBD ("задача A предшествует задаче B")

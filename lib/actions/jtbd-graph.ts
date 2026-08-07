@@ -66,7 +66,7 @@ export async function createJtbdQuick(
   title: string,
   category: string,
   jobType: JtbdJobType,
-  segmentId?: string | null
+  segmentIds?: string[]
 ): Promise<{ ok: true; jtbd: JTBD } | { ok: false; error: string }> {
   const trimmedTitle = title.trim()
   const trimmedCategory = category.trim()
@@ -83,7 +83,7 @@ export async function createJtbdQuick(
       category: trimmedCategory,
       jobType,
       productId,
-      segmentId: segmentId || undefined,
+      segments: { connect: (segmentIds ?? []).map((id) => ({ id })) },
       userId: getCurrentUserId(),
     },
   })
@@ -91,4 +91,21 @@ export async function createJtbdQuick(
   revalidatePath('/jtbd')
   revalidatePath(`/products/${productId}/onboarding/jtbd`)
   return { ok: true, jtbd }
+}
+
+export async function saveJtbdGraphPositions(
+  entries: { jtbdId: string; x: number; y: number }[],
+  viewKey: string
+): Promise<void> {
+  if (entries.length === 0) return
+  await prisma.$transaction(
+    entries.map((entry) =>
+      prisma.jtbdGraphLayout.upsert({
+        where: { jtbdId_viewKey: { jtbdId: entry.jtbdId, viewKey } },
+        create: { jtbdId: entry.jtbdId, viewKey, x: entry.x, y: entry.y },
+        update: { x: entry.x, y: entry.y },
+      })
+    )
+  )
+  revalidatePath('/jtbd/graph')
 }

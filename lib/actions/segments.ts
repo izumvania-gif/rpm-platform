@@ -84,6 +84,10 @@ export async function updateSegment(id: string, formData: FormData) {
 }
 
 export async function deleteSegment(id: string) {
+  // The segment's own id doubles as the viewKey for its JTBD graph layout —
+  // no FK to clean up automatically (viewKey is a plain string, not a
+  // relation), so drop those rows explicitly before/alongside the segment.
+  await prisma.jtbdGraphLayout.deleteMany({ where: { viewKey: id } })
   await prisma.segment.delete({ where: { id } })
   revalidatePath('/segments')
   redirect('/segments')

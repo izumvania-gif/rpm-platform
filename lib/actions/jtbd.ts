@@ -16,12 +16,11 @@ const jtbdSchema = z.object({
   confirmed: z.coerce.boolean(),
   tags: optionalString(),
   productId: z.string().trim().min(1, 'Продукт обязателен'),
-  segmentId: optionalString(),
   researchId: optionalString(),
 })
 
 function parseJtbdForm(formData: FormData) {
-  return jtbdSchema.safeParse({
+  const parsed = jtbdSchema.safeParse({
     title: formData.get('title'),
     category: formData.get('category'),
     description: formData.get('description'),
@@ -29,27 +28,32 @@ function parseJtbdForm(formData: FormData) {
     confirmed: formData.get('confirmed') === 'on',
     tags: formData.get('tags'),
     productId: formData.get('productId'),
-    segmentId: formData.get('segmentId'),
     researchId: formData.get('researchId'),
   })
+  return { parsed, segmentIds: formData.getAll('segmentIds').map(String) }
 }
 
 export async function createJtbd(formData: FormData) {
-  const parsed = parseJtbdForm(formData)
+  const { parsed, segmentIds } = parseJtbdForm(formData)
   if (!parsed.success) {
     redirect(`/jtbd/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
   const { tags, ...data } = parsed.data
   const jtbd = await prisma.jTBD.create({
-    data: { ...data, tags: toTagsArray(tags), userId: getCurrentUserId() },
+    data: {
+      ...data,
+      tags: toTagsArray(tags),
+      userId: getCurrentUserId(),
+      segments: { connect: segmentIds.map((id) => ({ id })) },
+    },
   })
   revalidatePath('/jtbd')
   redirect(`/jtbd/${jtbd.id}`)
 }
 
 export async function updateJtbd(id: string, formData: FormData) {
-  const parsed = parseJtbdForm(formData)
+  const { parsed, segmentIds } = parseJtbdForm(formData)
   if (!parsed.success) {
     redirect(`/jtbd/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
@@ -57,7 +61,11 @@ export async function updateJtbd(id: string, formData: FormData) {
   const { tags, ...data } = parsed.data
   await prisma.jTBD.update({
     where: { id },
-    data: { ...data, tags: toTagsArray(tags) },
+    data: {
+      ...data,
+      tags: toTagsArray(tags),
+      segments: { set: segmentIds.map((segmentId) => ({ id: segmentId })) },
+    },
   })
   revalidatePath('/jtbd')
   revalidatePath(`/jtbd/${id}`)

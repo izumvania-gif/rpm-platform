@@ -16,7 +16,7 @@ export default async function EditJtbdPage({
 }) {
   const userId = getCurrentUserId()
   const [jtbd, products, segments, researches, categoryRows] = await Promise.all([
-    prisma.jTBD.findFirst({ where: { id: params.id, userId } }),
+    prisma.jTBD.findFirst({ where: { id: params.id, userId }, include: { segments: true } }),
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.segment.findMany({ where: { userId } }),
     prisma.research.findMany({ where: { userId } }),
@@ -49,7 +49,7 @@ export default async function EditJtbdPage({
         segments={segments}
         researches={researches}
         categories={categories}
-        defaultValues={jtbd}
+        defaultValues={{ ...jtbd, segmentIds: jtbd.segments.map((s) => s.id) }}
         error={searchParams.error}
         submitLabel="Сохранить"
         redirectTo={backToGraphHref ?? undefined}

@@ -9,16 +9,30 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { QuickAddInsight } from '@/components/shared/quick-add-insight'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ConversationDetailPage({ params }: { params: { id: string } }) {
+  const userId = getCurrentUserId()
   const conversation = await prisma.conversation.findFirst({
-    where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true, segment: true, research: true },
+    where: { id: params.id, userId },
+    include: { product: true, segment: true, research: true, insights: true },
   })
 
   if (!conversation) notFound()
+
+  const [segments, jtbds] = await Promise.all([
+    prisma.segment.findMany({
+      where: { productId: conversation.productId, userId },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.jTBD.findMany({
+      where: { productId: conversation.productId, userId },
+      orderBy: { title: 'asc' },
+    }),
+  ])
 
   const deleteConversationWithId = deleteConversation.bind(null, conversation.id)
   const toggleConversationPinnedWithId = toggleConversationPinned.bind(
@@ -91,6 +105,26 @@ export default async function ConversationDetailPage({ params }: { params: { id:
           <p className="text-muted-foreground whitespace-pre-wrap">{conversation.transcript}</p>
         )}
       </div>
+
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">
+            Инсайты{' '}
+            <span className="font-normal text-muted-foreground">
+              ({conversation.insights.length})
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QuickAddInsight
+            productId={conversation.productId}
+            conversationId={conversation.id}
+            segments={segments}
+            jtbds={jtbds}
+            initialInsights={conversation.insights}
+          />
+        </CardContent>
+      </Card>
     </main>
   )
 }

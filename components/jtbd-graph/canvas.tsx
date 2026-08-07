@@ -316,9 +316,9 @@ function GraphInner({
 
   const onNodeClick: NodeMouseHandler = useCallback(
     (_event, node) => {
-      router.push(`/jtbd/${node.id}`)
+      router.push(`/jtbd/${node.id}?from=graph&productId=${productId}`)
     },
-    [router]
+    [router, productId]
   )
 
   const onEdgesDelete: OnEdgesDelete = useCallback(

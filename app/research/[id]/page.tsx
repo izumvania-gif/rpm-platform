@@ -11,18 +11,26 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { Eyebrow } from '@/components/shared/eyebrow'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { QuickAddInsight } from '@/components/shared/quick-add-insight'
 import { statusLabels, typeLabels } from '@/lib/labels'
 import { isStale } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ResearchDetailPage({ params }: { params: { id: string } }) {
+  const userId = getCurrentUserId()
   const research = await prisma.research.findFirst({
-    where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true },
+    where: { id: params.id, userId },
+    include: { product: true, insights: true },
   })
 
   if (!research) notFound()
+
+  const [segments, jtbds] = await Promise.all([
+    prisma.segment.findMany({ where: { productId: research.productId, userId }, orderBy: { name: 'asc' } }),
+    prisma.jTBD.findMany({ where: { productId: research.productId, userId }, orderBy: { title: 'asc' } }),
+  ])
 
   const deleteResearchWithId = deleteResearch.bind(null, research.id)
   const toggleResearchPinnedWithId = toggleResearchPinned.bind(null, research.id, !research.pinned)
@@ -83,6 +91,24 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
         )}
         {research.description && <p className="text-muted-foreground">{research.description}</p>}
       </div>
+
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">
+            Инсайты{' '}
+            <span className="font-normal text-muted-foreground">({research.insights.length})</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QuickAddInsight
+            productId={research.productId}
+            researchId={research.id}
+            segments={segments}
+            jtbds={jtbds}
+            initialInsights={research.insights}
+          />
+        </CardContent>
+      </Card>
     </main>
   )
 }

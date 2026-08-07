@@ -32,6 +32,7 @@ export function JtbdForm({
   categories,
   error,
   submitLabel,
+  redirectTo,
 }: {
   action: (formData: FormData) => void
   defaultValues?: JtbdFormValues
@@ -41,6 +42,7 @@ export function JtbdForm({
   categories: string[]
   error?: string
   submitLabel: string
+  redirectTo?: string
 }) {
   const [productId, setProductId] = useState(defaultValues?.productId ?? '')
 
@@ -73,6 +75,7 @@ export function JtbdForm({
 
   return (
     <form action={action} className="space-y-4 max-w-xl">
+      {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}

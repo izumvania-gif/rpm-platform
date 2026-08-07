@@ -61,7 +61,8 @@ export async function updateJtbd(id: string, formData: FormData) {
   })
   revalidatePath('/jtbd')
   revalidatePath(`/jtbd/${id}`)
-  redirect(`/jtbd/${id}`)
+  const redirectTo = formData.get('redirectTo')
+  redirect(typeof redirectTo === 'string' && redirectTo ? redirectTo : `/jtbd/${id}`)
 }
 
 export async function deleteJtbd(id: string) {

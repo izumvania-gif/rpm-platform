@@ -39,7 +39,7 @@ export async function createHypothesis(formData: FormData) {
   }
 
   const { tags, ...data } = parsed.data
-  const hypothesis = await prisma.hypothesis.create({
+  await prisma.hypothesis.create({
     data: {
       ...data,
       tags: toTagsArray(tags),
@@ -48,7 +48,7 @@ export async function createHypothesis(formData: FormData) {
     },
   })
   revalidatePath('/hypotheses')
-  redirect(`/hypotheses/${hypothesis.id}`)
+  redirect('/hypotheses')
 }
 
 export async function updateHypothesis(id: string, formData: FormData) {

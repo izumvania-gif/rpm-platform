@@ -16,7 +16,13 @@ import { isStale } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
-export default async function JtbdDetailPage({ params }: { params: { id: string } }) {
+export default async function JtbdDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams: { from?: string; productId?: string }
+}) {
   const jtbd = await prisma.jTBD.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
     include: { product: true, segment: true, research: true, hypotheses: true, features: true },
@@ -26,10 +32,19 @@ export default async function JtbdDetailPage({ params }: { params: { id: string 
 
   const deleteJtbdWithId = deleteJtbd.bind(null, jtbd.id)
   const toggleJtbdPinnedWithId = toggleJtbdPinned.bind(null, jtbd.id, !jtbd.pinned)
+  const backToGraphHref =
+    searchParams.from === 'graph'
+      ? `/jtbd/graph?productId=${searchParams.productId ?? jtbd.product.id}`
+      : null
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
       <RecentlyViewedTracker href={`/jtbd/${jtbd.id}`} title={jtbd.title} kind="JTBD" />
+      {backToGraphHref && (
+        <Link href={backToGraphHref} className="text-sm text-muted-foreground hover:underline">
+          ← Назад к графу
+        </Link>
+      )}
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">{jtbd.title}</h1>
@@ -42,7 +57,10 @@ export default async function JtbdDetailPage({ params }: { params: { id: string 
             >
               Дублировать
             </Link>
-            <Link href={`/jtbd/${jtbd.id}/edit`} className={buttonVariants({ variant: 'outline' })}>
+            <Link
+              href={`/jtbd/${jtbd.id}/edit${backToGraphHref ? `?from=graph&productId=${searchParams.productId ?? jtbd.product.id}` : ''}`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
               Редактировать
             </Link>
             <DeleteButton action={deleteJtbdWithId} />

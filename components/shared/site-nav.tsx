@@ -31,7 +31,12 @@ const links: NavLink[] = [
     ],
   },
   { href: '/marketing', label: 'Маркетинг', match: ['/marketing'] },
-  { href: '/jtbd', label: 'JTBD', match: ['/jtbd'] },
+  {
+    href: '/jtbd',
+    label: 'JTBD',
+    match: ['/jtbd'],
+    subLinks: [{ href: '/jtbd/graph', label: 'Граф JTBD' }],
+  },
 ]
 
 function isActive(pathname: string, prefixes: string[]) {

@@ -96,8 +96,11 @@ export default async function ResearchPage({
                     />
                   </td>
                   <td className="py-2 pr-4">
-                    <Link href={`/research/${r.id}`} className="hover:underline">
-                      {r.number}
+                    <Link
+                      href={`/research/${r.id}`}
+                      className="font-mono text-xs text-muted-foreground hover:underline"
+                    >
+                      #{String(r.number).padStart(3, '0')}
                     </Link>
                   </td>
                   <td className="py-2 pr-4">

@@ -1,4 +1,5 @@
 import { JtbdJobType } from '@prisma/client'
+import { signalToneColors } from '@/lib/signal-colors'
 
 export const jtbdJobTypeOrder: JtbdJobType[] = [
   JtbdJobType.BIG_JOB,
@@ -22,28 +23,13 @@ export const jtbdJobTypeDescriptions: Record<JtbdJobType, string> = {
   MICRO_JOB: 'Узкая задача внутри малой или основной задачи.',
 }
 
-// Цвета читаются из CSS-переменных темы (app/globals.css: --jtbd-*), а не хардкодятся —
-// так у графа/бейджей есть согласованная тёмная тема, как и у остального UI.
+// Цвета читаются из сквозной таксономии `signalToneColors` (app/globals.css: --signal-*),
+// а не хардкодятся — так у графа/бейджей согласованная тёмная тема, а сама таксономия
+// переиспользуется за пределами JTBD (см. lib/signal-colors.ts, plans/growth-plan.md §2.7).
 export const jtbdJobTypeColors: Record<JtbdJobType, { bg: string; text: string; border: string }> =
   {
-    BIG_JOB: {
-      bg: 'hsl(var(--jtbd-big-bg))',
-      text: 'hsl(var(--jtbd-big-text))',
-      border: 'hsl(var(--jtbd-big-border))',
-    },
-    CORE_JOB: {
-      bg: 'hsl(var(--jtbd-core-bg))',
-      text: 'hsl(var(--jtbd-core-text))',
-      border: 'hsl(var(--jtbd-core-border))',
-    },
-    SMALL_JOB: {
-      bg: 'hsl(var(--jtbd-small-bg))',
-      text: 'hsl(var(--jtbd-small-text))',
-      border: 'hsl(var(--jtbd-small-border))',
-    },
-    MICRO_JOB: {
-      bg: 'hsl(var(--jtbd-micro-bg))',
-      text: 'hsl(var(--jtbd-micro-text))',
-      border: 'hsl(var(--jtbd-micro-border))',
-    },
+    BIG_JOB: signalToneColors.violet,
+    CORE_JOB: signalToneColors.red,
+    SMALL_JOB: signalToneColors.blue,
+    MICRO_JOB: signalToneColors.slate,
   }

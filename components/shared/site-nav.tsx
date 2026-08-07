@@ -62,7 +62,7 @@ export function SiteNav() {
         <div className="container flex h-16 items-center justify-between gap-4">
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-            <span className="text-lg font-bold tracking-tight">
+            <span className="font-display text-lg font-bold tracking-tight">
               RPM<span className="text-primary">.</span>
             </span>
           </Link>

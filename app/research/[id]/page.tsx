@@ -10,6 +10,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { Eyebrow } from '@/components/shared/eyebrow'
 import { statusLabels, typeLabels } from '@/lib/labels'
 import { isStale } from '@/lib/utils'
 
@@ -34,10 +35,9 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
         kind="Исследование"
       />
       <div>
+        <Eyebrow number={research.number} label="Исследование" className="mb-1" />
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">
-            #{research.number} {research.title}
-          </h1>
+          <h1 className="text-2xl font-bold">{research.title}</h1>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={research.pinned} action={toggleResearchPinnedWithId} />
             <CopyLinkButton />

@@ -12,18 +12,10 @@ import { PrintButton } from '@/components/shared/print-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 
 export const dynamic = 'force-dynamic'
-
-function GroupHeading({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="border-l-4 border-primary pl-3">
-      <h2 className="text-xl font-bold">{title}</h2>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
-  )
-}
 
 function ProductSection({
   title,
@@ -158,7 +150,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       </div>
 
       <div className="space-y-5">
-        <GroupHeading
+        <SectionHeading
           title="Исследование клиентов"
           description="Кто клиенты, какие у них задачи и что подтверждено исследованиями"
         />
@@ -227,7 +219,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       </div>
 
       <div className="space-y-5">
-        <GroupHeading
+        <SectionHeading
           title="Позиционирование"
           description="Как продукт решает задачи клиентов и чем отличается от конкурентов"
         />
@@ -263,7 +255,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       </div>
 
       <div className="space-y-5">
-        <GroupHeading
+        <SectionHeading
           title="Ресурсы"
           description="Sales-kit, документация, ссылки на Confluence/Jira"
         />

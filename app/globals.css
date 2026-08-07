@@ -26,19 +26,21 @@
     --ring: 0 72.2% 50.6%;
     --radius: 0.5rem;
 
-    /* JTBD job-type badge/node colors (big/core/small/micro job) */
-    --jtbd-big-bg: 250 89% 96%;
-    --jtbd-big-text: 263 69% 42%;
-    --jtbd-big-border: 262 83% 58%;
-    --jtbd-core-bg: 0 93% 94%;
-    --jtbd-core-text: 0 70% 35%;
-    --jtbd-core-border: 0 72% 51%;
-    --jtbd-small-bg: 214 95% 93%;
-    --jtbd-small-text: 224 64% 33%;
-    --jtbd-small-border: 221 83% 53%;
-    --jtbd-micro-bg: 210 40% 96%;
-    --jtbd-micro-text: 215 25% 27%;
-    --jtbd-micro-border: 215 16% 47%;
+    /* Signal taxonomy — app-wide semantic color system (see plans/growth-plan.md §2.7 "Реестр").
+       Originated as JTBD job-type colors (big/core/small/micro job); formalized here for reuse
+       anywhere a record's type/status/confidence needs a consistent color, not just the graph. */
+    --signal-violet-bg: 250 89% 96%;
+    --signal-violet-text: 263 69% 42%;
+    --signal-violet-border: 262 83% 58%;
+    --signal-red-bg: 0 93% 94%;
+    --signal-red-text: 0 70% 35%;
+    --signal-red-border: 0 72% 51%;
+    --signal-blue-bg: 214 95% 93%;
+    --signal-blue-text: 224 64% 33%;
+    --signal-blue-border: 221 83% 53%;
+    --signal-slate-bg: 210 40% 96%;
+    --signal-slate-text: 215 25% 27%;
+    --signal-slate-border: 215 16% 47%;
   }
 
   .dark {
@@ -62,19 +64,19 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 0 72.2% 58%;
 
-    /* JTBD job-type badge/node colors (big/core/small/micro job) — dark variants */
-    --jtbd-big-bg: 263 40% 20%;
-    --jtbd-big-text: 263 90% 88%;
-    --jtbd-big-border: 262 70% 60%;
-    --jtbd-core-bg: 0 40% 20%;
-    --jtbd-core-text: 0 85% 88%;
-    --jtbd-core-border: 0 70% 55%;
-    --jtbd-small-bg: 221 40% 20%;
-    --jtbd-small-text: 214 85% 88%;
-    --jtbd-small-border: 221 70% 60%;
-    --jtbd-micro-bg: 215 20% 20%;
-    --jtbd-micro-text: 210 30% 85%;
-    --jtbd-micro-border: 215 16% 55%;
+    /* Signal taxonomy — dark variants */
+    --signal-violet-bg: 263 40% 20%;
+    --signal-violet-text: 263 90% 88%;
+    --signal-violet-border: 262 70% 60%;
+    --signal-red-bg: 0 40% 20%;
+    --signal-red-text: 0 85% 88%;
+    --signal-red-border: 0 70% 55%;
+    --signal-blue-bg: 221 40% 20%;
+    --signal-blue-text: 214 85% 88%;
+    --signal-blue-border: 221 70% 60%;
+    --signal-slate-bg: 215 20% 20%;
+    --signal-slate-text: 210 30% 85%;
+    --signal-slate-border: 215 16% 55%;
   }
 }
 
@@ -84,5 +86,10 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
   }
 }

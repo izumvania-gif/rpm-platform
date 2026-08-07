@@ -1,7 +1,13 @@
 import type { Config } from 'tailwindcss'
+import defaultTheme from 'tailwindcss/defaultTheme'
 
 const config = {
   darkMode: ['class'],
+  // Tailwind's content-based purge strips class selectors never referenced literally in
+  // scanned source — since no dark-mode toggle exists yet, `.dark` in globals.css was being
+  // silently dropped from the compiled CSS despite being fully authored. Safelisted so the
+  // dark theme tokens are actually reachable once a toggle (or system-preference detection) exists.
+  safelist: ['dark'],
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
@@ -52,6 +58,10 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+      },
+      fontFamily: {
+        display: ['var(--font-display)', ...defaultTheme.fontFamily.sans],
+        mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -2,12 +2,11 @@ import { Building2, CalendarClock } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { stageLabels, roadmapStatusLabels, roadmapStatusTone } from '@/lib/labels'
+import { groupByQuarter } from '@/lib/roadmap'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const dynamic = 'force-dynamic'
-
-const NO_QUARTER_LABEL = 'Без квартала'
 
 // Whitelist, not blocklist — see plans/platform-views-plan.md §4. This is
 // the one route in the app that must work correctly even once real sessions
@@ -43,17 +42,7 @@ export default async function PublicDashboardPage() {
     }),
   ])
 
-  const groupedRoadmap = new Map<string, typeof roadmapItems>()
-  for (const item of roadmapItems) {
-    const key = item.quarter?.trim() || NO_QUARTER_LABEL
-    if (!groupedRoadmap.has(key)) groupedRoadmap.set(key, [])
-    groupedRoadmap.get(key)!.push(item)
-  }
-  const quarterGroups = Array.from(groupedRoadmap.entries()).sort(([a], [b]) => {
-    if (a === NO_QUARTER_LABEL) return 1
-    if (b === NO_QUARTER_LABEL) return -1
-    return a.localeCompare(b, 'ru')
-  })
+  const quarterGroups = groupByQuarter(roadmapItems)
 
   return (
     <main className="container py-12 space-y-8">

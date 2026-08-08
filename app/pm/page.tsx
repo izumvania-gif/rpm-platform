@@ -14,31 +14,9 @@ import { PinButton } from '@/components/shared/pin-button'
 import { PmProductSwitcher } from '@/components/shared/pm-product-switcher'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { ProcessGraph } from '@/components/process-graph/canvas'
-import type { RoadmapItem, Feature, JTBD, Person } from '@prisma/client'
+import { groupByQuarter } from '@/lib/roadmap'
 
 export const dynamic = 'force-dynamic'
-
-const NO_QUARTER_LABEL = 'Без квартала'
-
-type RoadmapItemWithRelations = RoadmapItem & {
-  owner: Person | null
-  feature: Feature | null
-  jtbd: JTBD | null
-}
-
-function groupByQuarter(items: RoadmapItemWithRelations[]) {
-  const groups = new Map<string, RoadmapItemWithRelations[]>()
-  for (const item of items) {
-    const key = item.quarter?.trim() || NO_QUARTER_LABEL
-    if (!groups.has(key)) groups.set(key, [])
-    groups.get(key)!.push(item)
-  }
-  return Array.from(groups.entries()).sort(([a], [b]) => {
-    if (a === NO_QUARTER_LABEL) return 1
-    if (b === NO_QUARTER_LABEL) return -1
-    return a.localeCompare(b, 'ru')
-  })
-}
 
 export default async function PmPage({
   searchParams,

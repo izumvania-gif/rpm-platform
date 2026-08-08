@@ -31,6 +31,7 @@ model User {
   rtbs             RTB[]
   insights         Insight[]
   people           Person[]
+  roadmapItems     RoadmapItem[]
 }
 
 // Продукты
@@ -66,6 +67,7 @@ model Product {
   features         Feature[]
   rtbs             RTB[]
   insights         Insight[]
+  roadmapItems     RoadmapItem[]
 }
 
 enum Stage {
@@ -182,9 +184,10 @@ model JTBD {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  hypotheses Hypothesis[]
-  features   Feature[]
-  insights   Insight[]
+  hypotheses   Hypothesis[]
+  features     Feature[]
+  insights     Insight[]
+  roadmapItems RoadmapItem[]
 
   parentId String?
   parent   JTBD?   @relation("JtbdHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
@@ -371,8 +374,9 @@ model Feature {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  jtbds JTBD[]
-  rtbs  RTB[]
+  jtbds        JTBD[]
+  rtbs         RTB[]
+  roadmapItems RoadmapItem[]
 }
 
 // RTB (Reasons To Believe) — маркетинговые обещания, опирающиеся на фичи
@@ -445,4 +449,48 @@ model Person {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   ownedProducts Product[]
+  roadmapItems  RoadmapItem[]
+}
+
+enum RoadmapStatus {
+  PLANNED
+  IN_PROGRESS
+  SHIPPED
+  PAUSED
+}
+
+enum RoadmapVisibility {
+  INTERNAL
+  PUBLIC
+}
+
+// Пункт роадмапа продукта (plans/platform-views-plan.md §1) — не всегда уже
+// существующая Feature (может быть ставка/эксперимент/этап исследования),
+// поэтому featureId и jtbdId опциональны, а не обязательная связь.
+model RoadmapItem {
+  id          String            @id @default(cuid())
+  title       String
+  description String?           @db.Text
+  status      RoadmapStatus     @default(PLANNED)
+  quarter     String? // свободный текст "2026 Q3" — не date-range picker,
+  // пока реальное использование не покажет, что нужен более строгий формат
+  visibility RoadmapVisibility @default(INTERNAL)
+  pinned     Boolean           @default(false)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  ownerId String?
+  owner   Person? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  featureId String?
+  feature   Feature? @relation(fields: [featureId], references: [id], onDelete: SetNull)
+
+  jtbdId String?
+  jtbd   JTBD? @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

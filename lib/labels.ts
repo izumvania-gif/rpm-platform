@@ -3,9 +3,20 @@ import {
   ProductResourceKind,
   ResearchStatus,
   ResearchType,
+  RoadmapStatus,
   Stage,
 } from '@prisma/client'
-import { CircleCheck, CircleX, Eye, FileEdit, type LucideIcon } from 'lucide-react'
+import {
+  CircleCheck,
+  CircleDashed,
+  CircleDot,
+  CircleX,
+  Eye,
+  FileEdit,
+  PauseCircle,
+  Rocket,
+  type LucideIcon,
+} from 'lucide-react'
 import type { SignalTone } from '@/lib/signal-colors'
 
 export const stageLabels: Record<Stage, string> = {
@@ -61,6 +72,37 @@ export const hypothesisStatusIcon: Record<HypothesisStatus, LucideIcon> = {
   IN_REVIEW: Eye,
   CONFIRMED: CircleCheck,
   REJECTED: CircleX,
+}
+
+// 2.0 (plans/platform-views-plan.md §1) — same 4-tone mapping as
+// hypothesisStatusTone above: slate for not-started, blue for active,
+// violet for the strongest positive signal, red for stopped/not moving.
+export const roadmapStatusLabels: Record<RoadmapStatus, string> = {
+  PLANNED: 'Запланировано',
+  IN_PROGRESS: 'В работе',
+  SHIPPED: 'Выпущено',
+  PAUSED: 'Приостановлено',
+}
+
+export const roadmapStatusOrder: RoadmapStatus[] = [
+  RoadmapStatus.PLANNED,
+  RoadmapStatus.IN_PROGRESS,
+  RoadmapStatus.SHIPPED,
+  RoadmapStatus.PAUSED,
+]
+
+export const roadmapStatusTone: Record<RoadmapStatus, SignalTone> = {
+  PLANNED: 'slate',
+  IN_PROGRESS: 'blue',
+  SHIPPED: 'violet',
+  PAUSED: 'red',
+}
+
+export const roadmapStatusIcon: Record<RoadmapStatus, LucideIcon> = {
+  PLANNED: CircleDashed,
+  IN_PROGRESS: CircleDot,
+  SHIPPED: Rocket,
+  PAUSED: PauseCircle,
 }
 
 export const productResourceKindLabels: Record<ProductResourceKind, string> = {

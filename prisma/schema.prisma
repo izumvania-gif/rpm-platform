@@ -30,6 +30,7 @@ model User {
   features         Feature[]
   rtbs             RTB[]
   insights         Insight[]
+  people           Person[]
 }
 
 // Продукты
@@ -41,6 +42,16 @@ model Product {
   stage       Stage    @default(IDEA)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // 2.0 (plans/platform-views-plan.md §1): ownerId is the responsible PM
+  // (a Person, see below) — a separate axis from userId, which is the
+  // tenant/creator in this still-single-tenant app, not "who manages this
+  // product." publicSummary is the customer-facing one-liner for the open
+  // company dashboard (§4 of the same plan); the public route falls back to
+  // a trimmed `description` when it's empty.
+  ownerId       String?
+  owner         Person?  @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  publicSummary String?  @db.Text
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -408,4 +419,30 @@ model Insight {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --- 2.0 (plans/platform-views-plan.md) ---
+
+// Лёгкая карточка человека для командного дашборда/делегирования (§1, §0.2
+// of the plan) — deliberately NOT a login account, same kind of record
+// Competitor already is: exists to be referenced and displayed, not to
+// authenticate. Not scoped to a single Product (unlike every 1.0 content
+// model) — a person can be relevant across several products at once, e.g.
+// a PM who owns 3 products or a marketing lead who works across all of them.
+model Person {
+  id        String   @id @default(cuid())
+  name      String
+  role      String? // free-text title, e.g. "Маркетинг-лид"
+  team      String? // free-text grouping, e.g. "Продукт", "Маркетинг"
+  email     String? // display only, not a login
+  avatarUrl String?
+  skills    String[]
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ownedProducts Product[]
 }

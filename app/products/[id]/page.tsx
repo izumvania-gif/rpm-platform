@@ -67,23 +67,33 @@ function ProductSection({
 }
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = await prisma.product.findFirst({
-    where: { id: params.id, userId: getCurrentUserId() },
-    include: {
-      researches: { orderBy: { date: 'desc' } },
-      segments: { orderBy: { createdAt: 'desc' } },
-      jtbds: { orderBy: { createdAt: 'desc' } },
-      hypotheses: { orderBy: { createdAt: 'desc' } },
-      conversations: { orderBy: { date: 'desc' } },
-      competitors: { orderBy: { createdAt: 'desc' } },
-      productResources: { orderBy: { createdAt: 'desc' } },
-      features: { orderBy: { createdAt: 'desc' } },
-      rtbs: { orderBy: { createdAt: 'desc' } },
-      insights: { orderBy: { createdAt: 'desc' } },
-    },
-  })
+  const userId = getCurrentUserId()
+  const [product, people] = await Promise.all([
+    prisma.product.findFirst({
+      where: { id: params.id, userId },
+      include: {
+        researches: { orderBy: { date: 'desc' } },
+        segments: { orderBy: { createdAt: 'desc' } },
+        jtbds: { orderBy: { createdAt: 'desc' } },
+        hypotheses: { orderBy: { createdAt: 'desc' } },
+        conversations: { orderBy: { date: 'desc' } },
+        competitors: { orderBy: { createdAt: 'desc' } },
+        productResources: { orderBy: { createdAt: 'desc' } },
+        features: { orderBy: { createdAt: 'desc' } },
+        rtbs: { orderBy: { createdAt: 'desc' } },
+        insights: { orderBy: { createdAt: 'desc' } },
+      },
+    }),
+    prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+  ])
 
   if (!product) notFound()
+
+  const ownerOptions = [
+    { value: '', label: 'Не указан' },
+    ...people.map((p) => ({ value: p.id, label: p.name })),
+  ]
+  const ownerLabels = Object.fromEntries(people.map((p) => [p.id, p.name]))
 
   const deleteProductWithId = deleteProduct.bind(null, product.id)
 
@@ -147,7 +157,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             />
           </div>
         </div>
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           <InlineEditableField
             value={product.stage}
             type="select"
@@ -157,12 +167,32 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             labels={stageLabels}
           />
           <span className="text-sm text-muted-foreground">{product.slug}</span>
+          <span className="text-sm text-muted-foreground">
+            Ответственный:{' '}
+            <InlineEditableField
+              value={product.ownerId ?? ''}
+              type="select"
+              options={ownerOptions}
+              labels={ownerLabels}
+              placeholder="+ назначить"
+              action={updateProductField.bind(null, product.id, 'ownerId')}
+            />
+          </span>
         </div>
         <p className="text-muted-foreground max-w-2xl">
           <InlineEditableField
             value={product.description ?? ''}
             type="textarea"
             action={updateProductField.bind(null, product.id, 'description')}
+          />
+        </p>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          <span className="text-xs uppercase tracking-wide">Публично (для дашборда компании): </span>
+          <InlineEditableField
+            value={product.publicSummary ?? ''}
+            type="textarea"
+            placeholder="+ добавить публичное описание"
+            action={updateProductField.bind(null, product.id, 'publicSummary')}
           />
         </p>
       </div>

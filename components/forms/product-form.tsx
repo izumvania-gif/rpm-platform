@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Stage } from '@prisma/client'
+import { Stage, type Person } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,6 +15,8 @@ export interface ProductFormValues {
   slug?: string
   description?: string | null
   stage?: Stage
+  ownerId?: string | null
+  publicSummary?: string | null
 }
 
 export function ProductForm({
@@ -23,12 +25,14 @@ export function ProductForm({
   error,
   submitLabel,
   showOnboardingOption,
+  people = [],
 }: {
   action: (formData: FormData) => void
   defaultValues?: ProductFormValues
   error?: string
   submitLabel: string
   showOnboardingOption?: boolean
+  people?: Person[]
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [slug, setSlug] = useState(defaultValues?.slug ?? '')
@@ -80,6 +84,26 @@ export function ProductForm({
             id="description"
             name="description"
             defaultValue={defaultValues?.description ?? ''}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ownerId">Ответственный PM</Label>
+          <Select id="ownerId" name="ownerId" defaultValue={defaultValues?.ownerId ?? ''}>
+            <option value="">Не указан</option>
+            {people.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="publicSummary">Публичное описание (для открытого дашборда компании)</Label>
+          <Textarea
+            id="publicSummary"
+            name="publicSummary"
+            placeholder="Что продукт делает для клиента, одним-двумя предложениями"
+            defaultValue={defaultValues?.publicSummary ?? ''}
           />
         </div>
       </div>

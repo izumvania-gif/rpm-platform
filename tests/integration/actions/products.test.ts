@@ -27,6 +27,24 @@ describe('createProduct', () => {
     })
   })
 
+  it('creates a product with an owner and a public summary (2.0)', async () => {
+    const owner = await prisma.person.create({
+      data: { name: 'Alice PM', skills: [], userId: DEFAULT_USER_ID },
+    })
+    const formData = buildFormData({
+      name: 'Owned Product',
+      slug: 'owned-product',
+      stage: 'MVP',
+      ownerId: owner.id,
+      publicSummary: 'Helps clients do X.',
+    })
+
+    const redirectPath = await captureRedirect(() => createProduct(formData))
+    const id = redirectPath.split('/').pop()!
+    const product = await prisma.product.findUnique({ where: { id } })
+    expect(product).toMatchObject({ ownerId: owner.id, publicSummary: 'Helps clients do X.' })
+  })
+
   it('sends the onboarding-mode flag to the onboarding wizard instead', async () => {
     const formData = buildFormData({
       name: 'Onboarded Product',
@@ -113,5 +131,36 @@ describe('updateProductField', () => {
 
     const result = await updateProductField(product.id, 'stage', 'NOT_A_STAGE')
     expect(result.ok).toBe(false)
+  })
+
+  it('sets and clears ownerId inline (2.0)', async () => {
+    const owner = await prisma.person.create({
+      data: { name: 'Bob PM', skills: [], userId: DEFAULT_USER_ID },
+    })
+    const product = await prisma.product.create({
+      data: { name: 'Old', slug: 'inline-owner', userId: DEFAULT_USER_ID },
+    })
+
+    let result = await updateProductField(product.id, 'ownerId', owner.id)
+    expect(result).toEqual({ ok: true })
+    expect((await prisma.product.findUnique({ where: { id: product.id } }))?.ownerId).toBe(
+      owner.id
+    )
+
+    result = await updateProductField(product.id, 'ownerId', '')
+    expect(result).toEqual({ ok: true })
+    expect((await prisma.product.findUnique({ where: { id: product.id } }))?.ownerId).toBeNull()
+  })
+
+  it('sets publicSummary inline (2.0)', async () => {
+    const product = await prisma.product.create({
+      data: { name: 'Old', slug: 'inline-summary', userId: DEFAULT_USER_ID },
+    })
+
+    const result = await updateProductField(product.id, 'publicSummary', 'Public pitch')
+    expect(result).toEqual({ ok: true })
+    expect(
+      (await prisma.product.findUnique({ where: { id: product.id } }))?.publicSummary
+    ).toBe('Public pitch')
   })
 })

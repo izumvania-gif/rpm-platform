@@ -13,9 +13,11 @@ export default async function EditProductPage({
   params: { id: string }
   searchParams: { error?: string }
 }) {
-  const product = await prisma.product.findFirst({
-    where: { id: params.id, userId: getCurrentUserId() },
-  })
+  const userId = getCurrentUserId()
+  const [product, people] = await Promise.all([
+    prisma.product.findFirst({ where: { id: params.id, userId } }),
+    prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+  ])
 
   if (!product) notFound()
 
@@ -29,6 +31,7 @@ export default async function EditProductPage({
         defaultValues={product}
         error={searchParams.error}
         submitLabel="Сохранить"
+        people={people}
       />
     </main>
   )

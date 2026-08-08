@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import type { InlineFieldResult } from '@/lib/validation'
+import { optionalString, type InlineFieldResult } from '@/lib/validation'
 
 const productSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
@@ -17,6 +17,14 @@ const productSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug: только латиница, цифры и дефис'),
   description: z.string().trim().optional(),
   stage: z.nativeEnum(Stage),
+  // 2.0 (plans/platform-views-plan.md §1) — same optional-relation pattern
+  // already used by Hypothesis.jtbdId/segmentId/researchId: an empty select
+  // preprocesses to undefined, which Prisma treats as "don't touch this
+  // field" on update, not "clear it" (only an explicit null clears a
+  // nullable relation) — picking "Не указан" again after a value was set
+  // won't unset it. Pre-existing limitation of this pattern, not new here.
+  ownerId: optionalString(),
+  publicSummary: optionalString(),
 })
 
 function parseProductForm(formData: FormData) {
@@ -25,6 +33,8 @@ function parseProductForm(formData: FormData) {
     slug: formData.get('slug'),
     description: formData.get('description') || undefined,
     stage: formData.get('stage'),
+    ownerId: formData.get('ownerId'),
+    publicSummary: formData.get('publicSummary'),
   })
 }
 
@@ -82,7 +92,7 @@ export async function deleteProduct(id: string) {
 
 export async function updateProductField(
   id: string,
-  field: 'name' | 'description' | 'stage',
+  field: 'name' | 'description' | 'stage' | 'ownerId' | 'publicSummary',
   value: string
 ): Promise<InlineFieldResult> {
   switch (field) {
@@ -100,6 +110,17 @@ export async function updateProductField(
         return { ok: false, error: 'Некорректная стадия' }
       }
       await prisma.product.update({ where: { id }, data: { stage: value as Stage } })
+      break
+    case 'ownerId':
+      // Inline field can explicitly clear the relation (unlike the full
+      // edit form's <select>, see the schema comment above) — '' -> null.
+      await prisma.product.update({ where: { id }, data: { ownerId: value.trim() || null } })
+      break
+    case 'publicSummary':
+      await prisma.product.update({
+        where: { id },
+        data: { publicSummary: value.trim() || null },
+      })
       break
   }
   revalidatePath('/products')

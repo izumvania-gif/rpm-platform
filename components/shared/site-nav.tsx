@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { KeyboardShortcutsOverlay } from '@/components/shared/keyboard-shortcuts-overlay'
+import { PersonaSwitcher } from '@/components/shared/persona-switcher'
 
 interface NavLink {
   href: string
@@ -18,10 +19,11 @@ const links: NavLink[] = [
   {
     href: '/products',
     label: 'Продукты',
-    match: ['/products', '/features', '/competitors'],
+    match: ['/products', '/features', '/competitors', '/people'],
     subLinks: [
       { href: '/features', label: 'Фичи' },
       { href: '/competitors', label: 'Конкуренты' },
+      { href: '/people', label: 'Люди' },
     ],
   },
   { href: '/segments', label: 'Сегменты', match: ['/segments'] },
@@ -122,6 +124,7 @@ export function SiteNav() {
               })}
             </nav>
             <SearchBox />
+            <PersonaSwitcher />
             <KeyboardShortcutsOverlay />
             <ThemeToggle />
           </div>

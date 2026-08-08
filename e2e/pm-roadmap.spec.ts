@@ -29,6 +29,31 @@ test('add a roadmap item on /pm, see it grouped by quarter, then delete it', asy
   await expect(page.getByText(itemTitle)).toHaveCount(0)
 })
 
+test('assigning a roadmap item owner shows their workload in the Команда section', async ({
+  page,
+}) => {
+  const productName = uniqueName('Team Product')
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
+
+  const personName = uniqueName('Carol PM')
+  await page.goto('/people/new')
+  await page.getByLabel('Имя').fill(personName)
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL(/\/people\/(?!new)[^/]+$/)
+
+  await page.goto(`/pm/roadmap/new?productId=${productId}`)
+  await page.getByLabel('Название').fill(uniqueName('Ship feature'))
+  await selectOptionRobust(page, page.getByLabel('Ответственный'), personName)
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+
+  // Both the roadmap item ("Ответственный: Carol PM…") and the Команда row
+  // contain the person's name, so scope on the workload text instead — it
+  // only ever appears in the Команда section.
+  await expect(page.getByText('1 активных · 1 всего')).toBeVisible()
+})
+
 test('the PM product switcher remembers the last selected product', async ({ page }) => {
   const productName = uniqueName('Switcher Product')
   await createProductViaUI(page, productName)

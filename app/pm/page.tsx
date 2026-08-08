@@ -5,8 +5,9 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { deleteRoadmapItem, toggleRoadmapItemPinned } from '@/lib/actions/roadmap'
 import { roadmapStatusIcon, roadmapStatusLabels, roadmapStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
+import { getProductTeamWorkload } from '@/lib/team-workload'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { PmProductSwitcher } from '@/components/shared/pm-product-switcher'
@@ -75,7 +76,7 @@ export default async function PmPage({
       ? searchParams.productId
       : undefined
 
-  const [product, roadmapItems] = selectedProductId
+  const [product, roadmapItems, teamWorkload] = selectedProductId
     ? await Promise.all([
         prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
         prisma.roadmapItem.findMany({
@@ -83,8 +84,9 @@ export default async function PmPage({
           orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
           include: { owner: true, feature: true, jtbd: true },
         }),
+        getProductTeamWorkload(userId, selectedProductId),
       ])
-    : [null, []]
+    : [null, [], []]
 
   return (
     <main className="container py-12 space-y-8">
@@ -206,12 +208,47 @@ export default async function PmPage({
                 </CardContent>
               </Card>
 
-              <ComingSoon
-                icon={Users2}
-                title="Командный дашборд / матрица делегирования"
-                phase="Фаза 2"
-                description="Кто чем занят прямо сейчас — на основе назначенных пунктов роадмапа и шагов процесса."
-              />
+              <Card variant="content">
+                <CardHeader className="border-l-4 border-primary">
+                  <CardTitle className="flex items-center gap-1.5 text-base">
+                    <Users2 size={15} strokeWidth={1.75} className="text-primary" />
+                    Команда
+                  </CardTitle>
+                  <CardDescription>
+                    Кто сколько сейчас ведёт по роадмапу этого продукта — шаги процесса
+                    добавятся в Фазе 3
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {teamWorkload.length === 0 ? (
+                    <p className="p-5 text-sm text-muted-foreground">
+                      Пока никто не назначен ответственным по пунктам роадмапа этого продукта.
+                    </p>
+                  ) : (
+                    <ul className="divide-y">
+                      {teamWorkload.map(({ person, activeCount, totalCount }) => (
+                        <li
+                          key={person.id}
+                          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3 text-sm"
+                        >
+                          <div className="min-w-0">
+                            <Link href={`/people/${person.id}`} className="font-medium hover:underline">
+                              {person.name}
+                            </Link>
+                            {person.role && (
+                              <span className="ml-2 text-muted-foreground">{person.role}</span>
+                            )}
+                          </div>
+                          <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                            {activeCount} активных · {totalCount} всего
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+
               <ComingSoon
                 icon={Workflow}
                 title="Диаграмма процесса и экшн-планы"

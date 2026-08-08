@@ -14,15 +14,19 @@ import { PinButton } from '@/components/shared/pin-button'
 import { PmProductSwitcher } from '@/components/shared/pm-product-switcher'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { ProcessGraph } from '@/components/process-graph/canvas'
+import { RoadmapViewTabs } from '@/components/shared/roadmap-view-tabs'
+import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
 import { groupByQuarter } from '@/lib/roadmap'
+import { buildGanttLayout } from '@/lib/roadmap-gantt'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PmPage({
   searchParams,
 }: {
-  searchParams: { productId?: string }
+  searchParams: { productId?: string; view?: string }
 }) {
+  const roadmapView = searchParams.view === 'gantt' ? 'gantt' : 'list'
   const userId = getCurrentUserId()
   const products = await prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } })
 
@@ -101,8 +105,13 @@ export default async function PmPage({
                     Добавить пункт
                   </Link>
                 </CardHeader>
-                <CardContent className="p-0">
-                  {roadmapItems.length === 0 ? (
+                <div className="border-b px-5 py-3">
+                  <RoadmapViewTabs active={roadmapView} productId={product.id} />
+                </div>
+                <CardContent className={roadmapView === 'gantt' ? 'p-5' : 'p-0'}>
+                  {roadmapView === 'gantt' ? (
+                    <GanttChart layout={buildGanttLayout(roadmapItems)} />
+                  ) : roadmapItems.length === 0 ? (
                     <p className="p-5 text-sm text-muted-foreground">
                       Пока нет пунктов роадмапа для этого продукта.
                     </p>

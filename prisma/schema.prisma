@@ -484,6 +484,22 @@ model RoadmapItem {
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
 
+  // Gantt view (/pm's "Гант" tab, added after the platform-views-plan's 8
+  // phases shipped) — trackGroup/track are free-text lanes, same philosophy
+  // as `quarter` above: the PM defines what a "parallel process" means for
+  // their product rather than picking from a fixed taxonomy. trackGroup
+  // nests track under a block (e.g. "Разработка" containing "Фронт"/"Бэк"),
+  // both optional so existing items without them still work — they fall
+  // back to "Без блока"/"Без трека" groups on the chart.
+  trackGroup String?
+  track      String?
+  startDate  DateTime?
+  endDate    DateTime?
+  // A milestone renders as a full-height vertical line labeled with the
+  // item's title (e.g. "v2.5") instead of a bar — startDate is the
+  // marker's date, endDate/track/trackGroup are ignored for milestones.
+  isMilestone Boolean @default(false)
+
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 

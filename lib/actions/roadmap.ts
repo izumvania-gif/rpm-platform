@@ -6,19 +6,29 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { optionalString } from '@/lib/validation'
+import { optionalDate, optionalString } from '@/lib/validation'
 
-const roadmapItemSchema = z.object({
-  title: z.string().trim().min(1, 'Название обязательно'),
-  description: optionalString(),
-  status: z.nativeEnum(RoadmapStatus),
-  quarter: optionalString(),
-  visibility: z.nativeEnum(RoadmapVisibility),
-  productId: z.string().trim().min(1, 'Продукт обязателен'),
-  ownerId: optionalString(),
-  featureId: optionalString(),
-  jtbdId: optionalString(),
-})
+const roadmapItemSchema = z
+  .object({
+    title: z.string().trim().min(1, 'Название обязательно'),
+    description: optionalString(),
+    status: z.nativeEnum(RoadmapStatus),
+    quarter: optionalString(),
+    visibility: z.nativeEnum(RoadmapVisibility),
+    productId: z.string().trim().min(1, 'Продукт обязателен'),
+    ownerId: optionalString(),
+    featureId: optionalString(),
+    jtbdId: optionalString(),
+    trackGroup: optionalString(),
+    track: optionalString(),
+    startDate: optionalDate(),
+    endDate: optionalDate(),
+    isMilestone: z.coerce.boolean(),
+  })
+  .refine((data) => !data.startDate || !data.endDate || data.endDate >= data.startDate, {
+    message: 'Дата окончания не может быть раньше даты начала',
+    path: ['endDate'],
+  })
 
 function parseRoadmapItemForm(formData: FormData) {
   return roadmapItemSchema.safeParse({
@@ -31,6 +41,11 @@ function parseRoadmapItemForm(formData: FormData) {
     ownerId: formData.get('ownerId'),
     featureId: formData.get('featureId'),
     jtbdId: formData.get('jtbdId'),
+    trackGroup: formData.get('trackGroup'),
+    track: formData.get('track'),
+    startDate: formData.get('startDate'),
+    endDate: formData.get('endDate'),
+    isMilestone: formData.get('isMilestone') === 'on',
   })
 }
 

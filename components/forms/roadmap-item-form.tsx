@@ -18,11 +18,25 @@ export interface RoadmapItemFormValues {
   ownerId?: string | null
   featureId?: string | null
   jtbdId?: string | null
+  trackGroup?: string | null
+  track?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
+  isMilestone?: boolean
 }
 
 const visibilityLabels: Record<RoadmapVisibility, string> = {
   INTERNAL: 'Внутренний',
   PUBLIC: 'Публичный (виден на открытом дашборде компании)',
+}
+
+// <input type="date"> needs "YYYY-MM-DD" — defaultValues comes straight from
+// a Prisma row (a real Date) on the edit form, or is absent on the create
+// form, so this normalizes either case.
+function toDateInputValue(date?: Date | string | null): string {
+  if (!date) return ''
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toISOString().slice(0, 10)
 }
 
 export function RoadmapItemForm({
@@ -125,6 +139,50 @@ export function RoadmapItemForm({
               </option>
             ))}
           </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="trackGroup">Блок (группа дорожек)</Label>
+          <Input
+            id="trackGroup"
+            name="trackGroup"
+            placeholder="Разработка"
+            defaultValue={defaultValues?.trackGroup ?? ''}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="track">Дорожка</Label>
+          <Input id="track" name="track" placeholder="Фронт" defaultValue={defaultValues?.track ?? ''} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="startDate">Начало</Label>
+          <Input
+            id="startDate"
+            name="startDate"
+            type="date"
+            defaultValue={toDateInputValue(defaultValues?.startDate)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="endDate">Конец</Label>
+          <Input
+            id="endDate"
+            name="endDate"
+            type="date"
+            defaultValue={toDateInputValue(defaultValues?.endDate)}
+          />
+        </div>
+        <div className="flex items-start gap-2 sm:col-span-2">
+          <input
+            id="isMilestone"
+            name="isMilestone"
+            type="checkbox"
+            defaultChecked={defaultValues?.isMilestone}
+            className="mt-1 h-4 w-4 rounded border-input"
+          />
+          <Label htmlFor="isMilestone" className="font-normal">
+            Это веха (например, выпуск версии) — на диаграмме Ганта рисуется вертикальной линией
+            по дате «Начало», а не полосой; блок, дорожка и «Конец» для вехи не используются
+          </Label>
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="description">Описание</Label>

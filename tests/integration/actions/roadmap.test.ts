@@ -53,6 +53,64 @@ describe('createRoadmapItem', () => {
     expect(redirectPath).toMatch(/^\/pm\/roadmap\/new\?productId=.*&error=/)
     expect(await prisma.roadmapItem.count()).toBe(0)
   })
+
+  it('creates a Gantt bar item with track/trackGroup/dates', async () => {
+    const product = await createTestProduct()
+    const formData = buildFormData({
+      title: 'Frontend redesign',
+      status: 'PLANNED',
+      visibility: 'INTERNAL',
+      productId: product.id,
+      trackGroup: 'Разработка',
+      track: 'Фронт',
+      startDate: '2026-09-01',
+      endDate: '2026-09-20',
+    })
+    const redirectPath = await captureRedirect(() => createRoadmapItem(formData))
+    expect(redirectPath).toBe(`/pm?productId=${product.id}`)
+
+    const item = await prisma.roadmapItem.findFirst({ where: { productId: product.id } })
+    expect(item).toMatchObject({
+      trackGroup: 'Разработка',
+      track: 'Фронт',
+      isMilestone: false,
+    })
+    expect(item?.startDate?.toISOString().slice(0, 10)).toBe('2026-09-01')
+    expect(item?.endDate?.toISOString().slice(0, 10)).toBe('2026-09-20')
+  })
+
+  it('creates a milestone item', async () => {
+    const product = await createTestProduct()
+    const formData = buildFormData({
+      title: 'v2.5',
+      status: 'PLANNED',
+      visibility: 'INTERNAL',
+      productId: product.id,
+      startDate: '2026-09-25',
+      isMilestone: 'on',
+    })
+    const redirectPath = await captureRedirect(() => createRoadmapItem(formData))
+    expect(redirectPath).toBe(`/pm?productId=${product.id}`)
+
+    const item = await prisma.roadmapItem.findFirst({ where: { productId: product.id } })
+    expect(item?.isMilestone).toBe(true)
+    expect(item?.startDate?.toISOString().slice(0, 10)).toBe('2026-09-25')
+  })
+
+  it('rejects an end date before the start date', async () => {
+    const product = await createTestProduct()
+    const formData = buildFormData({
+      title: 'Backwards',
+      status: 'PLANNED',
+      visibility: 'INTERNAL',
+      productId: product.id,
+      startDate: '2026-09-20',
+      endDate: '2026-09-01',
+    })
+    const redirectPath = await captureRedirect(() => createRoadmapItem(formData))
+    expect(redirectPath).toMatch(/^\/pm\/roadmap\/new\?productId=.*&error=/)
+    expect(await prisma.roadmapItem.count()).toBe(0)
+  })
 })
 
 describe('updateRoadmapItem / deleteRoadmapItem / toggleRoadmapItemPinned', () => {

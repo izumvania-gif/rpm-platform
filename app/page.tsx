@@ -6,8 +6,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget'
-import { SectionHeading } from '@/components/shared/section-heading'
-import { CountUp } from '@/components/shared/count-up'
 import { DashboardWidgetGrid } from '@/components/shared/dashboard-widget-grid'
 import { DashboardGapsSummary } from '@/components/shared/dashboard-gaps-summary'
 import { DashboardJtbdCoverage } from '@/components/shared/dashboard-jtbd-coverage'
@@ -33,32 +31,37 @@ import {
 
 export const dynamic = 'force-dynamic'
 
-function ModuleTile({
-  module,
-  count,
-  tone,
-}: {
-  module: ModuleMeta
-  count: number
-  tone?: SignalTone
-}) {
-  const Icon = module.icon
-  const accent = tone ? signalToneColors[tone].border : 'hsl(var(--primary))'
+// Compact navigation, not a data widget — always visible, not part of the
+// customizable grid (plans/dashboard-redesign-plan.md Фаза 4). Replaces the
+// 9 large count-only tiles that used to conflate "get to a section" with
+// "see a number"; the numbers that actually matter now live in the
+// actionable widgets above instead of here.
+function ModuleRail({ counts }: { counts: Record<string, number> }) {
+  const items: { module: ModuleMeta; tone?: SignalTone }[] = [
+    { module: productModule },
+    ...researchModules.map((module) => ({ module, tone: researchGroupMeta.tone })),
+    ...positioningModules.map((module) => ({ module, tone: positioningGroupMeta.tone })),
+  ]
   return (
-    <Link href={module.href}>
-      <Card variant="tile" className="h-full border-t-4" style={{ borderTopColor: accent }}>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Icon size={16} style={{ color: accent }} strokeWidth={1.75} />
-            <CardTitle>{module.label}</CardTitle>
-          </div>
-          <CardDescription>{module.description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CountUp value={count} className="font-mono text-3xl font-bold" />
-        </CardContent>
-      </Card>
-    </Link>
+    <nav aria-label="Разделы" className="mb-8 flex gap-1.5 overflow-x-auto pb-1">
+      {items.map(({ module, tone }) => {
+        const Icon = module.icon
+        const accent = tone ? signalToneColors[tone].border : 'hsl(var(--primary))'
+        return (
+          <Link
+            key={module.href}
+            href={module.href}
+            className="flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+          >
+            <Icon size={15} strokeWidth={1.75} style={{ color: accent }} />
+            {module.label}
+            <span className="font-mono text-xs text-muted-foreground/70">
+              {counts[module.href]}
+            </span>
+          </Link>
+        )
+      })}
+    </nav>
   )
 }
 
@@ -374,51 +377,20 @@ export default async function Home() {
         </Card>
       )}
 
+      <ModuleRail counts={counts} />
+
+      <div className="mb-8">
+        <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+          Отчёты: матрица Сегменты × JTBD, пробелы →
+        </Link>
+      </div>
+
       <DashboardWidgetGrid
         widgets={{
           'gaps-summary': <DashboardGapsSummary counts={gapsCounts} />,
           'jtbd-coverage': <DashboardJtbdCoverage coverage={jtbdCoverage} />,
           'hypothesis-funnel': <DashboardHypothesisFunnel counts={hypothesisStatusCounts} />,
           'research-cadence': <DashboardResearchCadence data={researchCadence} />,
-          'research-group': (
-            <div className="space-y-4">
-              <SectionHeading
-                title={researchGroupMeta.title}
-                description={researchGroupMeta.description}
-              />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                {researchModules.map((module) => (
-                  <ModuleTile
-                    key={module.href}
-                    module={module}
-                    count={counts[module.href]}
-                    tone={researchGroupMeta.tone}
-                  />
-                ))}
-              </div>
-            </div>
-          ),
-          'positioning-group': (
-            <div className="space-y-4">
-              <SectionHeading
-                title={positioningGroupMeta.title}
-                description={positioningGroupMeta.description}
-              />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                {positioningModules.map((module) => (
-                  <ModuleTile
-                    key={module.href}
-                    module={module}
-                    count={counts[module.href]}
-                    tone={positioningGroupMeta.tone}
-                  />
-                ))}
-              </div>
-              <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-                Отчёты: матрица Сегменты × JTBD, пробелы →
-              </Link>
-            </div>
-          ),
           'recently-viewed': <RecentlyViewedWidget />,
           pinned: pinnedItems.length > 0 && (
             <Card variant="content">

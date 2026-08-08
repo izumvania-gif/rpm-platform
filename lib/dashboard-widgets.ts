@@ -2,8 +2,9 @@ import type { DashboardWidgetLayout } from '@/lib/client-storage'
 
 // Single source of truth for "which dashboard widgets exist" — the settings
 // panel and the grid both key off this (plans/dashboard-redesign-plan.md
-// Фаза 2). The hero product block above the widget grid isn't a widget —
-// it's always shown, not customizable.
+// Фаза 2). The hero product block and the module rail above the widget grid
+// aren't widgets — they're always shown, not customizable (the rail replaced
+// the old research-group/positioning-group tile widgets in Фаза 4).
 export interface DashboardWidgetDef {
   id: string
   title: string
@@ -14,8 +15,6 @@ export const dashboardWidgetDefs: DashboardWidgetDef[] = [
   { id: 'jtbd-coverage', title: 'Покрытие JTBD' },
   { id: 'hypothesis-funnel', title: 'Воронка гипотез' },
   { id: 'research-cadence', title: 'Частота исследований' },
-  { id: 'research-group', title: 'Исследование клиентов' },
-  { id: 'positioning-group', title: 'Позиционирование' },
   { id: 'recently-viewed', title: 'Недавно просмотренное' },
   { id: 'pinned', title: 'Закреплённое' },
   { id: 'activity', title: 'Последняя активность' },

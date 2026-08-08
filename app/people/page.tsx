@@ -4,6 +4,7 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { PinButton } from '@/components/shared/pin-button'
+import { PersonAvatar } from '@/components/shared/person-avatar'
 import { togglePersonPinned } from '@/lib/actions/people'
 
 export const dynamic = 'force-dynamic'
@@ -36,12 +37,15 @@ export default async function PeoplePage() {
                 href={`/people/${person.id}`}
                 className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm hover:bg-accent/50"
               >
+                <PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="sm" />
                 <span className="min-w-0 shrink-0 font-medium">{person.name}</span>
                 {person.role && (
                   <span className="min-w-0 shrink-0 text-muted-foreground">{person.role}</span>
                 )}
                 {person.team && (
-                  <span className="min-w-0 flex-1 truncate text-muted-foreground">{person.team}</span>
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                    {person.team}
+                  </span>
                 )}
                 <PinButton
                   pinned={person.pinned}

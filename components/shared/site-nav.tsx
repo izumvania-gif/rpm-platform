@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { KeyboardShortcutsOverlay } from '@/components/shared/keyboard-shortcuts-overlay'
 import { PersonaSwitcher } from '@/components/shared/persona-switcher'
+import { PublicHeader } from '@/components/shared/public-header'
 
 interface NavLink {
   href: string
@@ -67,6 +68,10 @@ function SearchBox() {
 export function SiteNav() {
   const pathname = usePathname()
 
+  if (isActive(pathname, ['/public'])) {
+    return <PublicHeader />
+  }
+
   return (
     <header className="print:hidden">
       <div className="h-1 bg-primary" />
@@ -88,7 +93,8 @@ export function SiteNav() {
                       href={link.href}
                       className={cn(
                         'flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground',
-                        active && 'bg-primary/10 font-semibold text-primary hover:bg-primary/10 hover:text-primary'
+                        active &&
+                          'bg-primary/10 font-semibold text-primary hover:bg-primary/10 hover:text-primary'
                       )}
                     >
                       {link.label}

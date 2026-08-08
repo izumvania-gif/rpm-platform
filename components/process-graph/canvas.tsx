@@ -189,12 +189,7 @@ function StepInspector({
         </Select>
         {error && <p className="text-xs text-destructive">{error}</p>}
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            disabled={isPending || !title.trim()}
-            onClick={save}
-          >
+          <Button type="button" size="sm" disabled={isPending || !title.trim()} onClick={save}>
             Сохранить
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={onClose}>
@@ -237,7 +232,11 @@ function GraphInner({
       id: s.id,
       type: 'processStep',
       position: { x: s.x, y: s.y },
-      data: { title: s.title, assignedPersonName: s.assignedPerson?.name ?? null },
+      data: {
+        title: s.title,
+        assignedPersonName: s.assignedPerson?.name ?? null,
+        assignedPersonAvatarUrl: s.assignedPerson?.avatarUrl ?? null,
+      },
     }))
     const edges: Edge[] = processEdges.map((e) => ({
       id: e.id,
@@ -280,16 +279,11 @@ function GraphInner({
     [router]
   )
 
-  const onNodeDragStop: OnNodeDrag = useCallback(
-    (_event, node) => {
-      startTransition(async () => {
-        await saveProcessStepPositions([
-          { stepId: node.id, x: node.position.x, y: node.position.y },
-        ])
-      })
-    },
-    []
-  )
+  const onNodeDragStop: OnNodeDrag = useCallback((_event, node) => {
+    startTransition(async () => {
+      await saveProcessStepPositions([{ stepId: node.id, x: node.position.x, y: node.position.y }])
+    })
+  }, [])
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
     setSelectedStepId(node.id)

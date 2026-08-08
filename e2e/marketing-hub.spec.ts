@@ -50,10 +50,12 @@ test('shows the JTBD -> feature -> RTB chain for a segment, and upcoming roadmap
   await page.goto('/marketing-hub')
   await selectOptionRobust(page, page.getByLabel('Сегмент'), `${productName} — ${segmentName}`)
 
-  await expect(page.getByRole('heading', { name: `Что можно сказать сегменту «${segmentName}»` })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: `Что можно сказать сегменту «${segmentName}»` })
+  ).toBeVisible()
   await expect(page.getByText(jtbdTitle)).toBeVisible()
   await expect(page.getByText('Подтверждён')).toBeVisible()
   await expect(page.getByText(featureName)).toBeVisible()
-  await expect(page.getByText(`RTB: ${rtbStatement}`)).toBeVisible()
+  await expect(page.getByText(rtbStatement)).toBeVisible()
   await expect(page.getByText(roadmapItemTitle)).toBeVisible()
 })

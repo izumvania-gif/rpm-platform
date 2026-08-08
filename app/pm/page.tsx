@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CalendarClock, ClipboardList, Info, Users2, Workflow } from 'lucide-react'
+import { CalendarClock, ClipboardList, Users2, Workflow } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteRoadmapItem, toggleRoadmapItemPinned } from '@/lib/actions/roadmap'
@@ -8,11 +8,13 @@ import { roadmapStatusIcon, roadmapStatusLabels, roadmapStatusTone } from '@/lib
 import { signalToneColors } from '@/lib/signal-colors'
 import { getProductTeamWorkload } from '@/lib/team-workload'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { PmProductSwitcher } from '@/components/shared/pm-product-switcher'
 import { TagBadges } from '@/components/shared/tag-badges'
+import { PersonAvatar } from '@/components/shared/person-avatar'
+import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { ProcessGraph } from '@/components/process-graph/canvas'
 import { RoadmapViewTabs } from '@/components/shared/roadmap-view-tabs'
 import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
@@ -186,151 +188,133 @@ export default async function PmPage({
                 </CardContent>
               </Card>
 
-              <Card variant="content">
-                <CardHeader className="border-l-4 border-primary">
-                  <CardTitle className="flex items-center gap-1.5 text-base">
-                    <Users2 size={15} strokeWidth={1.75} className="text-primary" />
-                    Команда
-                  </CardTitle>
-                  <CardDescription>
-                    Кто сколько сейчас ведёт по роадмапу и шагам процесса этого продукта
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {teamWorkload.length === 0 ? (
-                    <p className="p-5 text-sm text-muted-foreground">
-                      Пока никто не назначен ответственным по пунктам роадмапа или шагам
-                      процесса этого продукта.
-                    </p>
-                  ) : (
-                    <ul className="divide-y">
-                      {teamWorkload.map(({ person, activeCount, totalCount }) => (
-                        <li
-                          key={person.id}
-                          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3 text-sm"
-                        >
-                          <div className="min-w-0">
-                            <Link href={`/people/${person.id}`} className="font-medium hover:underline">
-                              {person.name}
-                            </Link>
-                            {person.role && (
-                              <span className="ml-2 text-muted-foreground">{person.role}</span>
-                            )}
-                          </div>
-                          <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                            {activeCount} активных · {totalCount} всего
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
+              <DashboardWidgetCard
+                icon={Users2}
+                title="Команда"
+                description="Кто сколько сейчас ведёт по роадмапу и шагам процесса этого продукта"
+                tone="secondary"
+                contentClassName="p-0"
+              >
+                {teamWorkload.length === 0 ? (
+                  <p className="p-5 text-sm text-muted-foreground">
+                    Пока никто не назначен ответственным по пунктам роадмапа или шагам процесса
+                    этого продукта.
+                  </p>
+                ) : (
+                  <ul className="divide-y">
+                    {teamWorkload.map(({ person, activeCount, totalCount }) => (
+                      <li
+                        key={person.id}
+                        className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm"
+                      >
+                        <PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="sm" />
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/people/${person.id}`}
+                            className="font-medium hover:underline"
+                          >
+                            {person.name}
+                          </Link>
+                          {person.role && (
+                            <span className="ml-2 text-muted-foreground">{person.role}</span>
+                          )}
+                        </div>
+                        <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                          {activeCount} активных · {totalCount} всего
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </DashboardWidgetCard>
 
-              <Card variant="content">
-                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 border-l-4 border-primary">
-                  <div>
-                    <CardTitle className="flex items-center gap-1.5 text-base">
-                      <ClipboardList size={15} strokeWidth={1.75} className="text-primary" />
-                      Экшн-планы
-                    </CardTitle>
-                    <CardDescription>
-                      Заранее написанное «что делать» для предсказуемых нештатных
-                      ситуаций — открыть готовый план быстрее, чем придумывать реакцию
-                      в моменте (plans/pm-time-allocation-research.md §1)
-                    </CardDescription>
-                  </div>
+              <DashboardWidgetCard
+                icon={ClipboardList}
+                title="Экшн-планы"
+                description="Заранее написанное «что делать» для предсказуемых нештатных ситуаций — открыть готовый план быстрее, чем придумывать реакцию в моменте (plans/pm-time-allocation-research.md §1)"
+                tone="secondary"
+                contentClassName="p-0"
+                action={
                   <Link
                     href={`/pm/action-plans/new?productId=${product.id}`}
                     className={buttonVariants({ variant: 'outline', size: 'sm' })}
                   >
                     Добавить план
                   </Link>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {actionPlans.length === 0 ? (
-                    <p className="p-5 text-sm text-muted-foreground">
-                      Пока нет экшн-планов для этого продукта.
-                    </p>
-                  ) : (
-                    <ul className="divide-y">
-                      {actionPlans.map((plan) => (
-                        <li key={plan.id} className="p-5">
-                          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-                            <div className="min-w-0">
-                              <p className="font-medium">{plan.scenario}</p>
-                              {plan.trigger && (
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                  Триггер: {plan.trigger}
-                                </p>
-                              )}
-                              {plan.steps.length > 0 && (
-                                <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-sm">
-                                  {plan.steps.map((step, i) => (
-                                    <li key={i}>{step}</li>
-                                  ))}
-                                </ol>
-                              )}
-                              <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                                {plan.owner && <span>Координирует: {plan.owner.name}</span>}
-                                {plan.processStep && <span>Шаг процесса: {plan.processStep.title}</span>}
+                }
+              >
+                {actionPlans.length === 0 ? (
+                  <p className="p-5 text-sm text-muted-foreground">
+                    Пока нет экшн-планов для этого продукта.
+                  </p>
+                ) : (
+                  <ul className="divide-y">
+                    {actionPlans.map((plan) => (
+                      <li key={plan.id} className="p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+                          <div className="min-w-0">
+                            <p className="font-medium">{plan.scenario}</p>
+                            {plan.trigger && (
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                Триггер: {plan.trigger}
                               </p>
-                              {plan.tags.length > 0 && (
-                                <div className="mt-2">
-                                  <TagBadges tags={plan.tags} />
-                                </div>
+                            )}
+                            {plan.steps.length > 0 && (
+                              <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-sm">
+                                {plan.steps.map((step, i) => (
+                                  <li key={i}>{step}</li>
+                                ))}
+                              </ol>
+                            )}
+                            <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                              {plan.owner && <span>Координирует: {plan.owner.name}</span>}
+                              {plan.processStep && (
+                                <span>Шаг процесса: {plan.processStep.title}</span>
                               )}
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                              <PinButton
-                                pinned={plan.pinned}
-                                action={toggleActionPlanPinned.bind(null, plan.id, !plan.pinned)}
-                              />
-                              <Link
-                                href={`/pm/action-plans/${plan.id}/edit`}
-                                className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                              >
-                                Редактировать
-                              </Link>
-                              <DeleteButton action={deleteActionPlan.bind(null, plan.id)} />
-                            </div>
+                            </p>
+                            {plan.tags.length > 0 && (
+                              <div className="mt-2">
+                                <TagBadges tags={plan.tags} />
+                              </div>
+                            )}
                           </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <PinButton
+                              pinned={plan.pinned}
+                              action={toggleActionPlanPinned.bind(null, plan.id, !plan.pinned)}
+                            />
+                            <Link
+                              href={`/pm/action-plans/${plan.id}/edit`}
+                              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                            >
+                              Редактировать
+                            </Link>
+                            <DeleteButton action={deleteActionPlan.bind(null, plan.id)} />
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </DashboardWidgetCard>
 
-              <Card variant="content">
-                <CardHeader className="border-l-4 border-primary">
-                  <CardTitle className="flex items-center gap-1.5 text-base">
-                    <Workflow size={15} strokeWidth={1.75} className="text-primary" />
-                    Процесс
-                  </CardTitle>
-                  <CardDescription>
-                    Как устроен внутренний процесс продукта — кто что делает и кому
-                    передаёт дальше
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ProcessGraph
-                    productId={product.id}
-                    steps={processSteps}
-                    processEdges={processEdges}
-                    people={people}
-                  />
-                </CardContent>
-              </Card>
+              <DashboardWidgetCard
+                icon={Workflow}
+                title="Процесс"
+                description="Как устроен внутренний процесс продукта — кто что делает и кому передаёт дальше"
+                tone="secondary"
+              >
+                <ProcessGraph
+                  productId={product.id}
+                  steps={processSteps}
+                  processEdges={processEdges}
+                  people={people}
+                />
+              </DashboardWidgetCard>
             </>
           )}
         </>
       )}
-
-      <div className="flex items-start gap-2 text-xs text-muted-foreground">
-        <Info size={14} className="mt-0.5 shrink-0" />
-        <span>Раздел в разработке — см. plans/platform-views-plan.md.</span>
-      </div>
     </main>
   )
 }

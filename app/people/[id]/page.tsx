@@ -8,6 +8,7 @@ import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { PersonAvatar } from '@/components/shared/person-avatar'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,16 +27,22 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
     <main className="container py-12 max-w-2xl space-y-6">
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">
-            <InlineEditableField
-              value={person.name}
-              action={updatePersonField.bind(null, person.id, 'name')}
-            />
-          </h1>
+          <div className="flex items-center gap-3">
+            <PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
+            <h1 className="text-2xl font-bold">
+              <InlineEditableField
+                value={person.name}
+                action={updatePersonField.bind(null, person.id, 'name')}
+              />
+            </h1>
+          </div>
           <div className="flex flex-wrap gap-2">
             <PinButton pinned={person.pinned} action={togglePersonPinnedWithId} />
             <CopyLinkButton />
-            <Link href={`/people/${person.id}/edit`} className={buttonVariants({ variant: 'outline' })}>
+            <Link
+              href={`/people/${person.id}/edit`}
+              className={buttonVariants({ variant: 'outline' })}
+            >
               Редактировать
             </Link>
             <DeleteButton action={deletePersonWithId} />

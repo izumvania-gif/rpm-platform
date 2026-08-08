@@ -1,11 +1,12 @@
 'use client'
 
 import { Handle, Position, type NodeProps } from '@xyflow/react'
-import { User } from 'lucide-react'
+import { PersonAvatar } from '@/components/shared/person-avatar'
 
 export interface ProcessStepNodeData {
   title: string
   assignedPersonName: string | null
+  assignedPersonAvatarUrl: string | null
   [key: string]: unknown
 }
 
@@ -14,7 +15,7 @@ export interface ProcessStepNodeData {
 // the app's primary accent instead of a signal tone, since process steps
 // don't carry a type taxonomy the way JTBD job types do.
 export function ProcessStepNode({ data, selected }: NodeProps) {
-  const { title, assignedPersonName } = data as ProcessStepNodeData
+  const { title, assignedPersonName, assignedPersonAvatarUrl } = data as ProcessStepNodeData
 
   return (
     <div
@@ -27,8 +28,8 @@ export function ProcessStepNode({ data, selected }: NodeProps) {
       <Handle type="target" position={Position.Left} className="!bg-muted-foreground" />
       <p className="line-clamp-2 pr-1 text-[13.5px] font-medium leading-snug">{title}</p>
       {assignedPersonName && (
-        <div className="mt-2 flex items-center gap-1 border-t pt-1.5">
-          <User size={11} strokeWidth={1.75} className="shrink-0 text-muted-foreground" />
+        <div className="mt-2 flex items-center gap-1.5 border-t pt-1.5">
+          <PersonAvatar name={assignedPersonName} avatarUrl={assignedPersonAvatarUrl} size="sm" />
           <p className="truncate text-[11px] text-muted-foreground">{assignedPersonName}</p>
         </div>
       )}

@@ -13,7 +13,13 @@ export const dynamic = 'force-dynamic'
 
 // Sales-relevant order: the sales kit itself first, everything else after —
 // same list as ProductResourceKind's declaration order in schema.prisma.
-const RESOURCE_KIND_ORDER = ['SALES_KIT', 'DEVELOPER_DOC', 'CONFLUENCE_LINK', 'JIRA_LINK', 'OTHER'] as const
+const RESOURCE_KIND_ORDER = [
+  'SALES_KIT',
+  'DEVELOPER_DOC',
+  'CONFLUENCE_LINK',
+  'JIRA_LINK',
+  'OTHER',
+] as const
 
 // Only PLANNED/IN_PROGRESS are worth surfacing to sales as "coming soon" —
 // SHIPPED should already have a matching Feature, and PAUSED isn't
@@ -46,7 +52,11 @@ export default async function SalesHubPage({
         }),
         q
           ? prisma.feature.findMany({
-              where: { productId: selectedProductId, userId, name: { contains: q, mode: 'insensitive' } },
+              where: {
+                productId: selectedProductId,
+                userId,
+                name: { contains: q, mode: 'insensitive' },
+              },
               orderBy: { name: 'asc' },
             })
           : Promise.resolve([]),
@@ -100,56 +110,30 @@ export default async function SalesHubPage({
           ) : (
             <>
               <DashboardWidgetCard
-                icon={Package}
-                title="Материалы"
-                description="Sales-kit в первую очередь, остальные ресурсы — ниже"
-              >
-                {resources.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Пока нет ресурсов у этого продукта.</p>
-                ) : (
-                  <ul className="divide-y">
-                    {resources.map((resource) => (
-                      <li
-                        key={resource.id}
-                        className="flex flex-wrap items-center gap-2 py-2.5 first:pt-0 last:pb-0"
-                      >
-                        <Badge variant="outline">{productResourceKindLabels[resource.kind]}</Badge>
-                        {resource.url ? (
-                          <a
-                            href={resource.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm hover:underline"
-                          >
-                            {resource.title}
-                          </a>
-                        ) : (
-                          <span className="text-sm">{resource.title}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </DashboardWidgetCard>
-
-              <DashboardWidgetCard
                 icon={Search}
                 title="Есть ли у нас фича X?"
                 description="Только качественный статус — без квартала/даты, чтобы не превращалось в обещание клиенту"
               >
-                <form method="get" className="flex flex-wrap gap-2">
+                <form method="get" className="flex flex-wrap gap-3">
                   <input type="hidden" name="productId" value={selectedProductId} />
-                  <input
-                    type="search"
-                    name="q"
-                    defaultValue={q}
-                    placeholder="Название фичи"
-                    aria-label="Название фичи"
-                    className="h-9 flex-1 min-w-[12rem] rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
+                  <div className="relative min-w-[16rem] flex-1">
+                    <Search
+                      size={16}
+                      strokeWidth={1.75}
+                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <input
+                      type="search"
+                      name="q"
+                      defaultValue={q}
+                      placeholder="Название фичи"
+                      aria-label="Название фичи"
+                      className="h-12 w-full rounded-md border border-input bg-background pl-10 pr-3 text-base placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                  </div>
                   <button
                     type="submit"
-                    className="h-9 rounded-md border border-input bg-background px-4 text-sm hover:border-primary/50"
+                    className="h-12 rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     Найти
                   </button>
@@ -180,9 +164,15 @@ export default async function SalesHubPage({
                           className="flex items-center gap-2 rounded-md border p-3 text-sm"
                         >
                           {item.status === 'IN_PROGRESS' ? (
-                            <CircleDot size={15} className="shrink-0 text-[hsl(var(--signal-blue-border))]" />
+                            <CircleDot
+                              size={15}
+                              className="shrink-0 text-[hsl(var(--signal-blue-border))]"
+                            />
                           ) : (
-                            <CircleDashed size={15} className="shrink-0 text-[hsl(var(--signal-slate-border))]" />
+                            <CircleDashed
+                              size={15}
+                              className="shrink-0 text-[hsl(var(--signal-slate-border))]"
+                            />
                           )}
                           <span>{item.title}</span>
                           <span className="text-muted-foreground">
@@ -197,6 +187,42 @@ export default async function SalesHubPage({
                       </div>
                     )}
                   </div>
+                )}
+              </DashboardWidgetCard>
+
+              <DashboardWidgetCard
+                icon={Package}
+                title="Материалы"
+                description="Sales-kit в первую очередь, остальные ресурсы — ниже"
+                tone="secondary"
+              >
+                {resources.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Пока нет ресурсов у этого продукта.
+                  </p>
+                ) : (
+                  <ul className="divide-y">
+                    {resources.map((resource) => (
+                      <li
+                        key={resource.id}
+                        className="flex flex-wrap items-center gap-2 py-2.5 first:pt-0 last:pb-0"
+                      >
+                        <Badge variant="outline">{productResourceKindLabels[resource.kind]}</Badge>
+                        {resource.url ? (
+                          <a
+                            href={resource.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm hover:underline"
+                          >
+                            {resource.title}
+                          </a>
+                        ) : (
+                          <span className="text-sm">{resource.title}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </DashboardWidgetCard>
             </>

@@ -1,7 +1,12 @@
 import Link from 'next/link'
 import { Building2, CalendarClock, ClipboardList, GitMerge } from 'lucide-react'
 import { getCurrentUserId } from '@/lib/current-user'
-import { stageLabels, roadmapStatusLabels, roadmapStatusOrder, roadmapStatusTone } from '@/lib/labels'
+import {
+  stageLabels,
+  roadmapStatusLabels,
+  roadmapStatusOrder,
+  roadmapStatusTone,
+} from '@/lib/labels'
 import {
   getCrossProductGaps,
   getEcosystemCorrelations,
@@ -10,9 +15,19 @@ import {
   getRoadmapStatusByProduct,
 } from '@/lib/cpo-metrics'
 import { Badge } from '@/components/ui/badge'
+import { signalToneColors } from '@/lib/signal-colors'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 
 export const dynamic = 'force-dynamic'
+
+function pluralizeProducts(count: number): string {
+  const mod100 = count % 100
+  const mod10 = count % 10
+  if (mod100 >= 11 && mod100 <= 14) return `${count} продуктов`
+  if (mod10 === 1) return `${count} продукт`
+  if (mod10 >= 2 && mod10 <= 4) return `${count} продукта`
+  return `${count} продуктов`
+}
 
 export default async function CpoViewPage() {
   const userId = getCurrentUserId()
@@ -37,8 +52,8 @@ export default async function CpoViewPage() {
       <div>
         <h1 className="text-2xl font-bold mb-2">CPO</h1>
         <p className="text-muted-foreground">
-          Все продукты как экосистема: обзор, пересечения, ключевые направления,
-          мультипродуктовый роадмап.
+          Все продукты как экосистема: обзор, пересечения, ключевые направления, мультипродуктовый
+          роадмап.
         </p>
       </div>
 
@@ -89,7 +104,10 @@ export default async function CpoViewPage() {
               <ul className="space-y-2">
                 {ecosystem.segmentGroups.map((group) => (
                   <li key={group.key} className="rounded-md border p-3 text-sm">
-                    <span className="font-medium">{group.key}</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{group.key}</span>
+                      <Badge variant="slate">{pluralizeProducts(group.products.length)}</Badge>
+                    </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {group.products.map((p) => p.name).join(', ')}
                     </p>
@@ -108,7 +126,10 @@ export default async function CpoViewPage() {
               <ul className="space-y-2">
                 {ecosystem.jtbdCategoryGroups.map((group) => (
                   <li key={group.key} className="rounded-md border p-3 text-sm">
-                    <span className="font-medium">{group.key}</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{group.key}</span>
+                      <Badge variant="slate">{pluralizeProducts(group.products.length)}</Badge>
+                    </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {group.products.map((p) => p.name).join(', ')}
                     </p>
@@ -126,12 +147,27 @@ export default async function CpoViewPage() {
         description="Пробелы и статус роадмапа по каждому продукту"
       >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {gapsStats.map((stat) => (
-            <div key={stat.label} className="rounded-md border p-3">
-              <p className="mb-1.5 truncate text-xs text-muted-foreground">{stat.label}</p>
-              <span className="font-mono text-2xl font-bold">{stat.count}</span>
-            </div>
-          ))}
+          {gapsStats.map((stat) => {
+            const hasIssue = stat.count > 0
+            const tone = signalToneColors.red
+            return (
+              <div
+                key={stat.label}
+                className="rounded-md border p-3"
+                style={
+                  hasIssue ? { borderColor: tone.border, backgroundColor: tone.bg } : undefined
+                }
+              >
+                <p className="mb-1.5 truncate text-xs text-muted-foreground">{stat.label}</p>
+                <span
+                  className="font-mono text-2xl font-bold"
+                  style={hasIssue ? { color: tone.text } : undefined}
+                >
+                  {stat.count}
+                </span>
+              </div>
+            )
+          })}
         </div>
 
         {gaps.byProduct.length > 0 && (
@@ -153,9 +189,17 @@ export default async function CpoViewPage() {
                       {row.product.name}
                     </td>
                     <td className="py-2 px-3 text-center tabular-nums">{row.unconfirmedJtbds}</td>
-                    <td className="py-2 px-3 text-center tabular-nums">{row.segmentsWithoutJtbd}</td>
+                    <td className="py-2 px-3 text-center tabular-nums">
+                      {row.segmentsWithoutJtbd}
+                    </td>
                     <td className="py-2 px-3 text-center tabular-nums">{row.stuckHypotheses}</td>
-                    <td className="py-2 px-3 text-center">{row.staleResearch ? 'да' : '—'}</td>
+                    <td className="py-2 px-3 text-center">
+                      {row.staleResearch ? (
+                        <Badge variant="red">да</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -174,7 +218,9 @@ export default async function CpoViewPage() {
                       {roadmapStatusLabels[status]}
                     </th>
                   ))}
-                  <th className="py-2 px-3 text-center whitespace-nowrap">Зависло в «Запланировано»</th>
+                  <th className="py-2 px-3 text-center whitespace-nowrap">
+                    Зависло в «Запланировано»
+                  </th>
                 </tr>
               </thead>
               <tbody>

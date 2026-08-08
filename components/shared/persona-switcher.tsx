@@ -63,7 +63,7 @@ export function PersonaSwitcher() {
           )}
         >
           <p className="px-3 py-1.5 text-xs text-muted-foreground">
-            Черновые 2.0-представления — не граница доступа
+            2.0-представления — не граница доступа
           </p>
           {personas.map((persona) => (
             <Link

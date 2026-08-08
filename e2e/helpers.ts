@@ -26,7 +26,7 @@ export async function createProductViaUI(page: Page, name: string): Promise<stri
 }
 
 /**
- * components/ui/select.tsx is a Radix Select (Фаза 2, plans/visual-redesign-plan.md)
+ * components/ui/select.tsx is a Radix Select (Фаза 2, plans/archive/visual-redesign-plan.md)
  * — a styled trigger button + a portal-rendered listbox, not a native
  * <select>, so Playwright's built-in `.selectOption()` doesn't apply. Click
  * the trigger (found by its label same as before), then click the matching

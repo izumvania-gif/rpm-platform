@@ -45,7 +45,7 @@ export const jtbdJobTypeTone: Record<JtbdJobType, SignalTone> = {
   MICRO_JOB: 'slate',
 }
 
-// Фаза 3 graph-node redesign (plans/visual-redesign-plan.md §4) — one icon per
+// Фаза 3 graph-node redesign (plans/archive/visual-redesign-plan.md §4) — one icon per
 // job type so the type reads at a glance without a text label: Mountain (big,
 // scale not fully solved), Target (core, what the product fully solves),
 // ArrowRightCircle (small, a step on the way), CircleDot (micro, a narrow

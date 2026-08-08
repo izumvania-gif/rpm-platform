@@ -32,7 +32,7 @@ import {
 export const dynamic = 'force-dynamic'
 
 // Compact navigation, not a data widget — always visible, not part of the
-// customizable grid (plans/dashboard-redesign-plan.md Фаза 4). Replaces the
+// customizable grid (plans/archive/dashboard-redesign-plan.md Фаза 4). Replaces the
 // 9 large count-only tiles that used to conflate "get to a section" with
 // "see a number"; the numbers that actually matter now live in the
 // actionable widgets above instead of here.

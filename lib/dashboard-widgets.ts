@@ -1,7 +1,7 @@
 import type { DashboardWidgetLayout } from '@/lib/client-storage'
 
 // Single source of truth for "which dashboard widgets exist" — the settings
-// panel and the grid both key off this (plans/dashboard-redesign-plan.md
+// panel and the grid both key off this (plans/archive/dashboard-redesign-plan.md
 // Фаза 2). The hero product block and the module rail above the widget grid
 // aren't widgets — they're always shown, not customizable (the rail replaced
 // the old research-group/positioning-group tile widgets in Фаза 4).

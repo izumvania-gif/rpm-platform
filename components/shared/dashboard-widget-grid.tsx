@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 
 // Renders the dashboard's customizable widgets in a saved (or default) order,
 // with a settings overlay to show/hide and reorder them
-// (plans/dashboard-redesign-plan.md Фаза 2). `widgets` is pre-rendered
+// (plans/archive/dashboard-redesign-plan.md Фаза 2). `widgets` is pre-rendered
 // server content keyed by widget id — a Server Component can pass finished
 // JSX into a Client Component as a prop, it just can't be constructed here.
 export function DashboardWidgetGrid({ widgets }: { widgets: Record<string, ReactNode> }) {

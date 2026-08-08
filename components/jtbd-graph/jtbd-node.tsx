@@ -13,7 +13,7 @@ export interface JtbdNodeData {
   [key: string]: unknown
 }
 
-// Фаза 3 (plans/visual-redesign-plan.md §4) — three clear zones instead of a
+// Фаза 3 (plans/archive/visual-redesign-plan.md §4) — three clear zones instead of a
 // wall of text: icon+type top-left, title as the main content, category as a
 // mono tag below a hairline. Color is an accent (left border + icon), not a
 // full fill, so it doesn't compete with the title for attention.

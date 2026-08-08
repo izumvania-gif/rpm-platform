@@ -54,7 +54,7 @@ export const hypothesisStatusTone: Record<HypothesisStatus, SignalTone> = {
   REJECTED: 'red',
 }
 
-// Фаза 3 kanban-card redesign (plans/visual-redesign-plan.md §4) — a status
+// Фаза 3 kanban-card redesign (plans/archive/visual-redesign-plan.md §4) — a status
 // icon on each card in addition to the column's color stripe.
 export const hypothesisStatusIcon: Record<HypothesisStatus, LucideIcon> = {
   DRAFT: FileEdit,

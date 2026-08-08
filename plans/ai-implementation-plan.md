@@ -5,7 +5,7 @@
 интеграции, привязанные к существующим моделям/экшенам/страницам, и
 предложить архитектуру подключения. Реализация начнётся отдельными фазами
 после того, как объём и порядок фаз согласован — по аналогии с
-`dashboard-redesign-plan.md` и `visual-redesign-plan.md`.
+`plans/archive/dashboard-redesign-plan.md` и `plans/archive/visual-redesign-plan.md`.
 
 Приоритизация точек интеграции в §2 и §4 опирается на
 `plans/pm-time-allocation-research.md` — отдельное кабинетное исследование

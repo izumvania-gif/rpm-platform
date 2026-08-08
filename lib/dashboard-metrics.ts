@@ -1,4 +1,4 @@
-// Shared metrics for the dashboard (plans/dashboard-redesign-plan.md, Фаза 1)
+// Shared metrics for the dashboard (plans/archive/dashboard-redesign-plan.md, Фаза 1)
 // and /reports/gaps — one source of truth instead of duplicating the same
 // Prisma queries in both places.
 import { HypothesisStatus } from '@prisma/client'

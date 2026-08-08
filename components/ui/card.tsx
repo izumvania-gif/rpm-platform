@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 // Two patterns instead of one flat `border + shadow-sm` default (Фаза 2,
-// plans/visual-redesign-plan.md §6): "content" cards (forms, detail-page
+// plans/archive/visual-redesign-plan.md §6): "content" cards (forms, detail-page
 // sections) sit flush against the page with just a hairline border — no
 // shadow, since they're not something you interact with as a unit. "tile"
 // cards (dashboard modules) are clickable-as-a-whole, so they get a resting

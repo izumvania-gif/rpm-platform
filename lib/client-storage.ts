@@ -51,7 +51,7 @@ export function getDefaultProductId(): string | null {
   }
 }
 
-// Dashboard widget show/hide + order (plans/dashboard-redesign-plan.md
+// Dashboard widget show/hide + order (plans/archive/dashboard-redesign-plan.md
 // Фаза 2) — per-browser like everything else in this file, not synced
 // across devices (no multi-user backend to persist it against yet).
 export interface DashboardWidgetLayout {

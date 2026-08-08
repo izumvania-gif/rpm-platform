@@ -5,7 +5,7 @@ import { X } from 'lucide-react'
 import { gotoShortcuts } from '@/lib/keyboard-shortcuts-data'
 import { isTypingTarget } from '@/components/shared/keyboard-shortcuts'
 
-// Фаза 3 (plans/visual-redesign-plan.md §4) — the "g then <letter>"/"n"
+// Фаза 3 (plans/archive/visual-redesign-plan.md §4) — the "g then <letter>"/"n"
 // shortcut layer (KeyboardShortcuts) already worked, but nothing in the UI
 // hinted it existed. This surfaces it: a small "G" chip next to search opens
 // a cheat-sheet overlay, also reachable with "?" from anywhere non-typing —

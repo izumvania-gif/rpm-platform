@@ -12,6 +12,7 @@ import { toggleJtbdPinned } from '@/lib/actions/jtbd'
 import { jtbdJobTypeLabels } from '@/lib/jtbd-job-types'
 import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
 import { moduleByHref } from '@/lib/module-meta'
+import { coveragePercent } from '@/lib/dashboard-metrics'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,7 @@ export default async function JtbdPage() {
   })
 
   const confirmedCount = jtbds.filter((j) => j.confirmed).length
-  const coverage = jtbds.length > 0 ? Math.round((confirmedCount / jtbds.length) * 100) : 0
+  const coverage = coveragePercent(confirmedCount, jtbds.length)
 
   const byCategory = new Map<string, typeof jtbds>()
   for (const jtbd of jtbds) {

@@ -1,12 +1,14 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  getProductsWithoutRecentResearch,
+  getSegmentsWithoutJtbd,
+  getStuckHypotheses,
+  getUnconfirmedJtbds,
+} from '@/lib/dashboard-metrics'
 
 export const dynamic = 'force-dynamic'
-
-const STALE_AFTER_MS = 90 * 24 * 60 * 60 * 1000 // 3 месяца — тот же порог, что isStale() в lib/utils.ts
-const DRAFT_STUCK_AFTER_MS = 14 * 24 * 60 * 60 * 1000 // гипотезы двигаются быстрее контента
 
 function GapSection({
   title,
@@ -40,37 +42,14 @@ function GapSection({
 
 export default async function GapsPage() {
   const userId = getCurrentUserId()
-  const now = Date.now()
-  const draftCutoff = new Date(now - DRAFT_STUCK_AFTER_MS)
 
-  const [unconfirmedJtbds, segmentsWithoutJtbd, stuckHypotheses, products] = await Promise.all([
-    prisma.jTBD.findMany({
-      where: { userId, confirmed: false },
-      include: { product: true },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.segment.findMany({
-      where: { userId, jtbds: { none: {} } },
-      include: { product: true },
-      orderBy: { name: 'asc' },
-    }),
-    prisma.hypothesis.findMany({
-      where: { userId, status: 'DRAFT', createdAt: { lt: draftCutoff } },
-      include: { product: true },
-      orderBy: { createdAt: 'asc' },
-    }),
-    prisma.product.findMany({
-      where: { userId },
-      include: { researches: { select: { date: true } } },
-      orderBy: { name: 'asc' },
-    }),
-  ])
-
-  const productsWithoutRecentResearch = products.filter((product) => {
-    if (product.researches.length === 0) return true
-    const latest = Math.max(...product.researches.map((r) => r.date.getTime()))
-    return now - latest > STALE_AFTER_MS
-  })
+  const [unconfirmedJtbds, segmentsWithoutJtbd, stuckHypotheses, productsWithoutRecentResearch] =
+    await Promise.all([
+      getUnconfirmedJtbds(userId),
+      getSegmentsWithoutJtbd(userId),
+      getStuckHypotheses(userId),
+      getProductsWithoutRecentResearch(userId),
+    ])
 
   return (
     <main className="container py-12 space-y-6">

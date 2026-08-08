@@ -75,13 +75,15 @@
 
 ## 4. Фазы
 
-### Фаза 1 — Слой данных
+### Фаза 1 — Слой данных ✅ сделано 8 августа 2026
 
 Никаких изменений интерфейса, только подготовка.
 
-1. `lib/dashboard-metrics.ts` — вынести все 4 gaps-запроса из `app/reports/gaps/page.tsx` в переиспользуемые функции; `/reports/gaps` переключается на них (без изменения поведения — только источник).
-2. Туда же — покрытие JTBD (сейчас инлайн в `app/jtbd/page.tsx`), количество гипотез по статусам, помесячная агрегация исследований (`date-fns`'s `startOfMonth`/`eachMonthOfInterval`).
-3. Тесты: `tests/integration/` покрывает новые функции напрямую (без UI) — тот же паттерн, что уже есть для `lib/actions/*.ts`.
+1. ✅ `lib/dashboard-metrics.ts` — вынесены все 4 gaps-запроса из `app/reports/gaps/page.tsx` (`getUnconfirmedJtbds`, `getSegmentsWithoutJtbd`, `getStuckHypotheses`, `getProductsWithoutRecentResearch` — последняя переиспользует `isStale()` из `lib/utils.ts` вместо ранее задублированной локальной константы порога); `/reports/gaps` переключён на них, поведение не изменилось.
+2. ✅ Туда же — `coveragePercent`/`getJtbdCoverage` (покрытие JTBD; чистая функция округления вынесена отдельно, чтобы `/jtbd` могла переиспользовать формулу без лишнего похода в БД поверх уже загруженного списка), `getHypothesisStatusCounts` (нулями заполняет статусы без гипотез), `getResearchCadence` (помесячная агрегация за N месяцев, `date-fns`'s `startOfMonth`/`eachMonthOfInterval`/`subMonths`, с опциональным `productId` и нулевым заполнением пустых месяцев — под будущий спарклайн Фазы 3).
+3. ✅ `tests/integration/dashboard-metrics.test.ts` — 9 тестов на все функции напрямую (без UI), тот же паттерн, что уже есть для `lib/actions/*.ts`.
+
+Проверено: `npm run lint && npm run typecheck` чисто, весь набор автотестов (21 unit + 96 integration + 24 E2E) зелёный, dev-БД не тронута.
 
 ### Фаза 2 — Инфраструктура кастомизации
 

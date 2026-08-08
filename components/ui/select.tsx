@@ -71,6 +71,16 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     function handleValueChange(nextRadixValue: string) {
       const next = nextRadixValue === EMPTY_VALUE_SENTINEL ? '' : nextRadixValue
       if (!isControlled) setUncontrolledValue(next)
+      // Write the hidden <select>'s DOM value imperatively, ahead of the
+      // onChange call below — React's `value={currentValue}` prop hasn't
+      // re-rendered yet at this point (state updates from a Radix callback
+      // aren't guaranteed to flush before the next synchronous line), so a
+      // caller doing `e.currentTarget.form?.requestSubmit()` synchronously
+      // inside its own onChange (the auto-submitting filter-form pattern,
+      // e.g. ReportsProductFilterForm) would otherwise submit the *previous*
+      // value — reproduced via a GET filter form picking between more than
+      // two options in a Фаза 6 E2E test.
+      if (hiddenSelectRef.current) hiddenSelectRef.current.value = next
       onChange?.({
         target: { value: next },
         currentTarget: hiddenSelectRef.current,

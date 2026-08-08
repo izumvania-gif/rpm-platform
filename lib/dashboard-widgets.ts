@@ -10,6 +10,10 @@ export interface DashboardWidgetDef {
 }
 
 export const dashboardWidgetDefs: DashboardWidgetDef[] = [
+  { id: 'gaps-summary', title: 'Пробелы' },
+  { id: 'jtbd-coverage', title: 'Покрытие JTBD' },
+  { id: 'hypothesis-funnel', title: 'Воронка гипотез' },
+  { id: 'research-cadence', title: 'Частота исследований' },
   { id: 'research-group', title: 'Исследование клиентов' },
   { id: 'positioning-group', title: 'Позиционирование' },
   { id: 'recently-viewed', title: 'Недавно просмотренное' },

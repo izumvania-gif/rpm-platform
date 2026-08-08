@@ -9,6 +9,10 @@ import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget
 import { SectionHeading } from '@/components/shared/section-heading'
 import { CountUp } from '@/components/shared/count-up'
 import { DashboardWidgetGrid } from '@/components/shared/dashboard-widget-grid'
+import { DashboardGapsSummary } from '@/components/shared/dashboard-gaps-summary'
+import { DashboardJtbdCoverage } from '@/components/shared/dashboard-jtbd-coverage'
+import { DashboardHypothesisFunnel } from '@/components/shared/dashboard-hypothesis-funnel'
+import { DashboardResearchCadence } from '@/components/shared/dashboard-research-cadence'
 import {
   productModule,
   researchGroupMeta,
@@ -20,6 +24,12 @@ import {
 } from '@/lib/module-meta'
 import { stageLabels } from '@/lib/labels'
 import { signalToneColors, type SignalTone } from '@/lib/signal-colors'
+import {
+  getGapsCounts,
+  getHypothesisStatusCounts,
+  getJtbdCoverage,
+  getResearchCadence,
+} from '@/lib/dashboard-metrics'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,6 +73,14 @@ interface FeedItem {
 
 export default async function Home() {
   const userId = getCurrentUserId()
+
+  const dashboardMetrics = Promise.all([
+    getGapsCounts(userId),
+    getJtbdCoverage(userId),
+    getHypothesisStatusCounts(userId),
+    getResearchCadence(userId),
+  ])
+
   const [
     productCount,
     researchCount,
@@ -130,6 +148,8 @@ export default async function Home() {
     prisma.rTB.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
     prisma.insight.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
   ])
+
+  const [gapsCounts, jtbdCoverage, hypothesisStatusCounts, researchCadence] = await dashboardMetrics
 
   const pinnedItems: FeedItem[] = [
     ...pinnedResearch.map((r) => ({
@@ -356,6 +376,10 @@ export default async function Home() {
 
       <DashboardWidgetGrid
         widgets={{
+          'gaps-summary': <DashboardGapsSummary counts={gapsCounts} />,
+          'jtbd-coverage': <DashboardJtbdCoverage coverage={jtbdCoverage} />,
+          'hypothesis-funnel': <DashboardHypothesisFunnel counts={hypothesisStatusCounts} />,
+          'research-cadence': <DashboardResearchCadence data={researchCadence} />,
           'research-group': (
             <div className="space-y-4">
               <SectionHeading

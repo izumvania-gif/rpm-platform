@@ -3,6 +3,7 @@ import { HypothesisStatus, ResearchType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
   coveragePercent,
+  getGapsCounts,
   getHypothesisStatusCounts,
   getJtbdCoverage,
   getProductsWithoutRecentResearch,
@@ -206,5 +207,42 @@ describe('getResearchCadence', () => {
     const cadence = await getResearchCadence(productA.userId, 1, productA.id)
     expect(cadence).toHaveLength(1)
     expect(cadence[0].count).toBe(1)
+  })
+
+  it('labels months in Russian, not the date-fns default English', async () => {
+    const product = await createTestProduct()
+    const cadence = await getResearchCadence(product.userId, 1)
+    // Cyrillic month abbreviation (e.g. "авг.") — would be "Aug" without the ru locale.
+    expect(cadence[0].label).toMatch(/^[а-яё]+\.?$/i)
+  })
+})
+
+describe('getGapsCounts', () => {
+  it('aggregates the 4 gap queries into counts', async () => {
+    const product = await createTestProduct()
+    await prisma.jTBD.create({
+      data: { title: 'Unconfirmed', category: 'C', confirmed: false, productId: product.id, userId: product.userId },
+    })
+    await prisma.segment.create({
+      data: { name: 'Uncovered', slug: 'uncovered', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+    })
+    await prisma.hypothesis.create({
+      data: {
+        statement: 'Stuck',
+        status: HypothesisStatus.DRAFT,
+        productId: product.id,
+        userId: product.userId,
+        createdAt: new Date(Date.now() - 20 * DAY_MS),
+      },
+    })
+    // No research at all for this product — counts as "without recent research" too.
+
+    const counts = await getGapsCounts(product.userId)
+    expect(counts).toEqual({
+      unconfirmedJtbds: 1,
+      segmentsWithoutJtbd: 1,
+      stuckHypotheses: 1,
+      productsWithoutRecentResearch: 1,
+    })
   })
 })

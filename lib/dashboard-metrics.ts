@@ -3,6 +3,7 @@
 // Prisma queries in both places.
 import { HypothesisStatus } from '@prisma/client'
 import { eachMonthOfInterval, format, startOfMonth, subMonths } from 'date-fns'
+import { ru } from 'date-fns/locale'
 import { prisma } from '@/lib/prisma'
 import { isStale } from '@/lib/utils'
 import { hypothesisStatusOrder } from '@/lib/labels'
@@ -119,6 +120,31 @@ export async function getResearchCadence(
 
   return eachMonthOfInterval({ start: rangeStart, end: new Date() }).map((monthStart) => {
     const key = format(monthStart, 'yyyy-MM')
-    return { monthStart, label: format(monthStart, 'LLL'), count: buckets.get(key) ?? 0 }
+    return { monthStart, label: format(monthStart, 'LLL', { locale: ru }), count: buckets.get(key) ?? 0 }
   })
+}
+
+export interface GapsCounts {
+  unconfirmedJtbds: number
+  segmentsWithoutJtbd: number
+  stuckHypotheses: number
+  productsWithoutRecentResearch: number
+}
+
+// Same 4 queries /reports/gaps lists in full — the dashboard's KPI row only
+// needs the counts.
+export async function getGapsCounts(userId: string): Promise<GapsCounts> {
+  const [unconfirmedJtbds, segmentsWithoutJtbd, stuckHypotheses, productsWithoutRecentResearch] =
+    await Promise.all([
+      getUnconfirmedJtbds(userId),
+      getSegmentsWithoutJtbd(userId),
+      getStuckHypotheses(userId),
+      getProductsWithoutRecentResearch(userId),
+    ])
+  return {
+    unconfirmedJtbds: unconfirmedJtbds.length,
+    segmentsWithoutJtbd: segmentsWithoutJtbd.length,
+    stuckHypotheses: stuckHypotheses.length,
+    productsWithoutRecentResearch: productsWithoutRecentResearch.length,
+  }
 }

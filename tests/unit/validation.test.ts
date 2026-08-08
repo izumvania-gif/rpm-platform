@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { optionalDate, optionalNumber, optionalString, toTagsArray } from '@/lib/validation'
+import { optionalDate, optionalNumber, optionalString, toLines, toTagsArray } from '@/lib/validation'
 
 describe('optionalString', () => {
   const schema = z.object({ value: optionalString() })
@@ -54,5 +54,27 @@ describe('toTagsArray', () => {
 
   it('splits, trims, and drops empty entries', () => {
     expect(toTagsArray('a, b ,, c')).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('toLines', () => {
+  it('returns an empty array for undefined', () => {
+    expect(toLines(undefined)).toEqual([])
+  })
+
+  it('returns an empty array for an empty string', () => {
+    expect(toLines('')).toEqual([])
+  })
+
+  it('splits on newlines, trims, drops empty lines, and preserves order', () => {
+    expect(toLines('Step one\n  Step two  \n\nStep three')).toEqual([
+      'Step one',
+      'Step two',
+      'Step three',
+    ])
+  })
+
+  it('does not split on commas, unlike toTagsArray', () => {
+    expect(toLines('One, two, three')).toEqual(['One, two, three'])
   })
 })

@@ -32,6 +32,7 @@ model User {
   insights         Insight[]
   people           Person[]
   roadmapItems     RoadmapItem[]
+  actionPlans      ActionPlan[]
 }
 
 // Продукты
@@ -68,6 +69,8 @@ model Product {
   rtbs             RTB[]
   insights         Insight[]
   roadmapItems     RoadmapItem[]
+  processSteps     ProcessStep[]
+  actionPlans      ActionPlan[]
 }
 
 enum Stage {
@@ -450,6 +453,8 @@ model Person {
 
   ownedProducts Product[]
   roadmapItems  RoadmapItem[]
+  processSteps  ProcessStep[]
+  actionPlans   ActionPlan[]
 }
 
 enum RoadmapStatus {
@@ -490,6 +495,74 @@ model RoadmapItem {
 
   jtbdId String?
   jtbd   JTBD? @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Процесс — один канонический флоу на продукт (plans/platform-views-plan.md
+// §1, §3), в отличие от JTBD-графа с раскладкой на представление: у
+// внутреннего процесса нет сегментов, вариативность не нужна, позиция
+// хранится прямо на ProcessStep.x/y без аналога JtbdGraphLayout. No userId
+// here — same convention as JtbdGraphLayout/JtbdSequenceEdge, scoped
+// through the productId → Product → userId chain instead.
+model ProcessStep {
+  id        String   @id @default(cuid())
+  title     String // напр. "PM планирует кампанию", "Обсуждение с маркетингом"
+  x         Float
+  y         Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  assignedPersonId String?
+  assignedPerson   Person? @relation(fields: [assignedPersonId], references: [id], onDelete: SetNull)
+
+  edgesFrom   ProcessEdge[] @relation("ProcessFrom")
+  edgesTo     ProcessEdge[] @relation("ProcessTo")
+  actionPlans ActionPlan[]
+}
+
+model ProcessEdge {
+  id         String      @id @default(cuid())
+  fromStepId String
+  fromStep   ProcessStep @relation("ProcessFrom", fields: [fromStepId], references: [id], onDelete: Cascade)
+  toStepId   String
+  toStep     ProcessStep @relation("ProcessTo", fields: [toStepId], references: [id], onDelete: Cascade)
+  label      String? // напр. "передаёт в", "согласовывает с"
+  createdAt  DateTime    @default(now())
+
+  @@unique([fromStepId, toStepId])
+}
+
+// Быстрые экшн-планы на предсказуемые "пожары" (§3) — обоснование в
+// plans/pm-time-allocation-research.md §1: 52% времени PM уходит на
+// незапланированное реагирование (ProductPlan, State of Product Management).
+// Не система инцидент-менеджмента — просто заранее написанный "что делать",
+// чтобы в моменте не тратить время на придумывание реакции с нуля.
+model ActionPlan {
+  id        String   @id @default(cuid())
+  scenario  String // "Клиент публично жалуется в соцсетях", "Конкурент резко снизил цену"
+  trigger   String?  @db.Text // как понять, что сценарий наступил
+  steps     String[] // упорядоченный список коротких шагов — Postgres-массив
+  // сохраняет порядок вставки, тот же паттерн, что и Competitor.features,
+  // но по одному шагу на строку (toLines), а не через запятую
+  tags      String[] // свободные категории ("PR-кризис", "срыв дедлайна") —
+  // тот же паттерн тегов, что у остальных моделей (toTagsArray)
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  ownerId String? // кто координирует реакцию по этому сценарию
+  owner   Person? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  processStepId String? // опционально — к какому шагу процесса относится
+  processStep   ProcessStep? @relation(fields: [processStepId], references: [id], onDelete: SetNull)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

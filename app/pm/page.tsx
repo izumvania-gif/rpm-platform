@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { CalendarClock, Info, Users2, Workflow } from 'lucide-react'
+import { CalendarClock, ClipboardList, Info, Users2, Workflow } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteRoadmapItem, toggleRoadmapItemPinned } from '@/lib/actions/roadmap'
+import { deleteActionPlan, toggleActionPlanPinned } from '@/lib/actions/action-plans'
 import { roadmapStatusIcon, roadmapStatusLabels, roadmapStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 import { getProductTeamWorkload } from '@/lib/team-workload'
@@ -11,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DeleteButton } from '@/components/shared/delete-button'
 import { PinButton } from '@/components/shared/pin-button'
 import { PmProductSwitcher } from '@/components/shared/pm-product-switcher'
+import { TagBadges } from '@/components/shared/tag-badges'
+import { ProcessGraph } from '@/components/process-graph/canvas'
 import type { RoadmapItem, Feature, JTBD, Person } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
@@ -37,32 +40,6 @@ function groupByQuarter(items: RoadmapItemWithRelations[]) {
   })
 }
 
-function ComingSoon({
-  icon: Icon,
-  title,
-  phase,
-  description,
-}: {
-  icon: typeof Users2
-  title: string
-  phase: string
-  description: string
-}) {
-  return (
-    <Card variant="content" className="border-l-4 border-muted-foreground/30">
-      <CardContent className="flex gap-3 py-5">
-        <Icon size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-muted-foreground" />
-        <div className="text-sm">
-          <p className="font-medium text-foreground">
-            {title} <span className="font-normal text-muted-foreground">— {phase}</span>
-          </p>
-          <p className="text-muted-foreground">{description}</p>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 export default async function PmPage({
   searchParams,
 }: {
@@ -76,17 +53,31 @@ export default async function PmPage({
       ? searchParams.productId
       : undefined
 
-  const [product, roadmapItems, teamWorkload] = selectedProductId
-    ? await Promise.all([
-        prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
-        prisma.roadmapItem.findMany({
-          where: { productId: selectedProductId, userId },
-          orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
-          include: { owner: true, feature: true, jtbd: true },
-        }),
-        getProductTeamWorkload(userId, selectedProductId),
-      ])
-    : [null, [], []]
+  const [product, roadmapItems, teamWorkload, actionPlans, processSteps, processEdges, people] =
+    selectedProductId
+      ? await Promise.all([
+          prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
+          prisma.roadmapItem.findMany({
+            where: { productId: selectedProductId, userId },
+            orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
+            include: { owner: true, feature: true, jtbd: true },
+          }),
+          getProductTeamWorkload(userId, selectedProductId),
+          prisma.actionPlan.findMany({
+            where: { productId: selectedProductId, userId },
+            orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
+            include: { owner: true, processStep: true },
+          }),
+          prisma.processStep.findMany({
+            where: { productId: selectedProductId },
+            include: { assignedPerson: true },
+          }),
+          prisma.processEdge.findMany({
+            where: { fromStep: { productId: selectedProductId } },
+          }),
+          prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+        ])
+      : [null, [], [], [], [], [], []]
 
   return (
     <main className="container py-12 space-y-8">
@@ -215,14 +206,14 @@ export default async function PmPage({
                     Команда
                   </CardTitle>
                   <CardDescription>
-                    Кто сколько сейчас ведёт по роадмапу этого продукта — шаги процесса
-                    добавятся в Фазе 3
+                    Кто сколько сейчас ведёт по роадмапу и шагам процесса этого продукта
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                   {teamWorkload.length === 0 ? (
                     <p className="p-5 text-sm text-muted-foreground">
-                      Пока никто не назначен ответственным по пунктам роадмапа этого продукта.
+                      Пока никто не назначен ответственным по пунктам роадмапа или шагам
+                      процесса этого продукта.
                     </p>
                   ) : (
                     <ul className="divide-y">
@@ -249,12 +240,101 @@ export default async function PmPage({
                 </CardContent>
               </Card>
 
-              <ComingSoon
-                icon={Workflow}
-                title="Диаграмма процесса и экшн-планы"
-                phase="Фаза 3"
-                description="Как устроен внутренний процесс продукта и что делать в предсказуемых нештатных ситуациях."
-              />
+              <Card variant="content">
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 border-l-4 border-primary">
+                  <div>
+                    <CardTitle className="flex items-center gap-1.5 text-base">
+                      <ClipboardList size={15} strokeWidth={1.75} className="text-primary" />
+                      Экшн-планы
+                    </CardTitle>
+                    <CardDescription>
+                      Заранее написанное «что делать» для предсказуемых нештатных
+                      ситуаций — открыть готовый план быстрее, чем придумывать реакцию
+                      в моменте (plans/pm-time-allocation-research.md §1)
+                    </CardDescription>
+                  </div>
+                  <Link
+                    href={`/pm/action-plans/new?productId=${product.id}`}
+                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                  >
+                    Добавить план
+                  </Link>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {actionPlans.length === 0 ? (
+                    <p className="p-5 text-sm text-muted-foreground">
+                      Пока нет экшн-планов для этого продукта.
+                    </p>
+                  ) : (
+                    <ul className="divide-y">
+                      {actionPlans.map((plan) => (
+                        <li key={plan.id} className="p-5">
+                          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+                            <div className="min-w-0">
+                              <p className="font-medium">{plan.scenario}</p>
+                              {plan.trigger && (
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                  Триггер: {plan.trigger}
+                                </p>
+                              )}
+                              {plan.steps.length > 0 && (
+                                <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-sm">
+                                  {plan.steps.map((step, i) => (
+                                    <li key={i}>{step}</li>
+                                  ))}
+                                </ol>
+                              )}
+                              <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                                {plan.owner && <span>Координирует: {plan.owner.name}</span>}
+                                {plan.processStep && <span>Шаг процесса: {plan.processStep.title}</span>}
+                              </p>
+                              {plan.tags.length > 0 && (
+                                <div className="mt-2">
+                                  <TagBadges tags={plan.tags} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <PinButton
+                                pinned={plan.pinned}
+                                action={toggleActionPlanPinned.bind(null, plan.id, !plan.pinned)}
+                              />
+                              <Link
+                                href={`/pm/action-plans/${plan.id}/edit`}
+                                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                              >
+                                Редактировать
+                              </Link>
+                              <DeleteButton action={deleteActionPlan.bind(null, plan.id)} />
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card variant="content">
+                <CardHeader className="border-l-4 border-primary">
+                  <CardTitle className="flex items-center gap-1.5 text-base">
+                    <Workflow size={15} strokeWidth={1.75} className="text-primary" />
+                    Процесс
+                  </CardTitle>
+                  <CardDescription>
+                    Как устроен внутренний процесс продукта — кто что делает и кому
+                    передаёт дальше
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ProcessGraph
+                    productId={product.id}
+                    steps={processSteps}
+                    processEdges={processEdges}
+                    people={people}
+                  />
+                </CardContent>
+              </Card>
             </>
           )}
         </>

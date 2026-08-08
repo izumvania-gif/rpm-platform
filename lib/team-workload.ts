@@ -1,10 +1,11 @@
 // Team dashboard / delegation matrix (plans/platform-views-plan.md §3, Фаза
 // 2) — default axes from the plan's open question: person × current
 // workload. "Team" here means "people connected to this product via at
-// least one RoadmapItem," not the whole org directory — matches the plan's
-// "отфильтрованных по продукту через их активные RoadmapItem" filter.
-// Workload only counts RoadmapItem for now; ProcessStep assignments join in
-// once Фаза 3 adds that model.
+// least one RoadmapItem or ProcessStep," not the whole org directory —
+// matches the plan's "отфильтрованных по продукту через их активные
+// RoadmapItem/ProcessStep" filter. ProcessStep (Фаза 3) has no lifecycle
+// status of its own — being assigned to a step is always "active" work,
+// unlike a roadmap item that can be SHIPPED/PAUSED.
 import { RoadmapStatus, type Person } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
@@ -14,26 +15,42 @@ export interface PersonWorkload {
   totalCount: number
 }
 
-const ACTIVE_STATUSES: RoadmapStatus[] = [RoadmapStatus.PLANNED, RoadmapStatus.IN_PROGRESS]
+const ACTIVE_ROADMAP_STATUSES: RoadmapStatus[] = [RoadmapStatus.PLANNED, RoadmapStatus.IN_PROGRESS]
 
 export async function getProductTeamWorkload(
   userId: string,
   productId: string
 ): Promise<PersonWorkload[]> {
-  const items = await prisma.roadmapItem.findMany({
-    where: { userId, productId, ownerId: { not: null } },
-    include: { owner: true },
-  })
+  const [roadmapItems, processSteps] = await Promise.all([
+    prisma.roadmapItem.findMany({
+      where: { userId, productId, ownerId: { not: null } },
+      include: { owner: true },
+    }),
+    prisma.processStep.findMany({
+      where: { productId, assignedPersonId: { not: null } },
+      include: { assignedPerson: true },
+    }),
+  ])
 
   const byPerson = new Map<string, PersonWorkload>()
-  for (const item of items) {
-    if (!item.owner) continue
-    if (!byPerson.has(item.owner.id)) {
-      byPerson.set(item.owner.id, { person: item.owner, activeCount: 0, totalCount: 0 })
+  function ensure(person: Person): PersonWorkload {
+    if (!byPerson.has(person.id)) {
+      byPerson.set(person.id, { person, activeCount: 0, totalCount: 0 })
     }
-    const entry = byPerson.get(item.owner.id)!
+    return byPerson.get(person.id)!
+  }
+
+  for (const item of roadmapItems) {
+    if (!item.owner) continue
+    const entry = ensure(item.owner)
     entry.totalCount += 1
-    if (ACTIVE_STATUSES.includes(item.status)) entry.activeCount += 1
+    if (ACTIVE_ROADMAP_STATUSES.includes(item.status)) entry.activeCount += 1
+  }
+  for (const step of processSteps) {
+    if (!step.assignedPerson) continue
+    const entry = ensure(step.assignedPerson)
+    entry.totalCount += 1
+    entry.activeCount += 1
   }
 
   return Array.from(byPerson.values()).sort((a, b) => b.activeCount - a.activeCount)

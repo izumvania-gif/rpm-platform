@@ -27,3 +27,15 @@ export function toTagsArray(tags?: string): string[] {
     .map((t) => t.trim())
     .filter(Boolean)
 }
+
+// Same idea as toTagsArray, but for ordered step-by-step text (ActionPlan.steps,
+// plans/platform-views-plan.md §1) — one instruction per line reads far more
+// naturally in a textarea than a comma-separated list would, and Postgres
+// arrays preserve insertion order so the sequence survives the round trip.
+export function toLines(text?: string): string[] {
+  if (!text) return []
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+}

@@ -71,8 +71,36 @@ describe('getProductTeamWorkload', () => {
     expect(result).toEqual([])
   })
 
-  it('returns an empty array for a product with no roadmap items', async () => {
+  it('returns an empty array for a product with no roadmap items or process steps', async () => {
     const product = await createTestProduct()
     expect(await getProductTeamWorkload(DEFAULT_USER_ID, product.id)).toEqual([])
+  })
+
+  it('counts assigned process steps as active work, combined with roadmap items (Фаза 3)', async () => {
+    const product = await createTestProduct()
+    const person = await prisma.person.create({
+      data: { name: 'Process Owner', skills: [], userId: DEFAULT_USER_ID },
+    })
+    await prisma.roadmapItem.create({
+      data: {
+        title: 'A',
+        status: 'SHIPPED',
+        visibility: 'INTERNAL',
+        productId: product.id,
+        ownerId: person.id,
+        userId: DEFAULT_USER_ID,
+      },
+    })
+    await prisma.processStep.createMany({
+      data: [
+        { title: 'Step 1', x: 0, y: 0, productId: product.id, assignedPersonId: person.id },
+        { title: 'Step 2', x: 100, y: 0, productId: product.id, assignedPersonId: person.id },
+      ],
+    })
+    // Unassigned step shouldn't contribute to anyone's workload.
+    await prisma.processStep.create({ data: { title: 'Step 3', x: 200, y: 0, productId: product.id } })
+
+    const result = await getProductTeamWorkload(DEFAULT_USER_ID, product.id)
+    expect(result).toEqual([{ person: expect.objectContaining({ id: person.id }), activeCount: 2, totalCount: 3 }])
   })
 })

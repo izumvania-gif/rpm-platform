@@ -8,6 +8,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { CountUp } from '@/components/shared/count-up'
+import { DashboardWidgetGrid } from '@/components/shared/dashboard-widget-grid'
 import {
   productModule,
   researchGroupMeta,
@@ -353,117 +354,127 @@ export default async function Home() {
         </Card>
       )}
 
-      <div className="mb-8 space-y-4">
-        <SectionHeading title={researchGroupMeta.title} description={researchGroupMeta.description} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {researchModules.map((module) => (
-            <ModuleTile
-              key={module.href}
-              module={module}
-              count={counts[module.href]}
-              tone={researchGroupMeta.tone}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-10 space-y-4">
-        <SectionHeading
-          title={positioningGroupMeta.title}
-          description={positioningGroupMeta.description}
-        />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {positioningModules.map((module) => (
-            <ModuleTile
-              key={module.href}
-              module={module}
-              count={counts[module.href]}
-              tone={positioningGroupMeta.tone}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-10">
-        <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-          Отчёты: матрица Сегменты × JTBD, пробелы →
-        </Link>
-      </div>
-
-      <RecentlyViewedWidget />
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {pinnedItems.length > 0 && (
-          <Card variant="content">
-            <CardHeader className="border-l-4 border-primary">
-              <CardTitle className="flex items-center gap-1.5 text-base">
-                <Star size={15} strokeWidth={1.75} className="text-primary" />
-                Закреплённое
-              </CardTitle>
-              <CardDescription>Важные записи, отмеченные звёздочкой</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ul className="divide-y">
-                {pinnedItems.map((item) => {
-                  const Icon = moduleByHref[item.moduleHref]?.icon
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className="flex items-center gap-2.5 px-6 py-2.5 text-sm hover:bg-accent/60"
-                      >
-                        {Icon && (
-                          <Icon size={14} strokeWidth={1.75} className="shrink-0 text-muted-foreground" />
-                        )}
-                        <span className="min-w-0 flex-1 truncate">{item.title}</span>
-                        <span className="shrink-0 text-xs text-muted-foreground">{item.kind}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-
-        {activityItems.length > 0 && (
-          <Card variant="content">
-            <CardHeader className="border-l-4 border-primary">
-              <CardTitle className="text-base">Последняя активность</CardTitle>
-              <CardDescription>Что изменилось в последних записях</CardDescription>
-            </CardHeader>
-            <CardContent className="max-h-[420px] overflow-y-auto p-0">
-              <ul className="divide-y">
-                {activityItems.map((item) => {
-                  const Icon = moduleByHref[item.moduleHref]?.icon
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className="flex items-center gap-2.5 px-6 py-2.5 text-sm hover:bg-accent/60"
-                      >
-                        {Icon && (
-                          <Icon size={14} strokeWidth={1.75} className="shrink-0 text-muted-foreground" />
-                        )}
-                        <span className="min-w-0 flex-1 truncate">{item.title}</span>
-                        <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                          {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
-                            ? 'создано'
-                            : 'изменено'}{' '}
-                          {item.updatedAt.toLocaleDateString('ru-RU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                          })}
-                        </span>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      <DashboardWidgetGrid
+        widgets={{
+          'research-group': (
+            <div className="space-y-4">
+              <SectionHeading
+                title={researchGroupMeta.title}
+                description={researchGroupMeta.description}
+              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                {researchModules.map((module) => (
+                  <ModuleTile
+                    key={module.href}
+                    module={module}
+                    count={counts[module.href]}
+                    tone={researchGroupMeta.tone}
+                  />
+                ))}
+              </div>
+            </div>
+          ),
+          'positioning-group': (
+            <div className="space-y-4">
+              <SectionHeading
+                title={positioningGroupMeta.title}
+                description={positioningGroupMeta.description}
+              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {positioningModules.map((module) => (
+                  <ModuleTile
+                    key={module.href}
+                    module={module}
+                    count={counts[module.href]}
+                    tone={positioningGroupMeta.tone}
+                  />
+                ))}
+              </div>
+              <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                Отчёты: матрица Сегменты × JTBD, пробелы →
+              </Link>
+            </div>
+          ),
+          'recently-viewed': <RecentlyViewedWidget />,
+          pinned: pinnedItems.length > 0 && (
+            <Card variant="content">
+              <CardHeader className="border-l-4 border-primary">
+                <CardTitle className="flex items-center gap-1.5 text-base">
+                  <Star size={15} strokeWidth={1.75} className="text-primary" />
+                  Закреплённое
+                </CardTitle>
+                <CardDescription>Важные записи, отмеченные звёздочкой</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ul className="divide-y">
+                  {pinnedItems.map((item) => {
+                    const Icon = moduleByHref[item.moduleHref]?.icon
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="flex items-center gap-2.5 px-6 py-2.5 text-sm hover:bg-accent/60"
+                        >
+                          {Icon && (
+                            <Icon
+                              size={14}
+                              strokeWidth={1.75}
+                              className="shrink-0 text-muted-foreground"
+                            />
+                          )}
+                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">{item.kind}</span>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          ),
+          activity: activityItems.length > 0 && (
+            <Card variant="content">
+              <CardHeader className="border-l-4 border-primary">
+                <CardTitle className="text-base">Последняя активность</CardTitle>
+                <CardDescription>Что изменилось в последних записях</CardDescription>
+              </CardHeader>
+              <CardContent className="max-h-[420px] overflow-y-auto p-0">
+                <ul className="divide-y">
+                  {activityItems.map((item) => {
+                    const Icon = moduleByHref[item.moduleHref]?.icon
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="flex items-center gap-2.5 px-6 py-2.5 text-sm hover:bg-accent/60"
+                        >
+                          {Icon && (
+                            <Icon
+                              size={14}
+                              strokeWidth={1.75}
+                              className="shrink-0 text-muted-foreground"
+                            />
+                          )}
+                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                          <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                            {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
+                              ? 'создано'
+                              : 'изменено'}{' '}
+                            {item.updatedAt.toLocaleDateString('ru-RU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                            })}
+                          </span>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          ),
+        }}
+      />
     </main>
   )
 }

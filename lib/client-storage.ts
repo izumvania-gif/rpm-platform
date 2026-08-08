@@ -2,6 +2,7 @@
 
 const RECENTLY_VIEWED_KEY = 'rpm:recently-viewed'
 const DEFAULT_PRODUCT_KEY = 'rpm:default-product-id'
+const DASHBOARD_LAYOUT_KEY = 'rpm:dashboard-layout'
 const RECENTLY_VIEWED_LIMIT = 8
 
 export interface RecentlyViewedEntry {
@@ -47,5 +48,32 @@ export function getDefaultProductId(): string | null {
     return window.localStorage.getItem(DEFAULT_PRODUCT_KEY)
   } catch {
     return null
+  }
+}
+
+// Dashboard widget show/hide + order (plans/dashboard-redesign-plan.md
+// Фаза 2) — per-browser like everything else in this file, not synced
+// across devices (no multi-user backend to persist it against yet).
+export interface DashboardWidgetLayout {
+  id: string
+  visible: boolean
+}
+
+export function getDashboardLayout(): DashboardWidgetLayout[] | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(DASHBOARD_LAYOUT_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export function setDashboardLayout(layout: DashboardWidgetLayout[]) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(layout))
+  } catch {
+    // ignore
   }
 }

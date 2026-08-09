@@ -54,3 +54,9 @@ export async function createTestProduct(overrides: { name?: string; slug?: strin
     },
   })
 }
+
+export async function createTestProcess(productId: string, overrides: { title?: string } = {}) {
+  return prisma.process.create({
+    data: { title: overrides.title ?? 'Test Process', productId },
+  })
+}

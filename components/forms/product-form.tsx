@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Stage, type Person } from '@prisma/client'
+import { Stage, type Department, type Person } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,6 +17,7 @@ export interface ProductFormValues {
   stage?: Stage
   ownerId?: string | null
   publicSummary?: string | null
+  departmentId?: string | null
 }
 
 export function ProductForm({
@@ -26,6 +27,7 @@ export function ProductForm({
   submitLabel,
   showOnboardingOption,
   people = [],
+  departments = [],
 }: {
   action: (formData: FormData) => void
   defaultValues?: ProductFormValues
@@ -33,6 +35,7 @@ export function ProductForm({
   submitLabel: string
   showOnboardingOption?: boolean
   people?: Person[]
+  departments?: Department[]
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [slug, setSlug] = useState(defaultValues?.slug ?? '')
@@ -97,8 +100,25 @@ export function ProductForm({
             ))}
           </Select>
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="departmentId">Департамент</Label>
+          <Select
+            id="departmentId"
+            name="departmentId"
+            defaultValue={defaultValues?.departmentId ?? ''}
+          >
+            <option value="">Без департамента</option>
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.name}
+              </option>
+            ))}
+          </Select>
+        </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="publicSummary">Публичное описание (для открытого дашборда компании)</Label>
+          <Label htmlFor="publicSummary">
+            Публичное описание (для открытого дашборда компании)
+          </Label>
           <Textarea
             id="publicSummary"
             name="publicSummary"

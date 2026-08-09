@@ -68,7 +68,7 @@ function ProductSection({
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const userId = getCurrentUserId()
-  const [product, people] = await Promise.all([
+  const [product, people, departments] = await Promise.all([
     prisma.product.findFirst({
       where: { id: params.id, userId },
       include: {
@@ -85,6 +85,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       },
     }),
     prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+    prisma.department.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
   ])
 
   if (!product) notFound()
@@ -94,6 +95,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
     ...people.map((p) => ({ value: p.id, label: p.name })),
   ]
   const ownerLabels = Object.fromEntries(people.map((p) => [p.id, p.name]))
+
+  const departmentOptions = [
+    { value: '', label: 'Без департамента' },
+    ...departments.map((d) => ({ value: d.id, label: d.name })),
+  ]
+  const departmentLabels = Object.fromEntries(departments.map((d) => [d.id, d.name]))
 
   const deleteProductWithId = deleteProduct.bind(null, product.id)
 
@@ -178,6 +185,17 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               action={updateProductField.bind(null, product.id, 'ownerId')}
             />
           </span>
+          <span className="text-sm text-muted-foreground">
+            Департамент:{' '}
+            <InlineEditableField
+              value={product.departmentId ?? ''}
+              type="select"
+              options={departmentOptions}
+              labels={departmentLabels}
+              placeholder="+ назначить"
+              action={updateProductField.bind(null, product.id, 'departmentId')}
+            />
+          </span>
         </div>
         <p className="text-muted-foreground max-w-2xl">
           <InlineEditableField
@@ -187,7 +205,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           />
         </p>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          <span className="text-xs uppercase tracking-wide">Публично (для дашборда компании): </span>
+          <span className="text-xs uppercase tracking-wide">
+            Публично (для дашборда компании):{' '}
+          </span>
           <InlineEditableField
             value={product.publicSummary ?? ''}
             type="textarea"
@@ -198,7 +218,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       </div>
 
       <div className="space-y-5">
-        <SectionHeading title={researchGroupMeta.title} description={researchGroupMeta.description} />
+        <SectionHeading
+          title={researchGroupMeta.title}
+          description={researchGroupMeta.description}
+        />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <ProductSection
             title="Исследования"

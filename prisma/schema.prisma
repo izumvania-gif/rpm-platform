@@ -33,6 +33,7 @@ model User {
   people           Person[]
   roadmapItems     RoadmapItem[]
   actionPlans      ActionPlan[]
+  departments      Department[]
 }
 
 // Продукты
@@ -55,6 +56,14 @@ model Product {
   owner         Person?  @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   publicSummary String?  @db.Text
 
+  // CPO strategic grouping (plans/platform-views-plan.md §11) — a separate
+  // axis from userId/ownerId, same "cross-product organizational unit"
+  // pattern as Person: a dedicated Department entity (not a free-text field
+  // like RoadmapItem.trackGroup) so the CPO gets a rename-safe, typo-proof
+  // list to group products/Gantt lanes by.
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -69,8 +78,25 @@ model Product {
   rtbs             RTB[]
   insights         Insight[]
   roadmapItems     RoadmapItem[]
-  processSteps     ProcessStep[]
+  processes        Process[]
   actionPlans      ActionPlan[]
+}
+
+// CPO strategic departments (plans/platform-views-plan.md §11) — cross-product
+// like Person, scoped to userId only rather than productId. A product picks
+// at most one department; a department groups any number of products.
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  color       String   @default("#3B82F6")
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  products Product[]
 }
 
 enum Stage {
@@ -516,12 +542,28 @@ model RoadmapItem {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Процесс — один канонический флоу на продукт (plans/platform-views-plan.md
-// §1, §3), в отличие от JTBD-графа с раскладкой на представление: у
-// внутреннего процесса нет сегментов, вариативность не нужна, позиция
-// хранится прямо на ProcessStep.x/y без аналога JtbdGraphLayout. No userId
-// here — same convention as JtbdGraphLayout/JtbdSequenceEdge, scoped
+// A product can describe more than one process (plans/platform-views-plan.md
+// §1, §3, extended in §11) — e.g. "Запуск фичи" and "Обработка инцидента" are
+// separate flows with separate step/edge graphs, not one shared canvas.
+// /pm shows a list of a product's processes first, then a single process's
+// canvas on click — mirrors how the JTBD graph is scoped per view, just one
+// level up (per process instead of per segment). Unlike the JTBD graph
+// though, a process has no further per-view layout: position lives directly
+// on ProcessStep.x/y with no JtbdGraphLayout equivalent. No userId on either
+// model — same convention as JtbdGraphLayout/JtbdSequenceEdge, scoped
 // through the productId → Product → userId chain instead.
+model Process {
+  id        String   @id @default(cuid())
+  title     String // напр. "Запуск маркетинговой кампании", "Обработка инцидента"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  steps ProcessStep[]
+}
+
 model ProcessStep {
   id        String   @id @default(cuid())
   title     String // напр. "PM планирует кампанию", "Обсуждение с маркетингом"
@@ -530,8 +572,8 @@ model ProcessStep {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  processId String
+  process   Process @relation(fields: [processId], references: [id], onDelete: Cascade)
 
   assignedPersonId String?
   assignedPerson   Person? @relation(fields: [assignedPersonId], references: [id], onDelete: SetNull)

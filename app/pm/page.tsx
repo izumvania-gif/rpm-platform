@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { CalendarClock, ClipboardList, Users2, Workflow } from 'lucide-react'
+import { ArrowLeft, CalendarClock, ClipboardList, Users2, Workflow } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { deleteRoadmapItem, toggleRoadmapItemPinned } from '@/lib/actions/roadmap'
 import { deleteActionPlan, toggleActionPlanPinned } from '@/lib/actions/action-plans'
+import { deleteProcess } from '@/lib/actions/processes'
 import { roadmapStatusIcon, roadmapStatusLabels, roadmapStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 import { getProductTeamWorkload } from '@/lib/team-workload'
@@ -20,13 +21,16 @@ import { RoadmapViewTabs } from '@/components/shared/roadmap-view-tabs'
 import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
 import { groupByQuarter } from '@/lib/roadmap'
 import { buildGanttLayout } from '@/lib/roadmap-gantt'
+import { pluralizeRu } from '@/lib/utils'
+
+const STEP_FORMS: [string, string, string] = ['шаг', 'шага', 'шагов']
 
 export const dynamic = 'force-dynamic'
 
 export default async function PmPage({
   searchParams,
 }: {
-  searchParams: { productId?: string; view?: string }
+  searchParams: { productId?: string; view?: string; processId?: string }
 }) {
   const roadmapView = searchParams.view === 'gantt' ? 'gantt' : 'list'
   const userId = getCurrentUserId()
@@ -37,31 +41,45 @@ export default async function PmPage({
       ? searchParams.productId
       : undefined
 
-  const [product, roadmapItems, teamWorkload, actionPlans, processSteps, processEdges, people] =
-    selectedProductId
-      ? await Promise.all([
-          prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
-          prisma.roadmapItem.findMany({
-            where: { productId: selectedProductId, userId },
-            orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
-            include: { owner: true, feature: true, jtbd: true },
-          }),
-          getProductTeamWorkload(userId, selectedProductId),
-          prisma.actionPlan.findMany({
-            where: { productId: selectedProductId, userId },
-            orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
-            include: { owner: true, processStep: true },
-          }),
-          prisma.processStep.findMany({
-            where: { productId: selectedProductId },
-            include: { assignedPerson: true },
-          }),
-          prisma.processEdge.findMany({
-            where: { fromStep: { productId: selectedProductId } },
-          }),
-          prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
-        ])
-      : [null, [], [], [], [], [], []]
+  const [product, roadmapItems, teamWorkload, actionPlans, processes, people] = selectedProductId
+    ? await Promise.all([
+        prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
+        prisma.roadmapItem.findMany({
+          where: { productId: selectedProductId, userId },
+          orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
+          include: { owner: true, feature: true, jtbd: true },
+        }),
+        getProductTeamWorkload(userId, selectedProductId),
+        prisma.actionPlan.findMany({
+          where: { productId: selectedProductId, userId },
+          orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
+          include: { owner: true, processStep: true },
+        }),
+        prisma.process.findMany({
+          where: { productId: selectedProductId },
+          orderBy: { createdAt: 'asc' },
+          include: { _count: { select: { steps: true } } },
+        }),
+        prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+      ])
+    : [null, [], [], [], [], []]
+
+  const selectedProcess =
+    searchParams.processId && processes.some((p) => p.id === searchParams.processId)
+      ? processes.find((p) => p.id === searchParams.processId)!
+      : undefined
+
+  const [processSteps, processEdges] = selectedProcess
+    ? await Promise.all([
+        prisma.processStep.findMany({
+          where: { processId: selectedProcess.id },
+          include: { assignedPerson: true },
+        }),
+        prisma.processEdge.findMany({
+          where: { fromStep: { processId: selectedProcess.id } },
+        }),
+      ])
+    : [[], []]
 
   return (
     <main className="container py-12 space-y-8">
@@ -300,16 +318,72 @@ export default async function PmPage({
 
               <DashboardWidgetCard
                 icon={Workflow}
-                title="Процесс"
-                description="Как устроен внутренний процесс продукта — кто что делает и кому передаёт дальше"
+                title={selectedProcess ? `Процесс: ${selectedProcess.title}` : 'Процесс'}
+                description={
+                  selectedProcess
+                    ? 'Кто что делает и кому передаёт дальше'
+                    : 'Продукт может описывать несколько процессов — выберите, чтобы увидеть схему'
+                }
                 tone="secondary"
+                action={
+                  selectedProcess ? (
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Link
+                        href={`/pm?productId=${product.id}`}
+                        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                      >
+                        <ArrowLeft size={14} className="mr-1" />
+                        Все процессы
+                      </Link>
+                      <Link
+                        href={`/pm/processes/${selectedProcess.id}/edit`}
+                        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                      >
+                        Переименовать
+                      </Link>
+                      <DeleteButton
+                        action={deleteProcess.bind(null, selectedProcess.id)}
+                        confirmMessage="Удалить процесс вместе со всеми его шагами и связями?"
+                      />
+                    </div>
+                  ) : (
+                    <Link
+                      href={`/pm/processes/new?productId=${product.id}`}
+                      className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                    >
+                      Добавить процесс
+                    </Link>
+                  )
+                }
               >
-                <ProcessGraph
-                  productId={product.id}
-                  steps={processSteps}
-                  processEdges={processEdges}
-                  people={people}
-                />
+                {selectedProcess ? (
+                  <ProcessGraph
+                    processId={selectedProcess.id}
+                    steps={processSteps}
+                    processEdges={processEdges}
+                    people={people}
+                  />
+                ) : processes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    У этого продукта пока нет описанных процессов.
+                  </p>
+                ) : (
+                  <ul className="divide-y rounded-md border">
+                    {processes.map((process) => (
+                      <li key={process.id}>
+                        <Link
+                          href={`/pm?productId=${product.id}&processId=${process.id}`}
+                          className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm hover:bg-accent/50"
+                        >
+                          <span className="min-w-0 flex-1 font-medium">{process.title}</span>
+                          <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                            {pluralizeRu(process._count.steps, STEP_FORMS)}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </DashboardWidgetCard>
             </>
           )}

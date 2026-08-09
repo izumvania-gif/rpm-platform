@@ -20,11 +20,12 @@ const links: NavLink[] = [
   {
     href: '/products',
     label: 'Продукты',
-    match: ['/products', '/features', '/competitors', '/people'],
+    match: ['/products', '/features', '/competitors', '/people', '/departments'],
     subLinks: [
       { href: '/features', label: 'Фичи' },
       { href: '/competitors', label: 'Конкуренты' },
       { href: '/people', label: 'Люди' },
+      { href: '/departments', label: 'Департаменты' },
     ],
   },
   { href: '/segments', label: 'Сегменты', match: ['/segments'] },

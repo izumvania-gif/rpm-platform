@@ -25,6 +25,8 @@ const productSchema = z.object({
   // won't unset it. Pre-existing limitation of this pattern, not new here.
   ownerId: optionalString(),
   publicSummary: optionalString(),
+  // §10: same optional-relation pattern as ownerId above.
+  departmentId: optionalString(),
 })
 
 function parseProductForm(formData: FormData) {
@@ -35,6 +37,7 @@ function parseProductForm(formData: FormData) {
     stage: formData.get('stage'),
     ownerId: formData.get('ownerId'),
     publicSummary: formData.get('publicSummary'),
+    departmentId: formData.get('departmentId'),
   })
 }
 
@@ -92,7 +95,7 @@ export async function deleteProduct(id: string) {
 
 export async function updateProductField(
   id: string,
-  field: 'name' | 'description' | 'stage' | 'ownerId' | 'publicSummary',
+  field: 'name' | 'description' | 'stage' | 'ownerId' | 'publicSummary' | 'departmentId',
   value: string
 ): Promise<InlineFieldResult> {
   switch (field) {
@@ -121,6 +124,9 @@ export async function updateProductField(
         where: { id },
         data: { publicSummary: value.trim() || null },
       })
+      break
+    case 'departmentId':
+      await prisma.product.update({ where: { id }, data: { departmentId: value.trim() || null } })
       break
   }
   revalidatePath('/products')

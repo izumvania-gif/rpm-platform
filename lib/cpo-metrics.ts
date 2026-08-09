@@ -7,6 +7,7 @@ import { RoadmapStatus, type Stage } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { roadmapStatusOrder } from '@/lib/labels'
 import { groupByQuarter } from '@/lib/roadmap'
+import { buildGanttLayout, type GanttLayout, type GanttSourceItem } from '@/lib/roadmap-gantt'
 import {
   getGapsCounts,
   getHypothesisStatusCounts,
@@ -24,6 +25,7 @@ export interface ProductOverviewRow {
   id: string
   name: string
   stage: Stage
+  department: { id: string; name: string; color: string } | null
   jtbdCoverage: JtbdCoverage
   hypothesisCounts: HypothesisStatusCounts
 }
@@ -32,7 +34,12 @@ export async function getProductsOverview(userId: string): Promise<ProductOvervi
   const products = await prisma.product.findMany({
     where: { userId },
     orderBy: { name: 'asc' },
-    select: { id: true, name: true, stage: true },
+    select: {
+      id: true,
+      name: true,
+      stage: true,
+      department: { select: { id: true, name: true, color: true } },
+    },
   })
   return Promise.all(
     products.map(async (product) => {
@@ -43,6 +50,33 @@ export async function getProductsOverview(userId: string): Promise<ProductOvervi
       return { ...product, jtbdCoverage, hypothesisCounts }
     })
   )
+}
+
+// Same fallback-sorts-last convention as lib/roadmap-gantt.ts's own
+// NO_TRACK_GROUP_LABEL — a product without a department still shows up,
+// just grouped last instead of silently dropped.
+export const NO_DEPARTMENT_LABEL = 'Без департамента'
+
+export interface ProductGroup {
+  department: { id: string; name: string; color: string } | null
+  products: ProductOverviewRow[]
+}
+
+// §10: groups the products overview by department for display — purely a
+// view concern (the rows themselves are unchanged), same "group in the
+// page, compute in the lib" split as groupByQuarter.
+export function groupByDepartment(products: ProductOverviewRow[]): ProductGroup[] {
+  const groups = new Map<string, ProductGroup>()
+  for (const product of products) {
+    const key = product.department?.id ?? ''
+    if (!groups.has(key)) groups.set(key, { department: product.department, products: [] })
+    groups.get(key)!.products.push(product)
+  }
+  return Array.from(groups.values()).sort((a, b) => {
+    if (!a.department) return 1
+    if (!b.department) return -1
+    return a.department.name.localeCompare(b.department.name, 'ru')
+  })
 }
 
 export interface EcosystemGroup {
@@ -194,9 +228,10 @@ export async function getRoadmapStatusByProduct(userId: string): Promise<Product
   }
 
   return products.map((product) => {
-    const counts = Object.fromEntries(
-      roadmapStatusOrder.map((status) => [status, 0])
-    ) as Record<RoadmapStatus, number>
+    const counts = Object.fromEntries(roadmapStatusOrder.map((status) => [status, 0])) as Record<
+      RoadmapStatus,
+      number
+    >
     for (const row of grouped) {
       if (row.productId === product.id) counts[row.status] = row._count
     }
@@ -211,4 +246,34 @@ export async function getMultiProductRoadmap(userId: string) {
     include: { product: { select: { id: true, name: true } } },
   })
   return groupByQuarter(items)
+}
+
+// §10: the same Gantt renderer as /pm's single-product view
+// (lib/roadmap-gantt.ts's buildGanttLayout), just fed a different grouping —
+// block = department, track = product, instead of a product's own
+// trackGroup/track lanes. Reusing buildGanttLayout as-is (rather than a
+// parallel implementation) because it already groups/sorts/pads a date range
+// from any trackGroup+track pair; it doesn't know or care that the "track"
+// here is a whole product rather than a lane inside one.
+export async function getMultiProductGanttLayout(userId: string): Promise<GanttLayout> {
+  const items = await prisma.roadmapItem.findMany({
+    where: { userId },
+    include: { product: { select: { name: true, department: { select: { name: true } } } } },
+  })
+
+  const sourceItems: GanttSourceItem[] = items.map((item) => ({
+    id: item.id,
+    // A milestone's vertical line spans every track at once, so unlike a
+    // bar (already disambiguated by its track/product row) its label needs
+    // the product name too, or it reads as ambiguous across products.
+    title: item.isMilestone ? `${item.title} (${item.product.name})` : item.title,
+    status: item.status,
+    trackGroup: item.product.department?.name ?? null,
+    track: item.product.name,
+    startDate: item.startDate,
+    endDate: item.endDate,
+    isMilestone: item.isMilestone,
+  }))
+
+  return buildGanttLayout(sourceItems)
 }

@@ -6,7 +6,13 @@ import {
   updateActionPlan,
 } from '@/lib/actions/action-plans'
 import { prisma } from '@/lib/prisma'
-import { buildFormData, captureRedirect, createTestProduct, ensureTestUser } from '../helpers'
+import {
+  buildFormData,
+  captureRedirect,
+  createTestProcess,
+  createTestProduct,
+  ensureTestUser,
+} from '../helpers'
 import { DEFAULT_USER_ID } from '@/lib/current-user'
 
 beforeEach(ensureTestUser)
@@ -17,8 +23,9 @@ describe('createActionPlan', () => {
     const owner = await prisma.person.create({
       data: { name: 'Coordinator', skills: [], userId: DEFAULT_USER_ID },
     })
+    const process = await createTestProcess(product.id)
     const step = await prisma.processStep.create({
-      data: { title: 'Обсуждение с маркетингом', x: 0, y: 0, productId: product.id },
+      data: { title: 'Обсуждение с маркетингом', x: 0, y: 0, processId: process.id },
     })
 
     const formData = buildFormData({

@@ -18,7 +18,7 @@ export default async function NewActionPlanPage({
   const [product, people, processSteps] = await Promise.all([
     prisma.product.findFirst({ where: { id: productId, userId } }),
     prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
-    prisma.processStep.findMany({ where: { productId }, orderBy: { title: 'asc' } }),
+    prisma.processStep.findMany({ where: { process: { productId } }, orderBy: { title: 'asc' } }),
   ])
 
   if (!product) notFound()

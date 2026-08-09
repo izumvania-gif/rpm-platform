@@ -8,19 +8,20 @@ type ActionResult = { ok: true } | { ok: false; error: string }
 
 // Process canvas actions (plans/platform-views-plan.md §3) — mirrors the
 // shape of lib/actions/jtbd-graph.ts (quick-create, save positions, create/
-// delete edge) but simpler: one canonical layout per product (position
+// delete edge) but simpler: one canonical layout per process (position
 // lives directly on ProcessStep.x/y, no per-view JtbdGraphLayout equivalent)
 // and no hierarchy/reparent-on-drag logic — a process step doesn't nest
-// inside another the way a JTBD can.
+// inside another the way a JTBD can. §10: steps belong to a Process, not
+// directly to a Product — a product can describe several separate processes.
 export async function createProcessStepQuick(
-  productId: string,
+  processId: string,
   title: string,
   x: number,
   y: number,
   assignedPersonId?: string
 ): Promise<{ ok: true; step: ProcessStep } | { ok: false; error: string }> {
   const trimmedTitle = title.trim()
-  if (!productId || !trimmedTitle) {
+  if (!processId || !trimmedTitle) {
     return { ok: false, error: 'Укажите название шага' }
   }
 
@@ -29,7 +30,7 @@ export async function createProcessStepQuick(
       title: trimmedTitle,
       x,
       y,
-      productId,
+      processId,
       assignedPersonId: assignedPersonId || undefined,
     },
   })

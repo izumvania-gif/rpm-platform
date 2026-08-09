@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from '@/lib/prisma'
 import { getProductTeamWorkload } from '@/lib/team-workload'
-import { createTestProduct, ensureTestUser } from './helpers'
+import { createTestProcess, createTestProduct, ensureTestUser } from './helpers'
 import { DEFAULT_USER_ID } from '@/lib/current-user'
 
 beforeEach(ensureTestUser)
@@ -18,11 +18,46 @@ describe('getProductTeamWorkload', () => {
 
     await prisma.roadmapItem.createMany({
       data: [
-        { title: 'A', status: 'PLANNED', visibility: 'INTERNAL', productId: product.id, ownerId: busy.id, userId: DEFAULT_USER_ID },
-        { title: 'B', status: 'IN_PROGRESS', visibility: 'INTERNAL', productId: product.id, ownerId: busy.id, userId: DEFAULT_USER_ID },
-        { title: 'C', status: 'SHIPPED', visibility: 'INTERNAL', productId: product.id, ownerId: busy.id, userId: DEFAULT_USER_ID },
-        { title: 'D', status: 'SHIPPED', visibility: 'INTERNAL', productId: product.id, ownerId: idle.id, userId: DEFAULT_USER_ID },
-        { title: 'E', status: 'PAUSED', visibility: 'INTERNAL', productId: product.id, ownerId: idle.id, userId: DEFAULT_USER_ID },
+        {
+          title: 'A',
+          status: 'PLANNED',
+          visibility: 'INTERNAL',
+          productId: product.id,
+          ownerId: busy.id,
+          userId: DEFAULT_USER_ID,
+        },
+        {
+          title: 'B',
+          status: 'IN_PROGRESS',
+          visibility: 'INTERNAL',
+          productId: product.id,
+          ownerId: busy.id,
+          userId: DEFAULT_USER_ID,
+        },
+        {
+          title: 'C',
+          status: 'SHIPPED',
+          visibility: 'INTERNAL',
+          productId: product.id,
+          ownerId: busy.id,
+          userId: DEFAULT_USER_ID,
+        },
+        {
+          title: 'D',
+          status: 'SHIPPED',
+          visibility: 'INTERNAL',
+          productId: product.id,
+          ownerId: idle.id,
+          userId: DEFAULT_USER_ID,
+        },
+        {
+          title: 'E',
+          status: 'PAUSED',
+          visibility: 'INTERNAL',
+          productId: product.id,
+          ownerId: idle.id,
+          userId: DEFAULT_USER_ID,
+        },
       ],
     })
 
@@ -91,16 +126,21 @@ describe('getProductTeamWorkload', () => {
         userId: DEFAULT_USER_ID,
       },
     })
+    const process = await createTestProcess(product.id)
     await prisma.processStep.createMany({
       data: [
-        { title: 'Step 1', x: 0, y: 0, productId: product.id, assignedPersonId: person.id },
-        { title: 'Step 2', x: 100, y: 0, productId: product.id, assignedPersonId: person.id },
+        { title: 'Step 1', x: 0, y: 0, processId: process.id, assignedPersonId: person.id },
+        { title: 'Step 2', x: 100, y: 0, processId: process.id, assignedPersonId: person.id },
       ],
     })
     // Unassigned step shouldn't contribute to anyone's workload.
-    await prisma.processStep.create({ data: { title: 'Step 3', x: 200, y: 0, productId: product.id } })
+    await prisma.processStep.create({
+      data: { title: 'Step 3', x: 200, y: 0, processId: process.id },
+    })
 
     const result = await getProductTeamWorkload(DEFAULT_USER_ID, product.id)
-    expect(result).toEqual([{ person: expect.objectContaining({ id: person.id }), activeCount: 2, totalCount: 3 }])
+    expect(result).toEqual([
+      { person: expect.objectContaining({ id: person.id }), activeCount: 2, totalCount: 3 },
+    ])
   })
 })

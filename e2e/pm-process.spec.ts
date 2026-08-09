@@ -1,14 +1,26 @@
 import { expect, test } from '@playwright/test'
 import { createProductViaUI, uniqueName } from './helpers'
 
-test('add a process step, edit it via the inspector, then delete it', async ({ page }) => {
+test('create a process, add a step, edit it via the inspector, then delete step and process', async ({
+  page,
+}) => {
   const productName = uniqueName('Process Product')
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
   await page.goto(`/pm?productId=${productId}`)
   await expect(page.getByRole('heading', { name: 'Процесс' })).toBeVisible()
-  await expect(page.getByText('У этого продукта пока нет шагов процесса.')).toBeVisible()
+  await expect(page.getByText('У этого продукта пока нет описанных процессов.')).toBeVisible()
+
+  const processTitle = uniqueName('Запуск маркетинговой кампании')
+  await page.getByRole('link', { name: 'Добавить процесс' }).click()
+  await page.waitForURL(/\/pm\/processes\/new\?productId=/)
+  await page.getByLabel('Название процесса').fill(processTitle)
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL(/\/pm\?productId=.+&processId=.+/)
+
+  await expect(page.getByText(`Процесс: ${processTitle}`)).toBeVisible()
+  await expect(page.getByText('В этом процессе пока нет шагов.')).toBeVisible()
 
   const stepTitle = uniqueName('PM планирует кампанию')
   await page.getByRole('button', { name: '+ Добавить шаг' }).click()
@@ -24,11 +36,25 @@ test('add a process step, edit it via the inspector, then delete it', async ({ p
   await page.getByRole('button', { name: 'Сохранить' }).click()
   await expect(page.getByText(renamed)).toBeVisible()
 
-  // Re-open the inspector and delete the step.
+  // Re-open the inspector and delete the step. Scoped to the canvas —
+  // the "Процесс: ..." header also has its own "Удалить" button (for the
+  // process itself), so an unscoped locator here would be ambiguous.
   await page.getByText(renamed).click()
   page.once('dialog', (dialog) => dialog.accept())
+  await page.getByTestId('rf__wrapper').getByRole('button', { name: 'Удалить' }).click()
+  await expect(page.getByText('В этом процессе пока нет шагов.')).toBeVisible()
+
+  // Back to the process list, then delete the process itself.
+  await page.getByRole('link', { name: 'Все процессы' }).click()
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}$`))
+  await expect(page.getByText(processTitle)).toBeVisible()
+
+  await page.getByText(processTitle).click()
+  await page.waitForURL(/\/pm\?productId=.+&processId=.+/)
+  page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Удалить' }).click()
-  await expect(page.getByText('У этого продукта пока нет шагов процесса.')).toBeVisible()
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}$`))
+  await expect(page.getByText('У этого продукта пока нет описанных процессов.')).toBeVisible()
 })
 
 test('create an action plan with ordered steps and tags, then delete it', async ({ page }) => {

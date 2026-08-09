@@ -47,11 +47,11 @@ function nextStepPosition(existingCount: number): { x: number; y: number } {
 }
 
 function AddStepPanel({
-  productId,
+  processId,
   people,
   stepCount,
 }: {
-  productId: string
+  processId: string
   people: Person[]
   stepCount: number
 }) {
@@ -65,7 +65,7 @@ function AddStepPanel({
   function submit() {
     startTransition(async () => {
       const { x, y } = nextStepPosition(stepCount)
-      const result = await createProcessStepQuick(productId, title, x, y, assignedPersonId)
+      const result = await createProcessStepQuick(processId, title, x, y, assignedPersonId)
       if (!result.ok) {
         setError(result.error)
         return
@@ -212,12 +212,12 @@ function StepInspector({
 }
 
 function GraphInner({
-  productId,
+  processId,
   steps,
   processEdges,
   people,
 }: {
-  productId: string
+  processId: string
   steps: (ProcessStep & { assignedPerson: Person | null })[]
   processEdges: ProcessEdge[]
   people: Person[]
@@ -324,8 +324,8 @@ function GraphInner({
       <div className="h-[50vh] rounded-md border">
         {nodes.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-            <p className="text-muted-foreground">У этого продукта пока нет шагов процесса.</p>
-            <AddStepPanel productId={productId} people={people} stepCount={steps.length} />
+            <p className="text-muted-foreground">В этом процессе пока нет шагов.</p>
+            <AddStepPanel processId={processId} people={people} stepCount={steps.length} />
           </div>
         ) : (
           <ReactFlow
@@ -344,7 +344,7 @@ function GraphInner({
           >
             <Background />
             <Controls />
-            <AddStepPanel productId={productId} people={people} stepCount={steps.length} />
+            <AddStepPanel processId={processId} people={people} stepCount={steps.length} />
             {selectedStep && (
               <StepInspector
                 step={selectedStep}
@@ -364,7 +364,7 @@ function GraphInner({
 }
 
 export function ProcessGraph(props: {
-  productId: string
+  processId: string
   steps: (ProcessStep & { assignedPerson: Person | null })[]
   processEdges: ProcessEdge[]
   people: Person[]

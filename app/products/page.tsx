@@ -25,6 +25,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
   const products = await prisma.product.findMany({
     where: { userId: getCurrentUserId() },
     orderBy: sort === 'name_asc' ? { name: 'asc' } : { createdAt: 'desc' },
+    include: { department: { select: { name: true, color: true } } },
   })
 
   return (
@@ -65,6 +66,15 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
                     <Badge variant="secondary">{stageLabels[product.stage]}</Badge>
                   </div>
                   <CardDescription>{product.slug}</CardDescription>
+                  {product.department && (
+                    <div className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: product.department.color }}
+                      />
+                      {product.department.name}
+                    </div>
+                  )}
                 </CardHeader>
                 {product.description && (
                   <CardContent>

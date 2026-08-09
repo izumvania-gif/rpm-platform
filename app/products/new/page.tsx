@@ -10,10 +10,11 @@ export default async function NewProductPage({
 }: {
   searchParams: { error?: string }
 }) {
-  const people = await prisma.person.findMany({
-    where: { userId: getCurrentUserId() },
-    orderBy: { name: 'asc' },
-  })
+  const userId = getCurrentUserId()
+  const [people, departments] = await Promise.all([
+    prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+    prisma.department.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+  ])
 
   return (
     <main className="container py-12">
@@ -24,6 +25,7 @@ export default async function NewProductPage({
         submitLabel="Создать"
         showOnboardingOption
         people={people}
+        departments={departments}
       />
     </main>
   )

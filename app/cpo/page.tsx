@@ -10,35 +10,39 @@ import {
 import {
   getCrossProductGaps,
   getEcosystemCorrelations,
+  getMultiProductGanttLayout,
   getMultiProductRoadmap,
   getProductsOverview,
   getRoadmapStatusByProduct,
+  groupByDepartment,
+  NO_DEPARTMENT_LABEL,
 } from '@/lib/cpo-metrics'
 import { Badge } from '@/components/ui/badge'
 import { signalToneColors } from '@/lib/signal-colors'
+import { pluralizeRu } from '@/lib/utils'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
+import { MultiRoadmapViewTabs } from '@/components/shared/multi-roadmap-view-tabs'
+import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
 
 export const dynamic = 'force-dynamic'
 
-function pluralizeProducts(count: number): string {
-  const mod100 = count % 100
-  const mod10 = count % 10
-  if (mod100 >= 11 && mod100 <= 14) return `${count} продуктов`
-  if (mod10 === 1) return `${count} продукт`
-  if (mod10 >= 2 && mod10 <= 4) return `${count} продукта`
-  return `${count} продуктов`
-}
+const PRODUCT_FORMS: [string, string, string] = ['продукт', 'продукта', 'продуктов']
 
-export default async function CpoViewPage() {
+export default async function CpoViewPage({ searchParams }: { searchParams: { view?: string } }) {
+  const roadmapView = searchParams.view === 'gantt' ? 'gantt' : 'list'
   const userId = getCurrentUserId()
 
-  const [products, ecosystem, gaps, roadmapByProduct, multiRoadmap] = await Promise.all([
-    getProductsOverview(userId),
-    getEcosystemCorrelations(userId),
-    getCrossProductGaps(userId),
-    getRoadmapStatusByProduct(userId),
-    getMultiProductRoadmap(userId),
-  ])
+  const [products, ecosystem, gaps, roadmapByProduct, multiRoadmap, ganttLayout] =
+    await Promise.all([
+      getProductsOverview(userId),
+      getEcosystemCorrelations(userId),
+      getCrossProductGaps(userId),
+      getRoadmapStatusByProduct(userId),
+      roadmapView === 'list' ? getMultiProductRoadmap(userId) : Promise.resolve([]),
+      roadmapView === 'gantt' ? getMultiProductGanttLayout(userId) : Promise.resolve(null),
+    ])
+
+  const productGroups = groupByDepartment(products)
 
   const gapsStats = [
     { label: 'JTBD без подтверждения', count: gaps.totals.unconfirmedJtbds },
@@ -65,27 +69,48 @@ export default async function CpoViewPage() {
         {products.length === 0 ? (
           <p className="text-sm text-muted-foreground">Пока нет продуктов.</p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => {
-              const activeHypotheses =
-                product.hypothesisCounts.DRAFT + product.hypothesisCounts.IN_REVIEW
-              return (
-                <Link
-                  key={product.id}
-                  href={`/pm?productId=${product.id}`}
-                  className="rounded-md border p-3 transition-colors hover:border-primary/50"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{product.name}</span>
-                    <Badge variant="secondary">{stageLabels[product.stage]}</Badge>
-                  </div>
-                  <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                    <span>JTBD подтверждено: {product.jtbdCoverage.percent}%</span>
-                    <span>Активных гипотез: {activeHypotheses}</span>
-                  </p>
-                </Link>
-              )
-            })}
+          <div className="space-y-5">
+            {productGroups.map((group) => (
+              <div key={group.department?.id ?? 'none'}>
+                <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                  {group.department && (
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: group.department.color }}
+                    />
+                  )}
+                  {group.department ? (
+                    <Link href={`/departments/${group.department.id}`} className="hover:underline">
+                      {group.department.name}
+                    </Link>
+                  ) : (
+                    NO_DEPARTMENT_LABEL
+                  )}
+                </h3>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {group.products.map((product) => {
+                    const activeHypotheses =
+                      product.hypothesisCounts.DRAFT + product.hypothesisCounts.IN_REVIEW
+                    return (
+                      <Link
+                        key={product.id}
+                        href={`/pm?productId=${product.id}`}
+                        className="rounded-md border p-3 transition-colors hover:border-primary/50"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">{product.name}</span>
+                          <Badge variant="secondary">{stageLabels[product.stage]}</Badge>
+                        </div>
+                        <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                          <span>JTBD подтверждено: {product.jtbdCoverage.percent}%</span>
+                          <span>Активных гипотез: {activeHypotheses}</span>
+                        </p>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </DashboardWidgetCard>
@@ -106,7 +131,9 @@ export default async function CpoViewPage() {
                   <li key={group.key} className="rounded-md border p-3 text-sm">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">{group.key}</span>
-                      <Badge variant="slate">{pluralizeProducts(group.products.length)}</Badge>
+                      <Badge variant="slate">
+                        {pluralizeRu(group.products.length, PRODUCT_FORMS)}
+                      </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {group.products.map((p) => p.name).join(', ')}
@@ -128,7 +155,9 @@ export default async function CpoViewPage() {
                   <li key={group.key} className="rounded-md border p-3 text-sm">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">{group.key}</span>
-                      <Badge variant="slate">{pluralizeProducts(group.products.length)}</Badge>
+                      <Badge variant="slate">
+                        {pluralizeRu(group.products.length, PRODUCT_FORMS)}
+                      </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {group.products.map((p) => p.name).join(', ')}
@@ -246,9 +275,22 @@ export default async function CpoViewPage() {
       <DashboardWidgetCard
         icon={CalendarClock}
         title="Мультипродуктовый роадмап"
-        description="Все пункты роадмапа всех продуктов, сгруппированные по кварталу"
+        description={
+          roadmapView === 'gantt'
+            ? 'Все продукты на одной диаграмме, сгруппированные по департаментам'
+            : 'Все пункты роадмапа всех продуктов, сгруппированные по кварталу'
+        }
+        action={<MultiRoadmapViewTabs active={roadmapView} />}
       >
-        {multiRoadmap.length === 0 ? (
+        {roadmapView === 'gantt' ? (
+          ganttLayout && (ganttLayout.groups.length > 0 || ganttLayout.milestones.length > 0) ? (
+            <GanttChart layout={ganttLayout} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Пока нет пунктов роадмапа с датами начала и конца.
+            </p>
+          )
+        ) : multiRoadmap.length === 0 ? (
           <p className="text-sm text-muted-foreground">Пока нет пунктов роадмапа.</p>
         ) : (
           <div className="divide-y">

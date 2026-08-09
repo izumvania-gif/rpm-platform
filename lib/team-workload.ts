@@ -27,7 +27,7 @@ export async function getProductTeamWorkload(
       include: { owner: true },
     }),
     prisma.processStep.findMany({
-      where: { productId, assignedPersonId: { not: null } },
+      where: { process: { productId }, assignedPersonId: { not: null } },
       include: { assignedPerson: true },
     }),
   ])

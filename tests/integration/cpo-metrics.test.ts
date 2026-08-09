@@ -4,12 +4,17 @@ import { prisma } from '@/lib/prisma'
 import {
   getCrossProductGaps,
   getEcosystemCorrelations,
+  getMultiProductGanttLayout,
   getMultiProductRoadmap,
   getProductsOverview,
   getRoadmapStatusByProduct,
   getStuckRoadmapItems,
+  groupByDepartment,
+  NO_DEPARTMENT_LABEL,
+  type ProductOverviewRow,
 } from '@/lib/cpo-metrics'
 import { createTestProduct, ensureTestUser } from './helpers'
+import { DEFAULT_USER_ID } from '@/lib/current-user'
 
 beforeEach(ensureTestUser)
 
@@ -19,10 +24,22 @@ describe('getProductsOverview', () => {
   it('returns JTBD coverage and hypothesis counts per product', async () => {
     const product = await createTestProduct({ name: 'A' })
     await prisma.jTBD.create({
-      data: { title: 'T1', category: 'C', confirmed: true, productId: product.id, userId: product.userId },
+      data: {
+        title: 'T1',
+        category: 'C',
+        confirmed: true,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.jTBD.create({
-      data: { title: 'T2', category: 'C', confirmed: false, productId: product.id, userId: product.userId },
+      data: {
+        title: 'T2',
+        category: 'C',
+        confirmed: false,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.hypothesis.create({
       data: { statement: 'H1', status: 'DRAFT', productId: product.id, userId: product.userId },
@@ -40,13 +57,34 @@ describe('getEcosystemCorrelations', () => {
     const productA = await createTestProduct({ name: 'A' })
     const productB = await createTestProduct({ name: 'B' })
     await prisma.segment.create({
-      data: { name: 'Enterprise', slug: 'ent-a', color: '#3B82F6', tags: [], productId: productA.id, userId: productA.userId },
+      data: {
+        name: 'Enterprise',
+        slug: 'ent-a',
+        color: '#3B82F6',
+        tags: [],
+        productId: productA.id,
+        userId: productA.userId,
+      },
     })
     await prisma.segment.create({
-      data: { name: 'Enterprise', slug: 'ent-b', color: '#3B82F6', tags: [], productId: productB.id, userId: productB.userId },
+      data: {
+        name: 'Enterprise',
+        slug: 'ent-b',
+        color: '#3B82F6',
+        tags: [],
+        productId: productB.id,
+        userId: productB.userId,
+      },
     })
     await prisma.segment.create({
-      data: { name: 'Only in A', slug: 'only-a', color: '#3B82F6', tags: [], productId: productA.id, userId: productA.userId },
+      data: {
+        name: 'Only in A',
+        slug: 'only-a',
+        color: '#3B82F6',
+        tags: [],
+        productId: productA.id,
+        userId: productA.userId,
+      },
     })
 
     const result = await getEcosystemCorrelations(productA.userId)
@@ -61,10 +99,20 @@ describe('getEcosystemCorrelations', () => {
     const productA = await createTestProduct({ name: 'A' })
     const productB = await createTestProduct({ name: 'B' })
     await prisma.jTBD.create({
-      data: { title: 'T1', category: 'Onboarding', productId: productA.id, userId: productA.userId },
+      data: {
+        title: 'T1',
+        category: 'Onboarding',
+        productId: productA.id,
+        userId: productA.userId,
+      },
     })
     await prisma.jTBD.create({
-      data: { title: 'T2', category: 'Onboarding', productId: productB.id, userId: productB.userId },
+      data: {
+        title: 'T2',
+        category: 'Onboarding',
+        productId: productB.id,
+        userId: productB.userId,
+      },
     })
 
     const result = await getEcosystemCorrelations(productA.userId)
@@ -78,10 +126,23 @@ describe('getCrossProductGaps', () => {
     const productA = await createTestProduct({ name: 'A' })
     const productB = await createTestProduct({ name: 'B' })
     await prisma.jTBD.create({
-      data: { title: 'Unconfirmed', category: 'C', confirmed: false, productId: productA.id, userId: productA.userId },
+      data: {
+        title: 'Unconfirmed',
+        category: 'C',
+        confirmed: false,
+        productId: productA.id,
+        userId: productA.userId,
+      },
     })
     await prisma.segment.create({
-      data: { name: 'Uncovered', slug: 'uncovered', color: '#3B82F6', tags: [], productId: productB.id, userId: productB.userId },
+      data: {
+        name: 'Uncovered',
+        slug: 'uncovered',
+        color: '#3B82F6',
+        tags: [],
+        productId: productB.id,
+        userId: productB.userId,
+      },
     })
 
     const result = await getCrossProductGaps(productA.userId)
@@ -169,5 +230,74 @@ describe('getMultiProductRoadmap', () => {
     const [quarter, items] = result.find(([q]) => q === '2026 Q4')!
     expect(quarter).toBe('2026 Q4')
     expect(items.map((i) => i.product.name).sort()).toEqual(['A', 'B'])
+  })
+})
+
+describe('groupByDepartment', () => {
+  it('groups products by department, sorted alphabetically with no-department last', () => {
+    const baseRow = {
+      name: '',
+      stage: 'IDEA' as const,
+      jtbdCoverage: { confirmed: 0, total: 0, percent: 0 },
+      hypothesisCounts: { DRAFT: 0, IN_REVIEW: 0, CONFIRMED: 0, REJECTED: 0 },
+    }
+    const rows: ProductOverviewRow[] = [
+      { ...baseRow, id: 'p1', department: { id: '2', name: 'Zeta', color: '#000' } },
+      { ...baseRow, id: 'p2', department: null },
+      { ...baseRow, id: 'p3', department: { id: '1', name: 'Alpha', color: '#000' } },
+      { ...baseRow, id: 'p4', department: { id: '1', name: 'Alpha', color: '#000' } },
+    ]
+
+    const groups = groupByDepartment(rows)
+    expect(groups.map((g) => g.department?.name ?? NO_DEPARTMENT_LABEL)).toEqual([
+      'Alpha',
+      'Zeta',
+      NO_DEPARTMENT_LABEL,
+    ])
+    expect(groups[0].products).toHaveLength(2)
+  })
+})
+
+describe('getMultiProductGanttLayout', () => {
+  it('groups dated roadmap items by department -> product, suffixes milestone titles with the product name', async () => {
+    const department = await prisma.department.create({
+      data: { name: 'MFA-продукты', userId: DEFAULT_USER_ID },
+    })
+    const productA = await createTestProduct({ name: 'A' })
+    await prisma.product.update({
+      where: { id: productA.id },
+      data: { departmentId: department.id },
+    })
+    const productB = await createTestProduct({ name: 'B' })
+
+    await prisma.roadmapItem.create({
+      data: {
+        title: 'Bar in A',
+        status: RoadmapStatus.PLANNED,
+        visibility: 'INTERNAL',
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-10'),
+        productId: productA.id,
+        userId: productA.userId,
+      },
+    })
+    await prisma.roadmapItem.create({
+      data: {
+        title: 'v2.0',
+        status: RoadmapStatus.PLANNED,
+        visibility: 'INTERNAL',
+        isMilestone: true,
+        startDate: new Date('2026-09-05'),
+        productId: productB.id,
+        userId: productB.userId,
+      },
+    })
+
+    const layout = await getMultiProductGanttLayout(productA.userId)
+    const group = layout.groups.find((g) => g.group === 'MFA-продукты')!
+    expect(group).toBeDefined()
+    const track = group.tracks.find((t) => t.track === 'A')!
+    expect(track.bars.map((b) => b.title)).toEqual(['Bar in A'])
+    expect(layout.milestones[0].title).toBe(`v2.0 (${productB.name})`)
   })
 })

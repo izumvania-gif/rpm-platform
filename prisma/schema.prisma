@@ -80,6 +80,28 @@ model Product {
   roadmapItems     RoadmapItem[]
   processes        Process[]
   actionPlans      ActionPlan[]
+  teamMembers      ProductTeamMember[]
+}
+
+// Ростер команды продукта (plans/2.0-ux-improvement-plan.md, Фаза 2) — lets a
+// PM say "these people are on this product" before anyone has an assigned
+// RoadmapItem/ProcessStep (the "chicken and egg" gap the UX audit found:
+// without this, a person could only ever appear in /pm's Команда section
+// derived from already having active work — lib/team-workload.ts's
+// getProductTeam merges this roster with that derived list). No role/joined
+// date field yet — same schema minimalism as the rest of the project, add
+// only once a real need shows up.
+model ProductTeamMember {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  personId String
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, personId])
 }
 
 // CPO strategic departments (plans/platform-views-plan.md §11) — cross-product
@@ -477,10 +499,11 @@ model Person {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  ownedProducts Product[]
-  roadmapItems  RoadmapItem[]
-  processSteps  ProcessStep[]
-  actionPlans   ActionPlan[]
+  ownedProducts   Product[]
+  roadmapItems    RoadmapItem[]
+  processSteps    ProcessStep[]
+  actionPlans     ActionPlan[]
+  teamMemberships ProductTeamMember[]
 }
 
 enum RoadmapStatus {

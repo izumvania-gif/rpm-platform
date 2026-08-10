@@ -55,3 +55,46 @@ export async function getProductTeamWorkload(
 
   return Array.from(byPerson.values()).sort((a, b) => b.activeCount - a.activeCount)
 }
+
+// The Команда section on /pm (plans/2.0-ux-improvement-plan.md, Фаза 2)
+// shows more than getProductTeamWorkload's derived list: explicitly
+// rostered people (ProductTeamMember) who may have zero active work yet —
+// the "chicken and egg" gap the UX audit found, where someone could only
+// ever show up in Команда after already being assigned a task — merged
+// with anyone who has active work but was never added to the roster, so
+// nobody silently falls out of view either way.
+export interface TeamMember extends PersonWorkload {
+  inRoster: boolean
+  membershipId: string | null
+}
+
+export async function getProductTeam(userId: string, productId: string): Promise<TeamMember[]> {
+  const [workload, members] = await Promise.all([
+    getProductTeamWorkload(userId, productId),
+    prisma.productTeamMember.findMany({ where: { productId }, include: { person: true } }),
+  ])
+
+  const byPerson = new Map<string, TeamMember>()
+  for (const entry of workload) {
+    byPerson.set(entry.person.id, { ...entry, inRoster: false, membershipId: null })
+  }
+  for (const member of members) {
+    const existing = byPerson.get(member.personId)
+    if (existing) {
+      existing.inRoster = true
+      existing.membershipId = member.id
+    } else {
+      byPerson.set(member.personId, {
+        person: member.person,
+        activeCount: 0,
+        totalCount: 0,
+        inRoster: true,
+        membershipId: member.id,
+      })
+    }
+  }
+
+  return Array.from(byPerson.values()).sort(
+    (a, b) => b.activeCount - a.activeCount || a.person.name.localeCompare(b.person.name)
+  )
+}

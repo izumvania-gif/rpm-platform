@@ -5,9 +5,16 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { deleteRoadmapItem, toggleRoadmapItemPinned } from '@/lib/actions/roadmap'
 import { deleteActionPlan, toggleActionPlanPinned } from '@/lib/actions/action-plans'
 import { deleteProcess } from '@/lib/actions/processes'
-import { roadmapStatusIcon, roadmapStatusLabels, roadmapStatusTone } from '@/lib/labels'
+import { updateProductField } from '@/lib/actions/products'
+import { removeProductTeamMember } from '@/lib/actions/product-team'
+import {
+  roadmapStatusIcon,
+  roadmapStatusLabels,
+  roadmapStatusTone,
+  stageLabels,
+} from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
-import { getProductTeamWorkload } from '@/lib/team-workload'
+import { getProductTeam } from '@/lib/team-workload'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteButton } from '@/components/shared/delete-button'
@@ -17,6 +24,8 @@ import { TagBadges } from '@/components/shared/tag-badges'
 import { PersonAvatar } from '@/components/shared/person-avatar'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { ScrollToSection } from '@/components/shared/scroll-to-section'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { AddTeamMemberForm } from '@/components/shared/add-team-member-form'
 import { ProcessGraph } from '@/components/process-graph/canvas'
 import { RoadmapViewTabs } from '@/components/shared/roadmap-view-tabs'
 import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
@@ -42,28 +51,30 @@ export default async function PmPage({
       ? searchParams.productId
       : undefined
 
-  const [product, roadmapItems, teamWorkload, actionPlans, processes, people] = selectedProductId
-    ? await Promise.all([
-        prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
-        prisma.roadmapItem.findMany({
-          where: { productId: selectedProductId, userId },
-          orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
-          include: { owner: true, feature: true, jtbd: true },
-        }),
-        getProductTeamWorkload(userId, selectedProductId),
-        prisma.actionPlan.findMany({
-          where: { productId: selectedProductId, userId },
-          orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
-          include: { owner: true, processStep: true },
-        }),
-        prisma.process.findMany({
-          where: { productId: selectedProductId },
-          orderBy: { createdAt: 'asc' },
-          include: { _count: { select: { steps: true } } },
-        }),
-        prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
-      ])
-    : [null, [], [], [], [], []]
+  const [product, roadmapItems, team, actionPlans, processes, people, departments] =
+    selectedProductId
+      ? await Promise.all([
+          prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
+          prisma.roadmapItem.findMany({
+            where: { productId: selectedProductId, userId },
+            orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
+            include: { owner: true, feature: true, jtbd: true },
+          }),
+          getProductTeam(userId, selectedProductId),
+          prisma.actionPlan.findMany({
+            where: { productId: selectedProductId, userId },
+            orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
+            include: { owner: true, processStep: true },
+          }),
+          prisma.process.findMany({
+            where: { productId: selectedProductId },
+            orderBy: { createdAt: 'asc' },
+            include: { _count: { select: { steps: true } } },
+          }),
+          prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+          prisma.department.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+        ])
+      : [null, [], [], [], [], [], []]
 
   const selectedProcess =
     searchParams.processId && processes.some((p) => p.id === searchParams.processId)
@@ -114,6 +125,74 @@ export default async function PmPage({
             </p>
           ) : (
             <>
+              <Card variant="content">
+                <CardContent className="space-y-3 py-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-xl font-bold">
+                      <InlineEditableField
+                        value={product.name}
+                        action={updateProductField.bind(null, product.id, 'name')}
+                      />
+                    </h2>
+                    <Link
+                      href={`/products/${product.id}`}
+                      className="shrink-0 text-sm text-muted-foreground hover:underline"
+                    >
+                      Открыть карточку продукта →
+                    </Link>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <InlineEditableField
+                      value={product.stage}
+                      type="select"
+                      options={Object.entries(stageLabels).map(([value, label]) => ({
+                        value,
+                        label,
+                      }))}
+                      action={updateProductField.bind(null, product.id, 'stage')}
+                      display="badge"
+                      labels={stageLabels}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      Ответственный:{' '}
+                      <InlineEditableField
+                        value={product.ownerId ?? ''}
+                        type="select"
+                        options={[
+                          { value: '', label: 'Не указан' },
+                          ...people.map((p) => ({ value: p.id, label: p.name })),
+                        ]}
+                        labels={Object.fromEntries(people.map((p) => [p.id, p.name]))}
+                        placeholder="+ назначить"
+                        action={updateProductField.bind(null, product.id, 'ownerId')}
+                      />
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      Департамент:{' '}
+                      <InlineEditableField
+                        value={product.departmentId ?? ''}
+                        type="select"
+                        options={[
+                          { value: '', label: 'Без департамента' },
+                          ...departments.map((d) => ({ value: d.id, label: d.name })),
+                        ]}
+                        labels={Object.fromEntries(departments.map((d) => [d.id, d.name]))}
+                        placeholder="+ назначить"
+                        action={updateProductField.bind(null, product.id, 'departmentId')}
+                      />
+                    </span>
+                  </div>
+                  <p className="max-w-2xl text-sm text-muted-foreground">
+                    <InlineEditableField
+                      value={product.description ?? ''}
+                      type="textarea"
+                      placeholder="+ добавить описание"
+                      action={updateProductField.bind(null, product.id, 'description')}
+                    />
+                  </p>
+                </CardContent>
+              </Card>
+
               <Card id="roadmap" variant="content" className="scroll-mt-4">
                 <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 border-l-4 border-primary">
                   <CardTitle className="flex items-center gap-1.5 text-base">
@@ -212,18 +291,24 @@ export default async function PmPage({
                 id="team"
                 icon={Users2}
                 title="Команда"
-                description="Кто сколько сейчас ведёт по роадмапу и шагам процесса этого продукта"
+                description="Кто в команде этого продукта — явно добавленные плюс те, у кого уже есть дела по роадмапу или процессу"
                 tone="secondary"
                 contentClassName="p-0"
+                action={
+                  <AddTeamMemberForm
+                    productId={product.id}
+                    people={people}
+                    existingPersonIds={team.map((t) => t.person.id)}
+                  />
+                }
               >
-                {teamWorkload.length === 0 ? (
+                {team.length === 0 ? (
                   <p className="p-5 text-sm text-muted-foreground">
-                    Пока никто не назначен ответственным по пунктам роадмапа или шагам процесса
-                    этого продукта.
+                    В команде этого продукта пока никого нет.
                   </p>
                 ) : (
                   <ul className="divide-y">
-                    {teamWorkload.map(({ person, activeCount, totalCount }) => (
+                    {team.map(({ person, activeCount, totalCount, inRoster, membershipId }) => (
                       <li
                         key={person.id}
                         className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm"
@@ -243,6 +328,12 @@ export default async function PmPage({
                         <span className="shrink-0 font-mono text-xs text-muted-foreground">
                           {activeCount} активных · {totalCount} всего
                         </span>
+                        {inRoster && membershipId && (
+                          <DeleteButton
+                            action={removeProductTeamMember.bind(null, membershipId)}
+                            confirmMessage="Убрать из команды продукта?"
+                          />
+                        )}
                       </li>
                     ))}
                   </ul>

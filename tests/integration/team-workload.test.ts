@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from '@/lib/prisma'
-import { getProductTeamWorkload } from '@/lib/team-workload'
+import { getProductTeam, getProductTeamWorkload } from '@/lib/team-workload'
 import { createTestProcess, createTestProduct, ensureTestUser } from './helpers'
 import { DEFAULT_USER_ID } from '@/lib/current-user'
 
@@ -142,5 +142,92 @@ describe('getProductTeamWorkload', () => {
     expect(result).toEqual([
       { person: expect.objectContaining({ id: person.id }), activeCount: 2, totalCount: 3 },
     ])
+  })
+})
+
+describe('getProductTeam', () => {
+  it('includes an explicitly rostered person with zero counts, not just derived workload', async () => {
+    const product = await createTestProduct()
+    const rostered = await prisma.person.create({
+      data: { name: 'Just Joined', skills: [], userId: DEFAULT_USER_ID },
+    })
+    await prisma.productTeamMember.create({
+      data: { productId: product.id, personId: rostered.id },
+    })
+
+    const result = await getProductTeam(DEFAULT_USER_ID, product.id)
+    expect(result).toEqual([
+      {
+        person: expect.objectContaining({ id: rostered.id }),
+        activeCount: 0,
+        totalCount: 0,
+        inRoster: true,
+        membershipId: expect.any(String),
+      },
+    ])
+  })
+
+  it('merges roster membership with derived workload for the same person', async () => {
+    const product = await createTestProduct()
+    const person = await prisma.person.create({
+      data: { name: 'Both', skills: [], userId: DEFAULT_USER_ID },
+    })
+    const membership = await prisma.productTeamMember.create({
+      data: { productId: product.id, personId: person.id },
+    })
+    await prisma.roadmapItem.create({
+      data: {
+        title: 'A',
+        status: 'PLANNED',
+        visibility: 'INTERNAL',
+        productId: product.id,
+        ownerId: person.id,
+        userId: DEFAULT_USER_ID,
+      },
+    })
+
+    const result = await getProductTeam(DEFAULT_USER_ID, product.id)
+    expect(result).toEqual([
+      {
+        person: expect.objectContaining({ id: person.id }),
+        activeCount: 1,
+        totalCount: 1,
+        inRoster: true,
+        membershipId: membership.id,
+      },
+    ])
+  })
+
+  it('includes a derived-only person (never rostered) with inRoster: false', async () => {
+    const product = await createTestProduct()
+    const person = await prisma.person.create({
+      data: { name: 'Derived Only', skills: [], userId: DEFAULT_USER_ID },
+    })
+    await prisma.roadmapItem.create({
+      data: {
+        title: 'A',
+        status: 'SHIPPED',
+        visibility: 'INTERNAL',
+        productId: product.id,
+        ownerId: person.id,
+        userId: DEFAULT_USER_ID,
+      },
+    })
+
+    const result = await getProductTeam(DEFAULT_USER_ID, product.id)
+    expect(result).toEqual([
+      {
+        person: expect.objectContaining({ id: person.id }),
+        activeCount: 0,
+        totalCount: 1,
+        inRoster: false,
+        membershipId: null,
+      },
+    ])
+  })
+
+  it('returns an empty array when nobody is rostered or has active work', async () => {
+    const product = await createTestProduct()
+    expect(await getProductTeam(DEFAULT_USER_ID, product.id)).toEqual([])
   })
 })

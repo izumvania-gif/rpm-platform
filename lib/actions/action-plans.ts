@@ -46,7 +46,7 @@ export async function createActionPlan(formData: FormData) {
     data: { ...data, steps: toLines(steps), tags: toTagsArray(tags), userId: getCurrentUserId() },
   })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${parsed.data.productId}`)
+  redirect(`/pm?productId=${parsed.data.productId}&scrollTo=action-plans`)
 }
 
 export async function updateActionPlan(id: string, formData: FormData) {
@@ -63,13 +63,13 @@ export async function updateActionPlan(id: string, formData: FormData) {
     data: { ...data, steps: toLines(steps), tags: toTagsArray(tags) },
   })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${plan.productId}`)
+  redirect(`/pm?productId=${plan.productId}&scrollTo=action-plans`)
 }
 
 export async function deleteActionPlan(id: string) {
   const plan = await prisma.actionPlan.delete({ where: { id } })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${plan.productId}`)
+  redirect(`/pm?productId=${plan.productId}&scrollTo=action-plans`)
 }
 
 export async function toggleActionPlanPinned(id: string, pinned: boolean) {

@@ -46,7 +46,14 @@ function nextStepPosition(existingCount: number): { x: number; y: number } {
   return { x: 80 + col * 220, y: 80 + row * 140 }
 }
 
-function AddStepPanel({
+// The form body only — no @xyflow/react `Panel` wrapper. `Panel` requires
+// ReactFlow's internal positioning context (a `.react-flow` container with
+// `position: relative`) to compute its placement; without that context the
+// browser falls back to positioning it against the viewport, which pins it
+// above the site nav. Used directly (no Panel) in the empty-state branch
+// below, which renders outside `<ReactFlow>`; wrapped in `<AddStepPanel>`
+// for the normal in-canvas case.
+function AddStepForm({
   processId,
   people,
   stepCount,
@@ -78,51 +85,59 @@ function AddStepPanel({
     })
   }
 
+  if (!open) {
+    return (
+      <Button type="button" size="sm" onClick={() => setOpen(true)}>
+        + Добавить шаг
+      </Button>
+    )
+  }
+
+  return (
+    <div className="w-72 space-y-2 rounded-md border bg-background p-3 shadow-md">
+      <Input
+        autoFocus
+        placeholder="Например: PM планирует кампанию"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <Select
+        aria-label="Ответственный"
+        value={assignedPersonId}
+        onChange={(e) => setAssignedPersonId(e.target.value)}
+      >
+        <option value="">Без ответственного</option>
+        {people.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </Select>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <div className="flex gap-2">
+        <Button type="button" size="sm" disabled={isPending || !title.trim()} onClick={submit}>
+          Создать
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setOpen(false)
+            setError(null)
+          }}
+        >
+          Отмена
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function AddStepPanel(props: { processId: string; people: Person[]; stepCount: number }) {
   return (
     <Panel position="top-left" className="!m-2">
-      {!open ? (
-        <Button type="button" size="sm" onClick={() => setOpen(true)}>
-          + Добавить шаг
-        </Button>
-      ) : (
-        <div className="w-72 space-y-2 rounded-md border bg-background p-3 shadow-md">
-          <Input
-            autoFocus
-            placeholder="Например: PM планирует кампанию"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <Select
-            aria-label="Ответственный"
-            value={assignedPersonId}
-            onChange={(e) => setAssignedPersonId(e.target.value)}
-          >
-            <option value="">Без ответственного</option>
-            {people.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
-          {error && <p className="text-xs text-destructive">{error}</p>}
-          <div className="flex gap-2">
-            <Button type="button" size="sm" disabled={isPending || !title.trim()} onClick={submit}>
-              Создать
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                setOpen(false)
-                setError(null)
-              }}
-            >
-              Отмена
-            </Button>
-          </div>
-        </div>
-      )}
+      <AddStepForm {...props} />
     </Panel>
   )
 }
@@ -325,7 +340,7 @@ function GraphInner({
         {nodes.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
             <p className="text-muted-foreground">В этом процессе пока нет шагов.</p>
-            <AddStepPanel processId={processId} people={people} stepCount={steps.length} />
+            <AddStepForm processId={processId} people={people} stepCount={steps.length} />
           </div>
         ) : (
           <ReactFlow

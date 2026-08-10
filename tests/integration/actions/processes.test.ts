@@ -16,7 +16,7 @@ describe('createProcess', () => {
     const redirectPath = await captureRedirect(() => createProcess(formData))
     const process = await prisma.process.findFirst({ where: { productId: product.id } })
     expect(process).toMatchObject({ title: 'Запуск маркетинговой кампании' })
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&processId=${process!.id}`)
+    expect(redirectPath).toBe(`/pm?productId=${product.id}&processId=${process!.id}&scrollTo=process`)
   })
 
   it('rejects a missing title', async () => {
@@ -35,7 +35,7 @@ describe('updateProcess / deleteProcess', () => {
 
     const formData = buildFormData({ title: 'New', productId: product.id })
     const redirectPath = await captureRedirect(() => updateProcess(process.id, formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&processId=${process.id}`)
+    expect(redirectPath).toBe(`/pm?productId=${product.id}&processId=${process.id}&scrollTo=process`)
     expect((await prisma.process.findUnique({ where: { id: process.id } }))?.title).toBe('New')
   })
 
@@ -45,7 +45,7 @@ describe('updateProcess / deleteProcess', () => {
     await prisma.processStep.create({ data: { title: 'Step', x: 0, y: 0, processId: process.id } })
 
     const redirectPath = await captureRedirect(() => deleteProcess(process.id))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}`)
+    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=process`)
     expect(await prisma.process.findUnique({ where: { id: process.id } })).toBeNull()
     expect(await prisma.processStep.count()).toBe(0)
   })

@@ -43,7 +43,6 @@ export function JtbdStepForm({
       setJtbds((prev) => [...prev, { ...result.jtbd, segments: jtbdSegments }])
       setTitle('')
       setCategory('')
-      setSegmentIds([])
       setError(null)
     })
   }

@@ -65,7 +65,7 @@ export async function createRoadmapItem(formData: FormData) {
     data: { ...parsed.data, userId: getCurrentUserId() },
   })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${parsed.data.productId}`)
+  redirect(`/pm?productId=${parsed.data.productId}&scrollTo=roadmap`)
 }
 
 export async function updateRoadmapItem(id: string, formData: FormData) {
@@ -78,13 +78,13 @@ export async function updateRoadmapItem(id: string, formData: FormData) {
 
   const item = await prisma.roadmapItem.update({ where: { id }, data: parsed.data })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${item.productId}`)
+  redirect(`/pm?productId=${item.productId}&scrollTo=roadmap`)
 }
 
 export async function deleteRoadmapItem(id: string) {
   const item = await prisma.roadmapItem.delete({ where: { id } })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${item.productId}`)
+  redirect(`/pm?productId=${item.productId}&scrollTo=roadmap`)
 }
 
 export async function toggleRoadmapItemPinned(id: string, pinned: boolean) {

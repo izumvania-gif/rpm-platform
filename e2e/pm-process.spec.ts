@@ -53,7 +53,7 @@ test('create a process, add a step, edit it via the inspector, then delete step 
   await page.waitForURL(/\/pm\?productId=.+&processId=.+/)
   page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Удалить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}$`))
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&scrollTo=process$`))
   await expect(page.getByText('У этого продукта пока нет описанных процессов.')).toBeVisible()
 })
 

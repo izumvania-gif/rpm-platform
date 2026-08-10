@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 // left-border and shrinks the heading instead of repeating the same full-weight
 // chrome on every section regardless of how important it is.
 export function DashboardWidgetCard({
+  id,
   icon: Icon,
   title,
   description,
@@ -22,6 +23,7 @@ export function DashboardWidgetCard({
   contentClassName,
   children,
 }: {
+  id?: string
   icon: LucideIcon
   title: string
   description?: string
@@ -31,10 +33,10 @@ export function DashboardWidgetCard({
   children: ReactNode
 }) {
   return (
-    <Card variant="content">
+    <Card id={id} variant="content" className={id ? 'scroll-mt-4' : undefined}>
       <CardHeader
         className={cn(
-          'flex flex-row items-center justify-between gap-2 space-y-0',
+          'flex flex-col items-start gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between',
           tone === 'primary' && 'border-l-4 border-primary'
         )}
       >

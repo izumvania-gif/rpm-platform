@@ -16,6 +16,7 @@ import { PmProductSwitcher } from '@/components/shared/pm-product-switcher'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { PersonAvatar } from '@/components/shared/person-avatar'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
+import { ScrollToSection } from '@/components/shared/scroll-to-section'
 import { ProcessGraph } from '@/components/process-graph/canvas'
 import { RoadmapViewTabs } from '@/components/shared/roadmap-view-tabs'
 import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
@@ -30,7 +31,7 @@ export const dynamic = 'force-dynamic'
 export default async function PmPage({
   searchParams,
 }: {
-  searchParams: { productId?: string; view?: string; processId?: string }
+  searchParams: { productId?: string; view?: string; processId?: string; scrollTo?: string }
 }) {
   const roadmapView = searchParams.view === 'gantt' ? 'gantt' : 'list'
   const userId = getCurrentUserId()
@@ -83,6 +84,7 @@ export default async function PmPage({
 
   return (
     <main className="container py-12 space-y-8">
+      <ScrollToSection id={searchParams.scrollTo} />
       <div>
         <h1 className="text-2xl font-bold mb-2">PM</h1>
         <p className="text-muted-foreground">
@@ -112,7 +114,7 @@ export default async function PmPage({
             </p>
           ) : (
             <>
-              <Card variant="content">
+              <Card id="roadmap" variant="content" className="scroll-mt-4">
                 <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 border-l-4 border-primary">
                   <CardTitle className="flex items-center gap-1.5 text-base">
                     <CalendarClock size={15} strokeWidth={1.75} className="text-primary" />
@@ -207,6 +209,7 @@ export default async function PmPage({
               </Card>
 
               <DashboardWidgetCard
+                id="team"
                 icon={Users2}
                 title="Команда"
                 description="Кто сколько сейчас ведёт по роадмапу и шагам процесса этого продукта"
@@ -247,6 +250,7 @@ export default async function PmPage({
               </DashboardWidgetCard>
 
               <DashboardWidgetCard
+                id="action-plans"
                 icon={ClipboardList}
                 title="Экшн-планы"
                 description="Заранее написанное «что делать» для предсказуемых нештатных ситуаций — открыть готовый план быстрее, чем придумывать реакцию в моменте (plans/pm-time-allocation-research.md §1)"
@@ -317,6 +321,7 @@ export default async function PmPage({
               </DashboardWidgetCard>
 
               <DashboardWidgetCard
+                id="process"
                 icon={Workflow}
                 title={selectedProcess ? `Процесс: ${selectedProcess.title}` : 'Процесс'}
                 description={

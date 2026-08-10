@@ -32,7 +32,7 @@ export async function createProcess(formData: FormData) {
 
   const process = await prisma.process.create({ data: parsed.data })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${process.productId}&processId=${process.id}`)
+  redirect(`/pm?productId=${process.productId}&processId=${process.id}&scrollTo=process`)
 }
 
 export async function updateProcess(id: string, formData: FormData) {
@@ -43,11 +43,11 @@ export async function updateProcess(id: string, formData: FormData) {
 
   const process = await prisma.process.update({ where: { id }, data: { title: parsed.data.title } })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${process.productId}&processId=${process.id}`)
+  redirect(`/pm?productId=${process.productId}&processId=${process.id}&scrollTo=process`)
 }
 
 export async function deleteProcess(id: string) {
   const process = await prisma.process.delete({ where: { id } })
   revalidatePath('/pm')
-  redirect(`/pm?productId=${process.productId}`)
+  redirect(`/pm?productId=${process.productId}&scrollTo=process`)
 }

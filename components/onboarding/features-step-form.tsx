@@ -51,7 +51,6 @@ export function FeaturesStepForm({
       const linkedJtbds = jtbds.filter((j) => featureJtbdIds.includes(j.id))
       setFeatures((prev) => [...prev, { ...result.feature, jtbds: linkedJtbds }])
       setFeatureName('')
-      setFeatureJtbdIds([])
       setFeatureError(null)
     })
   }
@@ -67,7 +66,6 @@ export function FeaturesStepForm({
       const linkedFeatures = features.filter((f) => rtbFeatureIds.includes(f.id))
       setRtbs((prev) => [...prev, { ...result.rtb, features: linkedFeatures }])
       setRtbStatement('')
-      setRtbFeatureIds([])
       setRtbError(null)
     })
   }

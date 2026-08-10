@@ -11,27 +11,47 @@ export default async function OnboardingDonePage({ params }: { params: { id: str
   const product = await prisma.product.findFirst({ where: { id: params.id, userId } })
   if (!product) notFound()
 
-  const [segments, jtbds, research, conversations, insights, hypotheses, competitors, features, rtbs] =
-    await Promise.all([
-      prisma.segment.count({ where: { productId: product.id, userId } }),
-      prisma.jTBD.count({ where: { productId: product.id, userId } }),
-      prisma.research.count({ where: { productId: product.id, userId } }),
-      prisma.conversation.count({ where: { productId: product.id, userId } }),
-      prisma.insight.count({ where: { productId: product.id, userId } }),
-      prisma.hypothesis.count({ where: { productId: product.id, userId } }),
-      prisma.competitor.count({ where: { productId: product.id, userId } }),
-      prisma.feature.count({ where: { productId: product.id, userId } }),
-      prisma.rTB.count({ where: { productId: product.id, userId } }),
-    ])
+  const [
+    segments,
+    jtbds,
+    research,
+    conversations,
+    insights,
+    hypotheses,
+    competitors,
+    team,
+    features,
+    rtbs,
+  ] = await Promise.all([
+    prisma.segment.count({ where: { productId: product.id, userId } }),
+    prisma.jTBD.count({ where: { productId: product.id, userId } }),
+    prisma.research.count({ where: { productId: product.id, userId } }),
+    prisma.conversation.count({ where: { productId: product.id, userId } }),
+    prisma.insight.count({ where: { productId: product.id, userId } }),
+    prisma.hypothesis.count({ where: { productId: product.id, userId } }),
+    prisma.competitor.count({ where: { productId: product.id, userId } }),
+    prisma.productTeamMember.count({ where: { productId: product.id } }),
+    prisma.feature.count({ where: { productId: product.id, userId } }),
+    prisma.rTB.count({ where: { productId: product.id, userId } }),
+  ])
 
   const rows: { label: string; count: number; href: string }[] = [
     { label: 'Сегменты', count: segments, href: `/products/${product.id}/onboarding/segments` },
     { label: 'JTBD', count: jtbds, href: `/products/${product.id}/onboarding/jtbd` },
     { label: 'Исследования', count: research, href: `/products/${product.id}/onboarding/research` },
-    { label: 'Разговоры', count: conversations, href: `/products/${product.id}/onboarding/research` },
+    {
+      label: 'Разговоры',
+      count: conversations,
+      href: `/products/${product.id}/onboarding/research`,
+    },
     { label: 'Инсайты', count: insights, href: `/products/${product.id}/onboarding/research` },
     { label: 'Гипотезы', count: hypotheses, href: `/products/${product.id}/onboarding/hypotheses` },
-    { label: 'Конкуренты', count: competitors, href: `/products/${product.id}/onboarding/competitors` },
+    {
+      label: 'Конкуренты',
+      count: competitors,
+      href: `/products/${product.id}/onboarding/competitors`,
+    },
+    { label: 'Команда', count: team, href: `/products/${product.id}/onboarding/people` },
     { label: 'Фичи', count: features, href: `/products/${product.id}/onboarding/features` },
     { label: 'RTB', count: rtbs, href: `/products/${product.id}/onboarding/features` },
   ]

@@ -9,5 +9,6 @@ export const WIZARD_STEPS: WizardStep[] = [
   { key: 'research', label: 'Исследования' },
   { key: 'hypotheses', label: 'Гипотезы' },
   { key: 'competitors', label: 'Конкуренты' },
+  { key: 'people', label: 'Люди' },
   { key: 'features', label: 'Фичи и RTB' },
 ]

@@ -42,6 +42,7 @@ export default async function EditActionPlanPage({
         defaultValues={plan}
         error={searchParams.error}
         submitLabel="Сохранить"
+        cancelHref={`/pm?productId=${product.id}&scrollTo=action-plans`}
       />
     </main>
   )

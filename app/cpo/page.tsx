@@ -61,7 +61,23 @@ export default async function CpoViewPage({ searchParams }: { searchParams: { vi
         </p>
       </div>
 
+      <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <a href="#products" className="text-primary hover:underline">
+          Продукты
+        </a>
+        <a href="#ecosystem" className="text-primary hover:underline">
+          Экосистема
+        </a>
+        <a href="#gaps" className="text-primary hover:underline">
+          Ключевые направления
+        </a>
+        <a href="#roadmap" className="text-primary hover:underline">
+          Мультипродуктовый роадмап
+        </a>
+      </nav>
+
       <DashboardWidgetCard
+        id="products"
         icon={Building2}
         title="Продукты"
         description="Обзорная сетка всех продуктов — покрытие JTBD и активные гипотезы"
@@ -116,6 +132,7 @@ export default async function CpoViewPage({ searchParams }: { searchParams: { vi
       </DashboardWidgetCard>
 
       <DashboardWidgetCard
+        id="ecosystem"
         icon={GitMerge}
         title="Экосистема"
         description="Вычисляемые пересечения между продуктами — по точному совпадению названия сегмента или категории JTBD (не хранится, не редактируется вручную)"
@@ -171,6 +188,7 @@ export default async function CpoViewPage({ searchParams }: { searchParams: { vi
       </DashboardWidgetCard>
 
       <DashboardWidgetCard
+        id="gaps"
         icon={ClipboardList}
         title="Ключевые направления развития"
         description="Пробелы и статус роадмапа по каждому продукту"
@@ -273,6 +291,7 @@ export default async function CpoViewPage({ searchParams }: { searchParams: { vi
       </DashboardWidgetCard>
 
       <DashboardWidgetCard
+        id="roadmap"
         icon={CalendarClock}
         title="Мультипродуктовый роадмап"
         description={

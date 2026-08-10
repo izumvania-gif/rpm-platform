@@ -48,7 +48,7 @@ test('shows the JTBD -> feature -> RTB chain for a segment, and upcoming roadmap
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
 
   await page.goto('/marketing-hub')
-  await selectOptionRobust(page, page.getByLabel('Сегмент'), `${productName} — ${segmentName}`)
+  await selectOptionRobust(page, page.getByLabel('Сегмент'), segmentName)
 
   await expect(
     page.getByRole('heading', { name: `Что можно сказать сегменту «${segmentName}»` })

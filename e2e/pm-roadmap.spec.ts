@@ -65,3 +65,14 @@ test('the PM product switcher remembers the last selected product', async ({ pag
   await page.goto('/pm')
   await expect(page).toHaveURL(/\/pm\?productId=/)
 })
+
+test('"+ Новый продукт" in the PM product switcher goes to the create-product form', async ({
+  page,
+}) => {
+  const productName = uniqueName('Has A Product Already')
+  await createProductViaUI(page, productName)
+
+  await page.goto('/pm')
+  await selectOptionRobust(page, page.getByLabel('Продукт'), '+ Новый продукт')
+  await page.waitForURL(/\/products\/new$/)
+})

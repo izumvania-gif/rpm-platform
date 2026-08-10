@@ -20,8 +20,14 @@ export default async function EditRoadmapItemPage({
   const [product, people, features, jtbds] = await Promise.all([
     prisma.product.findFirst({ where: { id: item.productId, userId } }),
     prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
-    prisma.feature.findMany({ where: { productId: item.productId, userId }, orderBy: { name: 'asc' } }),
-    prisma.jTBD.findMany({ where: { productId: item.productId, userId }, orderBy: { title: 'asc' } }),
+    prisma.feature.findMany({
+      where: { productId: item.productId, userId },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.jTBD.findMany({
+      where: { productId: item.productId, userId },
+      orderBy: { title: 'asc' },
+    }),
   ])
 
   if (!product) notFound()
@@ -41,6 +47,7 @@ export default async function EditRoadmapItemPage({
         defaultValues={item}
         error={searchParams.error}
         submitLabel="Сохранить"
+        cancelHref={`/pm?productId=${product.id}&scrollTo=roadmap`}
       />
     </main>
   )

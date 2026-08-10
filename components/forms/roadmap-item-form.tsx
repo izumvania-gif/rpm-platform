@@ -1,8 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import type { Feature, JTBD, Person } from '@prisma/client'
 import { RoadmapStatus, RoadmapVisibility } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
+import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -49,6 +51,7 @@ export function RoadmapItemForm({
   defaultValues,
   error,
   submitLabel,
+  cancelHref,
 }: {
   action: (formData: FormData) => void
   productId: string
@@ -59,6 +62,7 @@ export function RoadmapItemForm({
   defaultValues?: RoadmapItemFormValues
   error?: string
   submitLabel: string
+  cancelHref: string
 }) {
   return (
     <form action={action} className="max-w-2xl space-y-4">
@@ -76,7 +80,11 @@ export function RoadmapItemForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="status">Статус</Label>
-          <Select id="status" name="status" defaultValue={defaultValues?.status ?? RoadmapStatus.PLANNED}>
+          <Select
+            id="status"
+            name="status"
+            defaultValue={defaultValues?.status ?? RoadmapStatus.PLANNED}
+          >
             {Object.values(RoadmapStatus).map((status) => (
               <option key={status} value={status}>
                 {roadmapStatusLabels[status]}
@@ -151,7 +159,12 @@ export function RoadmapItemForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="track">Дорожка</Label>
-          <Input id="track" name="track" placeholder="Фронт" defaultValue={defaultValues?.track ?? ''} />
+          <Input
+            id="track"
+            name="track"
+            placeholder="Фронт"
+            defaultValue={defaultValues?.track ?? ''}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="startDate">Начало</Label>
@@ -180,16 +193,25 @@ export function RoadmapItemForm({
             className="mt-1 h-4 w-4 rounded border-input"
           />
           <Label htmlFor="isMilestone" className="font-normal">
-            Это веха (например, выпуск версии) — на диаграмме Ганта рисуется вертикальной линией
-            по дате «Начало», а не полосой; блок, дорожка и «Конец» для вехи не используются
+            Это веха (например, выпуск версии) — на диаграмме Ганта рисуется вертикальной линией по
+            дате «Начало», а не полосой; блок, дорожка и «Конец» для вехи не используются
           </Label>
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="description">Описание</Label>
-          <Textarea id="description" name="description" defaultValue={defaultValues?.description ?? ''} />
+          <Textarea
+            id="description"
+            name="description"
+            defaultValue={defaultValues?.description ?? ''}
+          />
         </div>
       </div>
-      <SubmitButton>{submitLabel}</SubmitButton>
+      <div className="flex items-center gap-3">
+        <SubmitButton>{submitLabel}</SubmitButton>
+        <Link href={cancelHref} className={buttonVariants({ variant: 'outline' })}>
+          Отмена
+        </Link>
+      </div>
     </form>
   )
 }

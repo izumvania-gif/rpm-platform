@@ -7,6 +7,8 @@ import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
+const NEW_PRODUCT_SENTINEL = '__new__'
+
 // PM view is scoped to one product at a time (plans/platform-views-plan.md
 // §3) — "у PM обычно 3–4 продукта". Reuses the same "default product"
 // localStorage slot that form pickers already default to elsewhere in the
@@ -31,6 +33,10 @@ export function PmProductSwitcher({
   }, [])
 
   function handleChange(productId: string) {
+    if (productId === NEW_PRODUCT_SENTINEL) {
+      router.push('/products/new')
+      return
+    }
     setDefaultProductId(productId)
     router.push(`/pm?productId=${productId}`)
   }
@@ -54,6 +60,7 @@ export function PmProductSwitcher({
             {product.name}
           </option>
         ))}
+        <option value={NEW_PRODUCT_SENTINEL}>+ Новый продукт</option>
       </Select>
     </div>
   )

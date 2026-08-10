@@ -7,6 +7,8 @@ import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
+const NEW_PRODUCT_SENTINEL = '__new__'
+
 // Same "default product" pattern as PmProductSwitcher, pointed at
 // /sales-hub instead of /pm. A second near-identical component rather than
 // a shared one with a basePath prop — two consumers is still cheaper than
@@ -31,6 +33,10 @@ export function SalesProductSwitcher({
   }, [])
 
   function handleChange(productId: string) {
+    if (productId === NEW_PRODUCT_SENTINEL) {
+      router.push('/products/new')
+      return
+    }
     setDefaultProductId(productId)
     router.push(`/sales-hub?productId=${productId}`)
   }
@@ -54,6 +60,7 @@ export function SalesProductSwitcher({
             {product.name}
           </option>
         ))}
+        <option value={NEW_PRODUCT_SENTINEL}>+ Новый продукт</option>
       </Select>
     </div>
   )

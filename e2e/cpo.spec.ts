@@ -54,4 +54,11 @@ test('shows cross-product ecosystem correlations and the multi-product roadmap',
 
   await expect(page.getByText(roadmapItemTitle)).toBeVisible()
   await expect(page.getByText('2026 Q4').last()).toBeVisible()
+
+  // Quick-jump nav (plans/2.0-ux-improvement-plan.md, Фаза 4) — clicking an
+  // anchor link should actually scroll the page, not just update the URL.
+  const scrollBefore = await page.evaluate(() => window.scrollY)
+  await page.getByRole('link', { name: 'Мультипродуктовый роадмап' }).click()
+  await expect(page).toHaveURL(/#roadmap$/)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore)
 })

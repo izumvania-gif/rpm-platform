@@ -39,6 +39,34 @@ test('create a department, assign it to a product, then rename and delete it', a
   await expect(page.getByText(renamed)).toHaveCount(0)
 })
 
+test('bulk-assign several existing products to a department in one submission', async ({
+  page,
+}) => {
+  const productAName = uniqueName('Bulk Assign A')
+  const productBName = uniqueName('Bulk Assign B')
+  for (const name of [productAName, productBName]) {
+    await page.goto('/products/new')
+    await page.getByLabel('Название').fill(name)
+    await page.getByRole('button', { name: 'Создать', exact: true }).click()
+    await page.waitForURL(/\/products\/(?!new)[^/]+$/)
+  }
+
+  const departmentName = uniqueName('Bulk Assign Dept')
+  await page.goto('/departments/new')
+  await page.getByLabel('Название').fill(departmentName)
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL(/\/departments\/(?!new)[^/]+$/)
+
+  await page.getByLabel(productAName).check()
+  await page.getByLabel(productBName).check()
+  await page.getByRole('button', { name: 'Добавить выбранные' }).click()
+  await page.waitForURL(/\/departments\/[^/]+$/)
+
+  await expect(page.getByText(`Продукты (2)`)).toBeVisible()
+  await expect(page.getByRole('link', { name: productAName })).toBeVisible()
+  await expect(page.getByRole('link', { name: productBName })).toBeVisible()
+})
+
 test('CPO groups products by department and shows a multi-product Gantt', async ({ page }) => {
   const departmentName = uniqueName('Электронная подпись')
   await page.goto('/departments/new')

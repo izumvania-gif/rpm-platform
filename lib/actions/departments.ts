@@ -46,6 +46,27 @@ export async function updateDepartment(id: string, formData: FormData) {
   redirect(`/departments/${id}`)
 }
 
+// Bulk-assign several existing products to this department in one submission
+// (plans/2.0-ux-improvement-plan.md, Фаза 4) — before this, moving 5 products
+// under a newly created department meant visiting each product's own page
+// one at a time. `productIds` is unchecked (plain string[] via
+// `formData.getAll`), same as the checkbox-pill multiselect pattern already
+// used by the onboarding wizard's segment/JTBD pickers, so no client JS is
+// needed for the form itself.
+export async function assignProductsToDepartment(departmentId: string, formData: FormData) {
+  const productIds = formData.getAll('productIds').map(String).filter(Boolean)
+  if (productIds.length > 0) {
+    await prisma.product.updateMany({
+      where: { id: { in: productIds }, userId: getCurrentUserId() },
+      data: { departmentId },
+    })
+  }
+  revalidatePath('/departments')
+  revalidatePath(`/departments/${departmentId}`)
+  revalidatePath('/products')
+  redirect(`/departments/${departmentId}`)
+}
+
 export async function deleteDepartment(id: string) {
   await prisma.department.delete({ where: { id } })
   revalidatePath('/departments')

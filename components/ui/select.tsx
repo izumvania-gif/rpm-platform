@@ -18,19 +18,84 @@ interface ParsedOption {
   value: string
   label: React.ReactNode
   disabled?: boolean
+  group?: string
 }
 
+// Recurses one level into <optgroup> so callers can group options (e.g.
+// /marketing-hub's segment filter, grouped by product) the same way they
+// would with a native <select> — <optgroup> isn't a plain element React
+// flattens into, so the bare `child.type === 'option'` filter this used to
+// be would silently drop every option nested inside one.
 function parseOptions(children: React.ReactNode): ParsedOption[] {
-  return React.Children.toArray(children)
-    .filter(
-      (child): child is React.ReactElement<React.OptionHTMLAttributes<HTMLOptionElement>> =>
-        React.isValidElement(child) && child.type === 'option'
-    )
-    .map((child) => ({
-      value: String(child.props.value ?? ''),
-      label: child.props.children,
-      disabled: child.props.disabled,
-    }))
+  const result: ParsedOption[] = []
+  for (const child of React.Children.toArray(children)) {
+    if (!React.isValidElement(child)) continue
+    if (child.type === 'option') {
+      const props = child.props as React.OptionHTMLAttributes<HTMLOptionElement>
+      result.push({
+        value: String(props.value ?? ''),
+        label: props.children,
+        disabled: props.disabled,
+      })
+    } else if (child.type === 'optgroup') {
+      const groupProps = child.props as React.OptgroupHTMLAttributes<HTMLOptGroupElement>
+      for (const grandchild of React.Children.toArray(groupProps.children)) {
+        if (!React.isValidElement(grandchild) || grandchild.type !== 'option') continue
+        const props = grandchild.props as React.OptionHTMLAttributes<HTMLOptionElement>
+        result.push({
+          value: String(props.value ?? ''),
+          label: props.children,
+          disabled: props.disabled,
+          group: groupProps.label,
+        })
+      }
+    }
+  }
+  return result
+}
+
+type OptionBlock =
+  { kind: 'item'; option: ParsedOption } | { kind: 'group'; label: string; options: ParsedOption[] }
+
+// Options arrive already in document order, so a run of consecutive entries
+// sharing the same `group` is exactly one <optgroup> — no need to bucket by
+// label globally.
+function blockOptions(options: ParsedOption[]): OptionBlock[] {
+  const blocks: OptionBlock[] = []
+  for (const option of options) {
+    if (!option.group) {
+      blocks.push({ kind: 'item', option })
+      continue
+    }
+    const last = blocks[blocks.length - 1]
+    if (last?.kind === 'group' && last.label === option.group) {
+      last.options.push(option)
+    } else {
+      blocks.push({ kind: 'group', label: option.group, options: [option] })
+    }
+  }
+  return blocks
+}
+
+function SelectOptionItem({ option }: { option: ParsedOption }) {
+  return (
+    <SelectPrimitive.Item
+      value={option.value === '' ? EMPTY_VALUE_SENTINEL : option.value}
+      disabled={option.disabled}
+      className={cn(
+        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none',
+        'focus:bg-accent focus:text-accent-foreground',
+        'data-[disabled]:pointer-events-none data-[disabled]:opacity-50'
+      )}
+    >
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <Check size={14} />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
+  )
 }
 
 // Drop-in replacement for a native <select>: same props (value/defaultValue/
@@ -143,25 +208,20 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
               sideOffset={4}
             >
               <SelectPrimitive.Viewport className="p-1">
-                {options.map((o) => (
-                  <SelectPrimitive.Item
-                    key={o.value}
-                    value={o.value === '' ? EMPTY_VALUE_SENTINEL : o.value}
-                    disabled={o.disabled}
-                    className={cn(
-                      'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none',
-                      'focus:bg-accent focus:text-accent-foreground',
-                      'data-[disabled]:pointer-events-none data-[disabled]:opacity-50'
-                    )}
-                  >
-                    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                      <SelectPrimitive.ItemIndicator>
-                        <Check size={14} />
-                      </SelectPrimitive.ItemIndicator>
-                    </span>
-                    <SelectPrimitive.ItemText>{o.label}</SelectPrimitive.ItemText>
-                  </SelectPrimitive.Item>
-                ))}
+                {blockOptions(options).map((block, i) =>
+                  block.kind === 'item' ? (
+                    <SelectOptionItem key={block.option.value} option={block.option} />
+                  ) : (
+                    <SelectPrimitive.Group key={`group-${i}`}>
+                      <SelectPrimitive.Label className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                        {block.label}
+                      </SelectPrimitive.Label>
+                      {block.options.map((o) => (
+                        <SelectOptionItem key={o.value} option={o} />
+                      ))}
+                    </SelectPrimitive.Group>
+                  )
+                )}
               </SelectPrimitive.Viewport>
             </SelectPrimitive.Content>
           </SelectPrimitive.Portal>

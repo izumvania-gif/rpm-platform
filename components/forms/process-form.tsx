@@ -1,6 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { SubmitButton } from '@/components/shared/submit-button'
+import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -15,6 +17,7 @@ export function ProcessForm({
   defaultValues,
   error,
   submitLabel,
+  cancelHref,
 }: {
   action: (formData: FormData) => void
   productId: string
@@ -22,6 +25,7 @@ export function ProcessForm({
   defaultValues?: ProcessFormValues
   error?: string
   submitLabel: string
+  cancelHref: string
 }) {
   return (
     <form action={action} className="max-w-2xl space-y-4">
@@ -40,7 +44,12 @@ export function ProcessForm({
           defaultValue={defaultValues?.title}
         />
       </div>
-      <SubmitButton>{submitLabel}</SubmitButton>
+      <div className="flex items-center gap-3">
+        <SubmitButton>{submitLabel}</SubmitButton>
+        <Link href={cancelHref} className={buttonVariants({ variant: 'outline' })}>
+          Отмена
+        </Link>
+      </div>
     </form>
   )
 }

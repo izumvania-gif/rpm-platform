@@ -32,6 +32,7 @@ export default async function EditProcessPage({
         defaultValues={process}
         error={searchParams.error}
         submitLabel="Сохранить"
+        cancelHref={`/pm?productId=${process.productId}&processId=${process.id}&scrollTo=process`}
       />
     </main>
   )

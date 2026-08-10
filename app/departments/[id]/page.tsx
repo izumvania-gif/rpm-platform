@@ -2,10 +2,15 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { deleteDepartment, updateDepartmentField } from '@/lib/actions/departments'
+import {
+  assignProductsToDepartment,
+  deleteDepartment,
+  updateDepartmentField,
+} from '@/lib/actions/departments'
 import { stageLabels } from '@/lib/labels'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
+import { SubmitButton } from '@/components/shared/submit-button'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
@@ -13,14 +18,26 @@ import { InlineEditableField } from '@/components/shared/inline-editable-field'
 export const dynamic = 'force-dynamic'
 
 export default async function DepartmentDetailPage({ params }: { params: { id: string } }) {
+  const userId = getCurrentUserId()
   const department = await prisma.department.findFirst({
-    where: { id: params.id, userId: getCurrentUserId() },
+    where: { id: params.id, userId },
     include: { products: { orderBy: { name: 'asc' } } },
   })
 
   if (!department) notFound()
 
+  // Prisma's `not` filter on a nullable column follows plain SQL three-valued
+  // logic (`department_id != X` is neither true nor false for NULL rows), so
+  // it silently excludes unassigned products — the OR spells out both cases
+  // this needs: no department yet, or a different one.
+  const otherProducts = await prisma.product.findMany({
+    where: { userId, OR: [{ departmentId: null }, { departmentId: { not: department.id } }] },
+    include: { department: true },
+    orderBy: { name: 'asc' },
+  })
+
   const deleteDepartmentWithId = deleteDepartment.bind(null, department.id)
+  const assignProductsWithId = assignProductsToDepartment.bind(null, department.id)
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
@@ -86,6 +103,38 @@ export default async function DepartmentDetailPage({ params }: { params: { id: s
           </ul>
         )}
       </div>
+
+      {otherProducts.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-sm font-semibold text-muted-foreground">
+            Добавить продукты в этот департамент
+          </h2>
+          <form action={assignProductsWithId} className="space-y-3 rounded-md border p-4">
+            <div className="flex flex-wrap gap-2">
+              {otherProducts.map((product) => (
+                <label
+                  key={product.id}
+                  className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    name="productIds"
+                    value={product.id}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  {product.name}
+                  {product.department && (
+                    <span className="text-xs text-muted-foreground">
+                      (сейчас: {product.department.name})
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+            <SubmitButton size="sm">Добавить выбранные</SubmitButton>
+          </form>
+        </div>
+      )}
     </main>
   )
 }

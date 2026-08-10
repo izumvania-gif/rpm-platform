@@ -38,3 +38,171 @@ test('switching to the Гант tab renders tracked bars grouped by block and a 
   await expect(page.getByText(barTitle)).toBeVisible()
   await expect(page.getByText(milestoneTitle)).toBeVisible()
 })
+
+// Фаза 6 (plans/2.0-ux-improvement-plan.md, раздел D) — the chart becomes
+// draggable. Pointer Events drag needs a manual mouse.move/down/up gesture,
+// not Playwright's dragTo() (that's built for HTML5 DnD). Every drag target
+// is scrolled into view first — the chart sits well below the fold on a
+// fresh product page, and mouse events at coordinates outside the viewport
+// are silently dropped (they never reach elementFromPoint's hit-test).
+
+test('dragging a bar body moves both dates, dragging its edge resizes one', async ({ page }) => {
+  const productName = uniqueName('Gantt Drag Product')
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
+
+  const barTitle = uniqueName('Backend work')
+  await page.goto(`/pm/roadmap/new?productId=${productId}`)
+  await page.getByLabel('Название').fill(barTitle)
+  await page.getByLabel('Блок (группа дорожек)').fill('Разработка')
+  await page.getByLabel('Дорожка', { exact: true }).fill('Бэк')
+  await page.locator('#startDate').fill('2026-09-05')
+  await page.locator('#endDate').fill('2026-09-15')
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+
+  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  const bar = page.locator(`div[title^="${barTitle}"]`)
+  await bar.scrollIntoViewIfNeeded()
+  const box = (await bar.boundingBox())!
+
+  // Move the whole bar to the right — both dates should shift by the same
+  // amount, so the duration (10 days) stays the same.
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2, { steps: 8 })
+  await page.mouse.up()
+  await expect(page.getByText('Не удалось сохранить', { exact: false })).toHaveCount(0)
+  await page.waitForLoadState('networkidle')
+
+  const editHref = await page
+    .locator('a[href^="/pm/roadmap/"][href$="/edit"]')
+    .first()
+    .getAttribute('href')
+  expect(editHref).toBeTruthy()
+
+  await page.goto(editHref!)
+  const movedStart = await page.locator('#startDate').inputValue()
+  const movedEnd = await page.locator('#endDate').inputValue()
+  expect(movedStart).not.toBe('2026-09-05')
+  expect(movedEnd).not.toBe('2026-09-15')
+  const durationDays =
+    (new Date(movedEnd).getTime() - new Date(movedStart).getTime()) / (24 * 60 * 60 * 1000)
+  expect(durationDays).toBe(10)
+
+  // Resize the right edge — only the end date should move, start stays put.
+  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  const barAfterMove = page.locator(`div[title^="${barTitle}"]`)
+  await barAfterMove.scrollIntoViewIfNeeded()
+  const box2 = (await barAfterMove.boundingBox())!
+  await page.mouse.move(box2.x + box2.width - 2, box2.y + box2.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box2.x + box2.width - 2 + 120, box2.y + box2.height / 2, { steps: 8 })
+  await page.mouse.up()
+  await page.waitForLoadState('networkidle')
+
+  await page.goto(editHref!)
+  const resizedStart = await page.locator('#startDate').inputValue()
+  const resizedEnd = await page.locator('#endDate').inputValue()
+  expect(resizedStart).toBe(movedStart)
+  expect(new Date(resizedEnd).getTime()).toBeGreaterThan(new Date(movedEnd).getTime())
+})
+
+test('dragging a milestone moves its date, and its edit link is keyboard-reachable', async ({
+  page,
+}) => {
+  const productName = uniqueName('Gantt Milestone Drag Product')
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
+
+  const milestoneTitle = uniqueName('v4.0')
+  await page.goto(`/pm/roadmap/new?productId=${productId}`)
+  await page.getByLabel('Название').fill(milestoneTitle)
+  await page.locator('#startDate').fill('2026-09-15')
+  await page.getByLabel('Это веха', { exact: false }).check()
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+
+  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  const label = page.getByText(milestoneTitle, { exact: true })
+  await label.scrollIntoViewIfNeeded()
+  const labelBox = (await label.boundingBox())!
+
+  await page.mouse.move(labelBox.x + labelBox.width / 2, labelBox.y + labelBox.height + 15)
+  await page.mouse.down()
+  await page.mouse.move(labelBox.x + labelBox.width / 2 - 60, labelBox.y + labelBox.height + 15, {
+    steps: 8,
+  })
+  await page.mouse.up()
+  await page.waitForLoadState('networkidle')
+
+  const editHref = await page
+    .locator('a[href^="/pm/roadmap/"][href$="/edit"]')
+    .first()
+    .getAttribute('href')
+  await page.goto(editHref!)
+  const movedDate = await page.locator('#startDate').inputValue()
+  expect(movedDate).not.toBe('2026-09-15')
+
+  // Keyboard path: the edit link is a real <a>, reachable and activatable
+  // without a pointer — this is the resolution to the plan's open
+  // accessibility question for Фаза 6 (a visible "Редактировать" link next
+  // to each bar/milestone, not arrow-key hijacking).
+  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  const keyboardEditLink = page.getByRole('link', { name: /Изменить дату/ })
+  await keyboardEditLink.focus()
+  await expect(keyboardEditLink).toBeFocused()
+  await page.keyboard.press('Enter')
+  await page.waitForURL(/\/pm\/roadmap\/.+\/edit/)
+})
+
+test('dragging a bar vertically onto another track row reassigns its track (/pm only)', async ({
+  page,
+}) => {
+  const productName = uniqueName('Gantt Track Drag Product')
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
+
+  const barTitle = uniqueName('Reassign me')
+  await page.goto(`/pm/roadmap/new?productId=${productId}`)
+  await page.getByLabel('Название').fill(barTitle)
+  await page.getByLabel('Блок (группа дорожек)').fill('Разработка')
+  await page.getByLabel('Дорожка', { exact: true }).fill('Фронт')
+  await page.locator('#startDate').fill('2026-09-01')
+  await page.locator('#endDate').fill('2026-09-10')
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+
+  // A second track in the same block, so there's somewhere to drop onto —
+  // buildGanttLayout only renders a track row that has at least one item.
+  await page.goto(`/pm/roadmap/new?productId=${productId}`)
+  await page.getByLabel('Название').fill(uniqueName('Anchor'))
+  await page.getByLabel('Блок (группа дорожек)').fill('Разработка')
+  await page.getByLabel('Дорожка', { exact: true }).fill('Бэк')
+  await page.locator('#startDate').fill('2026-09-01')
+  await page.locator('#endDate').fill('2026-09-10')
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+
+  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  const bar = page.locator(`div[title^="${barTitle}"]`)
+  await bar.scrollIntoViewIfNeeded()
+  const box = (await bar.boundingBox())!
+  // Tracks sort alphabetically (ru locale) with "Без трека" last — "Бэк"
+  // (Б) sorts before "Фронт" (Ф), so it renders as the row above. Rows are
+  // h-10 = 40px each.
+  const targetY = box.y + box.height / 2 - 40
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2, targetY, { steps: 8 })
+  await page.mouse.up()
+  await page.waitForLoadState('networkidle')
+
+  const editHref = await page
+    .locator(`a[href^="/pm/roadmap/"][href$="/edit"]`)
+    .first()
+    .getAttribute('href')
+  await page.goto(editHref!)
+  await expect(page.getByLabel('Дорожка', { exact: true })).toHaveValue('Бэк')
+})

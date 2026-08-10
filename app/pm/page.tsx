@@ -209,7 +209,7 @@ export default async function PmPage({
                 </div>
                 <CardContent className={roadmapView === 'gantt' ? 'p-5' : 'p-0'}>
                   {roadmapView === 'gantt' ? (
-                    <GanttChart layout={buildGanttLayout(roadmapItems)} />
+                    <GanttChart layout={buildGanttLayout(roadmapItems)} allowTrackChange />
                   ) : roadmapItems.length === 0 ? (
                     <p className="p-5 text-sm text-muted-foreground">
                       Пока нет пунктов роадмапа для этого продукта.

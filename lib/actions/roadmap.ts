@@ -94,6 +94,46 @@ export async function toggleRoadmapItemPinned(id: string, pinned: boolean) {
   revalidatePath('/pm')
 }
 
+// Gantt drag-and-drop save (plans/2.0-ux-improvement-plan.md, Фаза 6) —
+// called from GanttChart's Pointer Events handlers on pointerup, not the
+// full edit form. Deliberately narrow (start/end/track only, no pass
+// through the full 14-field roadmapItemSchema/Zod object) since a drag
+// gesture only ever touches these three fields. `endDate` is omitted
+// entirely for a milestone drag (only `startDate`, its marker date,
+// moves) rather than passed as null, so the update never overwrites an
+// unrelated field the gesture didn't touch.
+export async function updateRoadmapItemDates(
+  id: string,
+  startDate: string,
+  endDate?: string,
+  track?: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsedStart = z.coerce.date().safeParse(startDate)
+  if (!parsedStart.success) return { ok: false, error: 'Некорректная дата начала' }
+
+  let newEndDate: Date | undefined
+  if (endDate !== undefined) {
+    const parsedEnd = z.coerce.date().safeParse(endDate)
+    if (!parsedEnd.success) return { ok: false, error: 'Некорректная дата окончания' }
+    if (parsedEnd.data < parsedStart.data) {
+      return { ok: false, error: 'Дата окончания не может быть раньше даты начала' }
+    }
+    newEndDate = parsedEnd.data
+  }
+
+  await prisma.roadmapItem.update({
+    where: { id },
+    data: {
+      startDate: parsedStart.data,
+      ...(newEndDate !== undefined ? { endDate: newEndDate } : {}),
+      ...(track !== undefined ? { track: track.trim() || null } : {}),
+    },
+  })
+  revalidatePath('/pm')
+  revalidatePath('/cpo')
+  return { ok: true }
+}
+
 // Inline "Добавить пункт" on /pm itself (plans/2.0-ux-improvement-plan.md,
 // Фаза 5) — a trimmed subset of the full form's 14 fields, same "quick
 // capture now, refine via edit later" trade-off as every other createXQuick

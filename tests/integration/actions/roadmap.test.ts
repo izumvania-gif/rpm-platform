@@ -5,6 +5,7 @@ import {
   deleteRoadmapItem,
   toggleRoadmapItemPinned,
   updateRoadmapItem,
+  updateRoadmapItemDates,
 } from '@/lib/actions/roadmap'
 import { prisma } from '@/lib/prisma'
 import { buildFormData, captureRedirect, createTestProduct, ensureTestUser } from '../helpers'
@@ -209,5 +210,107 @@ describe('createRoadmapItemQuick', () => {
     const product = await createTestProduct()
     const result = await createRoadmapItemQuick(product.id, '   ', 'PLANNED', '', '')
     expect(result.ok).toBe(false)
+  })
+})
+
+describe('updateRoadmapItemDates', () => {
+  it('moves a bar (both dates shift, track untouched)', async () => {
+    const product = await createTestProduct()
+    const item = await prisma.roadmapItem.create({
+      data: {
+        title: 'Bar',
+        status: 'PLANNED',
+        visibility: 'INTERNAL',
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+        track: 'Фронт',
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-20'),
+      },
+    })
+
+    const result = await updateRoadmapItemDates(
+      item.id,
+      new Date('2026-09-05').toISOString(),
+      new Date('2026-09-24').toISOString()
+    )
+    expect(result.ok).toBe(true)
+
+    const updated = await prisma.roadmapItem.findUnique({ where: { id: item.id } })
+    expect(updated?.startDate?.toISOString().slice(0, 10)).toBe('2026-09-05')
+    expect(updated?.endDate?.toISOString().slice(0, 10)).toBe('2026-09-24')
+    expect(updated?.track).toBe('Фронт')
+  })
+
+  it('reassigns the track when one is passed', async () => {
+    const product = await createTestProduct()
+    const item = await prisma.roadmapItem.create({
+      data: {
+        title: 'Bar',
+        status: 'PLANNED',
+        visibility: 'INTERNAL',
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+        track: 'Фронт',
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-20'),
+      },
+    })
+
+    const result = await updateRoadmapItemDates(
+      item.id,
+      new Date('2026-09-01').toISOString(),
+      new Date('2026-09-20').toISOString(),
+      'Бэк'
+    )
+    expect(result.ok).toBe(true)
+    expect((await prisma.roadmapItem.findUnique({ where: { id: item.id } }))?.track).toBe('Бэк')
+  })
+
+  it('moves a milestone by start date only, leaving endDate untouched', async () => {
+    const product = await createTestProduct()
+    const item = await prisma.roadmapItem.create({
+      data: {
+        title: 'v2.5',
+        status: 'PLANNED',
+        visibility: 'INTERNAL',
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+        isMilestone: true,
+        startDate: new Date('2026-09-30'),
+      },
+    })
+
+    const result = await updateRoadmapItemDates(item.id, new Date('2026-10-02').toISOString())
+    expect(result.ok).toBe(true)
+
+    const updated = await prisma.roadmapItem.findUnique({ where: { id: item.id } })
+    expect(updated?.startDate?.toISOString().slice(0, 10)).toBe('2026-10-02')
+    expect(updated?.endDate).toBeNull()
+  })
+
+  it('rejects an end date before the start date', async () => {
+    const product = await createTestProduct()
+    const item = await prisma.roadmapItem.create({
+      data: {
+        title: 'Bar',
+        status: 'PLANNED',
+        visibility: 'INTERNAL',
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+        startDate: new Date('2026-09-10'),
+        endDate: new Date('2026-09-20'),
+      },
+    })
+
+    const result = await updateRoadmapItemDates(
+      item.id,
+      new Date('2026-09-25').toISOString(),
+      new Date('2026-09-20').toISOString()
+    )
+    expect(result.ok).toBe(false)
+
+    const unchanged = await prisma.roadmapItem.findUnique({ where: { id: item.id } })
+    expect(unchanged?.startDate?.toISOString().slice(0, 10)).toBe('2026-09-10')
   })
 })

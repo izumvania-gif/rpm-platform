@@ -9,15 +9,14 @@ test('add a roadmap item on /pm, see it grouped by quarter, then delete it', asy
   await page.goto(`/pm?productId=${productId}`)
   await expect(page.getByRole('heading', { name: 'PM' })).toBeVisible()
 
-  await page.getByRole('link', { name: 'Добавить пункт' }).click()
-  await page.waitForURL(/\/pm\/roadmap\/new\?productId=/)
-
+  // Inline "Добавить пункт" (plans/2.0-ux-improvement-plan.md, Фаза 5) — no
+  // navigation away from /pm at all, unlike the old full-page flow.
+  await page.getByRole('button', { name: 'Добавить пункт' }).click()
   const itemTitle = uniqueName('Launch v2')
-  await page.getByLabel('Название').fill(itemTitle)
+  await page.getByPlaceholder('Название').fill(itemTitle)
   await selectOptionRobust(page, page.getByLabel('Статус'), 'В работе')
-  await page.getByLabel('Квартал').fill('2026 Q4')
-  await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.getByPlaceholder('Квартал, напр. 2026 Q3').fill('2026 Q4')
+  await page.getByRole('button', { name: 'Добавить', exact: true }).click()
 
   await expect(page.getByText('2026 Q4')).toBeVisible()
   await expect(page.getByText(itemTitle)).toBeVisible()

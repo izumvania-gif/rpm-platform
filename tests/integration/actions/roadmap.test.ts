@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   createRoadmapItem,
+  createRoadmapItemQuick,
   deleteRoadmapItem,
   toggleRoadmapItemPinned,
   updateRoadmapItem,
@@ -48,7 +49,12 @@ describe('createRoadmapItem', () => {
 
   it('defaults status/visibility and rejects a missing title', async () => {
     const product = await createTestProduct()
-    const formData = buildFormData({ title: '  ', status: 'PLANNED', visibility: 'INTERNAL', productId: product.id })
+    const formData = buildFormData({
+      title: '  ',
+      status: 'PLANNED',
+      visibility: 'INTERNAL',
+      productId: product.id,
+    })
     const redirectPath = await captureRedirect(() => createRoadmapItem(formData))
     expect(redirectPath).toMatch(/^\/pm\/roadmap\/new\?productId=.*&error=/)
     expect(await prisma.roadmapItem.count()).toBe(0)
@@ -169,5 +175,39 @@ describe('updateRoadmapItem / deleteRoadmapItem / toggleRoadmapItemPinned', () =
     })
     await toggleRoadmapItemPinned(item.id, true)
     expect((await prisma.roadmapItem.findUnique({ where: { id: item.id } }))?.pinned).toBe(true)
+  })
+})
+
+describe('createRoadmapItemQuick', () => {
+  it('creates an item with the trimmed field set, no redirect', async () => {
+    const product = await createTestProduct()
+    const owner = await prisma.person.create({
+      data: { name: 'Quick Owner', skills: [], userId: DEFAULT_USER_ID },
+    })
+
+    const result = await createRoadmapItemQuick(
+      product.id,
+      'Ship v2',
+      'IN_PROGRESS',
+      '2026 Q4',
+      owner.id
+    )
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.item).toMatchObject({
+      title: 'Ship v2',
+      status: 'IN_PROGRESS',
+      quarter: '2026 Q4',
+      ownerId: owner.id,
+      visibility: 'INTERNAL',
+      productId: product.id,
+    })
+    expect(result.item.owner).toMatchObject({ id: owner.id })
+  })
+
+  it('rejects a missing title', async () => {
+    const product = await createTestProduct()
+    const result = await createRoadmapItemQuick(product.id, '   ', 'PLANNED', '', '')
+    expect(result.ok).toBe(false)
   })
 })

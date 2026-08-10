@@ -26,6 +26,9 @@ import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { ScrollToSection } from '@/components/shared/scroll-to-section'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { AddTeamMemberForm } from '@/components/shared/add-team-member-form'
+import { AddRoadmapItemForm } from '@/components/shared/add-roadmap-item-form'
+import { AddActionPlanForm } from '@/components/shared/add-action-plan-form'
+import { AddProcessForm } from '@/components/shared/add-process-form'
 import { ProcessGraph } from '@/components/process-graph/canvas'
 import { RoadmapViewTabs } from '@/components/shared/roadmap-view-tabs'
 import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
@@ -194,17 +197,12 @@ export default async function PmPage({
               </Card>
 
               <Card id="roadmap" variant="content" className="scroll-mt-4">
-                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 border-l-4 border-primary">
+                <CardHeader className="flex flex-col items-start gap-2 space-y-0 border-l-4 border-primary sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="flex items-center gap-1.5 text-base">
                     <CalendarClock size={15} strokeWidth={1.75} className="text-primary" />
                     Роадмап
                   </CardTitle>
-                  <Link
-                    href={`/pm/roadmap/new?productId=${product.id}`}
-                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                  >
-                    Добавить пункт
-                  </Link>
+                  <AddRoadmapItemForm productId={product.id} people={people} />
                 </CardHeader>
                 <div className="border-b px-5 py-3">
                   <RoadmapViewTabs active={roadmapView} productId={product.id} />
@@ -347,14 +345,7 @@ export default async function PmPage({
                 description="Заранее написанное «что делать» для предсказуемых нештатных ситуаций — открыть готовый план быстрее, чем придумывать реакцию в моменте (plans/pm-time-allocation-research.md §1)"
                 tone="secondary"
                 contentClassName="p-0"
-                action={
-                  <Link
-                    href={`/pm/action-plans/new?productId=${product.id}`}
-                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                  >
-                    Добавить план
-                  </Link>
-                }
+                action={<AddActionPlanForm productId={product.id} people={people} />}
               >
                 {actionPlans.length === 0 ? (
                   <p className="p-5 text-sm text-muted-foreground">
@@ -443,12 +434,7 @@ export default async function PmPage({
                       />
                     </div>
                   ) : (
-                    <Link
-                      href={`/pm/processes/new?productId=${product.id}`}
-                      className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                    >
-                      Добавить процесс
-                    </Link>
+                    <AddProcessForm productId={product.id} />
                   )
                 }
               >

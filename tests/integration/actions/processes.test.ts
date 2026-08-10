@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createProcess, deleteProcess, updateProcess } from '@/lib/actions/processes'
+import {
+  createProcess,
+  createProcessQuick,
+  deleteProcess,
+  updateProcess,
+} from '@/lib/actions/processes'
 import { prisma } from '@/lib/prisma'
 import { buildFormData, captureRedirect, createTestProduct, ensureTestUser } from '../helpers'
 
@@ -16,7 +21,9 @@ describe('createProcess', () => {
     const redirectPath = await captureRedirect(() => createProcess(formData))
     const process = await prisma.process.findFirst({ where: { productId: product.id } })
     expect(process).toMatchObject({ title: 'Запуск маркетинговой кампании' })
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&processId=${process!.id}&scrollTo=process`)
+    expect(redirectPath).toBe(
+      `/pm?productId=${product.id}&processId=${process!.id}&scrollTo=process`
+    )
   })
 
   it('rejects a missing title', async () => {
@@ -35,7 +42,9 @@ describe('updateProcess / deleteProcess', () => {
 
     const formData = buildFormData({ title: 'New', productId: product.id })
     const redirectPath = await captureRedirect(() => updateProcess(process.id, formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&processId=${process.id}&scrollTo=process`)
+    expect(redirectPath).toBe(
+      `/pm?productId=${product.id}&processId=${process.id}&scrollTo=process`
+    )
     expect((await prisma.process.findUnique({ where: { id: process.id } }))?.title).toBe('New')
   })
 
@@ -48,5 +57,24 @@ describe('updateProcess / deleteProcess', () => {
     expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=process`)
     expect(await prisma.process.findUnique({ where: { id: process.id } })).toBeNull()
     expect(await prisma.processStep.count()).toBe(0)
+  })
+})
+
+describe('createProcessQuick', () => {
+  it('creates a process, no redirect', async () => {
+    const product = await createTestProduct()
+    const result = await createProcessQuick(product.id, 'Обработка инцидента')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.process).toMatchObject({
+      title: 'Обработка инцидента',
+      productId: product.id,
+    })
+  })
+
+  it('rejects a missing title', async () => {
+    const product = await createTestProduct()
+    const result = await createProcessQuick(product.id, '   ')
+    expect(result.ok).toBe(false)
   })
 })

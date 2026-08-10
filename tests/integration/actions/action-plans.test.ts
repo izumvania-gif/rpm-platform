@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   createActionPlan,
+  createActionPlanQuick,
   deleteActionPlan,
   toggleActionPlanPinned,
   updateActionPlan,
@@ -109,5 +110,38 @@ describe('updateActionPlan / deleteActionPlan / toggleActionPlanPinned', () => {
     })
     await toggleActionPlanPinned(plan.id, true)
     expect((await prisma.actionPlan.findUnique({ where: { id: plan.id } }))?.pinned).toBe(true)
+  })
+})
+
+describe('createActionPlanQuick', () => {
+  it('creates a plan with steps split into lines, no redirect', async () => {
+    const product = await createTestProduct()
+    const owner = await prisma.person.create({
+      data: { name: 'Quick Coordinator', skills: [], userId: DEFAULT_USER_ID },
+    })
+
+    const result = await createActionPlanQuick(
+      product.id,
+      'Клиент публично жалуется',
+      'Жалоба набрала репосты',
+      'Оценить масштаб\nСвязаться с клиентом',
+      owner.id
+    )
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.plan).toMatchObject({
+      scenario: 'Клиент публично жалуется',
+      trigger: 'Жалоба набрала репосты',
+      steps: ['Оценить масштаб', 'Связаться с клиентом'],
+      tags: [],
+      ownerId: owner.id,
+      productId: product.id,
+    })
+  })
+
+  it('rejects a missing scenario', async () => {
+    const product = await createTestProduct()
+    const result = await createActionPlanQuick(product.id, '   ', '', '', '')
+    expect(result.ok).toBe(false)
   })
 })

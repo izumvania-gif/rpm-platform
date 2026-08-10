@@ -12,13 +12,12 @@ test('create a process, add a step, edit it via the inspector, then delete step 
   await expect(page.getByRole('heading', { name: 'Процесс' })).toBeVisible()
   await expect(page.getByText('У этого продукта пока нет описанных процессов.')).toBeVisible()
 
+  // Inline "Добавить процесс" (plans/2.0-ux-improvement-plan.md, Фаза 5) —
+  // no navigation away from /pm.
   const processTitle = uniqueName('Запуск маркетинговой кампании')
-  await page.getByRole('link', { name: 'Добавить процесс' }).click()
-  await page.waitForURL(/\/pm\/processes\/new\?productId=/)
-  await page.getByLabel('Название процесса').fill(processTitle)
-  await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/pm\?productId=.+&processId=.+/)
-
+  await page.getByRole('button', { name: 'Добавить процесс' }).click()
+  await page.getByPlaceholder('Например: Запуск маркетинговой кампании').fill(processTitle)
+  await page.getByRole('button', { name: 'Добавить', exact: true }).click()
   await expect(page.getByText(`Процесс: ${processTitle}`)).toBeVisible()
   await expect(page.getByText('В этом процессе пока нет шагов.')).toBeVisible()
 
@@ -63,22 +62,24 @@ test('create an action plan with ordered steps and tags, then delete it', async 
   const productId = productUrl.split('/').pop()!
 
   await page.goto(`/pm?productId=${productId}`)
-  await page.getByRole('link', { name: 'Добавить план' }).click()
-  await page.waitForURL(/\/pm\/action-plans\/new\?productId=/)
 
+  // Inline "Добавить план" (plans/2.0-ux-improvement-plan.md, Фаза 5) — no
+  // navigation away from /pm. Tags stay on the full form (reachable via
+  // "Больше полей →" or "Редактировать" afterward), so this only exercises
+  // scenario/trigger/steps.
   const scenario = uniqueName('Клиент публично жалуется')
-  await page.getByLabel('Сценарий', { exact: true }).fill(scenario)
-  await page.getByLabel('Как понять, что сценарий наступил').fill('Жалоба набрала репосты')
+  await page.getByRole('button', { name: 'Добавить план' }).click()
+  await page.getByPlaceholder('Сценарий, напр. Клиент публично жалуется в соцсетях').fill(scenario)
   await page
-    .getByLabel('Шаги (по одному на строку)')
+    .getByPlaceholder('Как понять, что сценарий наступил (необязательно)')
+    .fill('Жалоба набрала репосты')
+  await page
+    .getByPlaceholder('Шаги, по одному на строку')
     .fill('Оценить масштаб\nСвязаться с клиентом\nПодготовить ответ')
-  await page.getByLabel('Категории (через запятую)').fill('PR-кризис, срочно')
-  await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.getByRole('button', { name: 'Добавить', exact: true }).click()
 
   await expect(page.getByText(scenario)).toBeVisible()
   await expect(page.getByText('Оценить масштаб')).toBeVisible()
-  await expect(page.getByText('PR-кризис')).toBeVisible()
 
   const planRow = page.locator('li', { hasText: scenario })
   page.once('dialog', (dialog) => dialog.accept())

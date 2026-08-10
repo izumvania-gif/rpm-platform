@@ -1,11 +1,16 @@
 'use server'
 
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { optionalString, toLines, toTagsArray } from '@/lib/validation'
+
+type ActionPlanQuick = Prisma.ActionPlanGetPayload<{
+  include: { owner: true; processStep: true }
+}>
 
 const actionPlanSchema = z.object({
   scenario: z.string().trim().min(1, 'Сценарий обязателен'),
@@ -75,4 +80,34 @@ export async function deleteActionPlan(id: string) {
 export async function toggleActionPlanPinned(id: string, pinned: boolean) {
   await prisma.actionPlan.update({ where: { id }, data: { pinned } })
   revalidatePath('/pm')
+}
+
+// Inline "Добавить план" on /pm itself (plans/2.0-ux-improvement-plan.md,
+// Фаза 5) — trims processStepId/tags from the full form (still reachable at
+// /pm/action-plans/new for that), keeps scenario/trigger/steps/owner since
+// the steps are the actual point of an action plan, not an optional extra.
+export async function createActionPlanQuick(
+  productId: string,
+  scenario: string,
+  trigger: string,
+  steps: string,
+  ownerId: string
+): Promise<{ ok: true; plan: ActionPlanQuick } | { ok: false; error: string }> {
+  const trimmedScenario = scenario.trim()
+  if (!trimmedScenario) return { ok: false, error: 'Сценарий обязателен' }
+
+  const plan = await prisma.actionPlan.create({
+    data: {
+      scenario: trimmedScenario,
+      trigger: trigger.trim() || null,
+      steps: toLines(steps),
+      tags: [],
+      ownerId: ownerId || null,
+      productId,
+      userId: getCurrentUserId(),
+    },
+    include: { owner: true, processStep: true },
+  })
+  revalidatePath('/pm')
+  return { ok: true, plan }
 }

@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import type { Process } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -44,6 +45,22 @@ export async function updateProcess(id: string, formData: FormData) {
   const process = await prisma.process.update({ where: { id }, data: { title: parsed.data.title } })
   revalidatePath('/pm')
   redirect(`/pm?productId=${process.productId}&processId=${process.id}&scrollTo=process`)
+}
+
+// Inline "Добавить процесс" on /pm itself (plans/2.0-ux-improvement-plan.md,
+// Фаза 5) — the full form only ever has a title anyway, so this is a
+// straight Quick wrapper, not a trimmed subset like the roadmap/action-plan
+// ones.
+export async function createProcessQuick(
+  productId: string,
+  title: string
+): Promise<{ ok: true; process: Process } | { ok: false; error: string }> {
+  const trimmedTitle = title.trim()
+  if (!trimmedTitle) return { ok: false, error: 'Название обязательно' }
+
+  const process = await prisma.process.create({ data: { title: trimmedTitle, productId } })
+  revalidatePath('/pm')
+  return { ok: true, process }
 }
 
 export async function deleteProcess(id: string) {

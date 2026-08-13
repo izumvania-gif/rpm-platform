@@ -224,6 +224,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       {/* Bulk entry (plans/2.0-product-leap-plan.md, A1 + A2) — sits above the
           module sections because it fills several of them at once. */}
       <div className="flex flex-wrap items-start gap-2 print:hidden">
+        <Link
+          href={`/inbox?productId=${product.id}`}
+          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+        >
+          Инбокс
+        </Link>
         <BulkAddPanel productId={product.id} />
         <CsvImportPanel productId={product.id} />
         {/* Starter templates (A4) only while the product is still near-empty —

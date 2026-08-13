@@ -13,6 +13,14 @@ test('dashboard loads with the main navigation', async ({ page }) => {
 })
 
 test('every top-level module page renders without a server error', async ({ page }) => {
+  // This one test navigates 14 times in sequence, so it needs a bigger budget
+  // than the 30s default that suits single-page specs: at ~2-3s per `goto` on
+  // a loaded container it runs out of time partway through, and the route it
+  // dies on moves between runs (/hypotheses one attempt, /insights the next) —
+  // the signature of an exhausted budget rather than a broken page. Tripling
+  // it via test.slow() keeps the assertion itself untouched.
+  test.slow()
+
   const routes = [
     '/products',
     '/segments',

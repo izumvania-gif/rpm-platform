@@ -226,6 +226,15 @@ export function QuickCapture() {
           >
             Больше полей →
           </Link>
+          {/* Quick capture is for one thought; a whole page of notes belongs
+              in the Inbox, which types each line separately (B1). */}
+          <Link
+            href="/inbox"
+            onClick={() => setOpen(false)}
+            className="text-xs text-muted-foreground hover:underline"
+          >
+            Вставить много →
+          </Link>
           {saved && (
             <span role="status" className="ml-auto text-xs text-muted-foreground">
               {saved}

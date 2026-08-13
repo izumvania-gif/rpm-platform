@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Inbox as InboxIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { KeyboardShortcutsOverlay } from '@/components/shared/keyboard-shortcuts-overlay'
@@ -131,6 +131,26 @@ export function SiteNav() {
               })}
             </nav>
             <SearchBox />
+            {/* Inbox (plans/2.0-product-leap-plan.md, B1) sits with the
+                header actions, not as a sixth module tab: it is a way IN to
+                the data, like search, rather than another section to fill —
+                and adding a tab would work against C1's whole argument that
+                13 modules already over-face a new user.
+                Icon-only: the header was already at capacity at 1280px, and
+                a text label pushed the search box over the JTBD tab. */}
+            <Link
+              href="/inbox"
+              aria-label="Инбокс"
+              title="Инбокс — вставить заметки списком"
+              className={cn(
+                'hidden shrink-0 rounded-md border p-2 transition-colors sm:flex',
+                pathname === '/inbox'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'hover:border-primary/50 hover:bg-accent'
+              )}
+            >
+              <InboxIcon size={16} strokeWidth={1.75} aria-hidden />
+            </Link>
             <PersonaSwitcher />
             <KeyboardShortcutsOverlay />
             <ThemeToggle />

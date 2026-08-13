@@ -22,10 +22,10 @@ export default function ReportsPage() {
         <Link href="/reports/gaps">
           <Card className="h-full hover:border-primary transition-colors">
             <CardHeader>
-              <CardTitle>Дашборд пробелов</CardTitle>
+              <CardTitle>Пробелы: что делать дальше</CardTitle>
               <CardDescription>
-                Неподтверждённые JTBD, сегменты без задач, зависшие гипотезы, продукты без
-                исследований.
+                Очередь задач в порядке от самого блокирующего: сегменты без задач, продукты без
+                исследований, зависшие гипотезы, неподтверждённые JTBD.
               </CardDescription>
             </CardHeader>
           </Card>

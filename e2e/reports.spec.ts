@@ -4,7 +4,7 @@ import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
 test('reports index links to both report pages', async ({ page }) => {
   await page.goto('/reports')
   await expect(page.getByRole('heading', { name: 'Матрица: Сегменты × JTBD' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Дашборд пробелов' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Пробелы: что делать дальше' })).toBeVisible()
 })
 
 test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category', async ({
@@ -29,7 +29,9 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
 
   const category = uniqueName('Matrix Category')
   await page.goto('/jtbd/new')
-  await page.getByLabel('Формулировка JTBD').fill('Когда я использую матрицу, я хочу видеть покрытие')
+  await page
+    .getByLabel('Формулировка JTBD')
+    .fill('Когда я использую матрицу, я хочу видеть покрытие')
   await page.getByLabel('Категория').fill(category)
   await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
   await page.getByLabel(segmentName).check()
@@ -60,5 +62,7 @@ test('gaps dashboard lists an unconfirmed JTBD', async ({ page }) => {
   await page.waitForURL(/\/jtbd\/[^/]+$/)
 
   await page.goto('/reports/gaps')
-  await expect(page.getByRole('link', { name: jtbdTitle })).toBeVisible()
+  // Since C3 the row's title is plain text and the link is the action that
+  // resolves the gap, so this asserts the text rather than a link by name.
+  await expect(page.getByText(jtbdTitle)).toBeVisible()
 })

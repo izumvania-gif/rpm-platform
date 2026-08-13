@@ -8,7 +8,14 @@ export const dynamic = 'force-dynamic'
 export default async function NewJtbdPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: {
+    error?: string
+    productId?: string
+    duplicateFrom?: string
+    // Set by the gaps queue (C3), which knows the segment whose missing JTBD
+    // is the gap — arriving with it pre-ticked is the whole point of the link.
+    segmentId?: string
+  }
 }) {
   const userId = getCurrentUserId()
   const [products, segments, researches, categoryRows, duplicateSource] = await Promise.all([
@@ -50,7 +57,10 @@ export default async function NewJtbdPage({
                   productId: searchParams.productId ?? duplicateSource.productId,
                   segmentIds: duplicateSource.segments.map((s) => s.id),
                 }
-              : { productId: searchParams.productId }
+              : {
+                  productId: searchParams.productId,
+                  segmentIds: searchParams.segmentId ? [searchParams.segmentId] : undefined,
+                }
           }
           error={searchParams.error}
           submitLabel="Создать"

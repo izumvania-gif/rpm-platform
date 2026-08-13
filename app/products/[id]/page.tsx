@@ -224,6 +224,11 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       {/* Bulk entry (plans/2.0-product-leap-plan.md, A1 + A2) — sits above the
           module sections because it fills several of them at once. */}
       <div className="flex flex-wrap items-start gap-2 print:hidden">
+        {/* The canvas (C2) leads, because it is the one view that shows the
+            whole chain at once rather than filling one more list. */}
+        <Link href={`/products/${product.id}/canvas`} className={buttonVariants({ size: 'sm' })}>
+          Холст продукта
+        </Link>
         <Link
           href={`/inbox?productId=${product.id}`}
           className={buttonVariants({ variant: 'outline', size: 'sm' })}

@@ -81,6 +81,7 @@ model Product {
   processes        Process[]
   actionPlans      ActionPlan[]
   teamMembers      ProductTeamMember[]
+  canvasLayout     ProductCanvasLayout[]
 }
 
 // Ростер команды продукта (plans/2.0-ux-improvement-plan.md, Фаза 2) — lets a
@@ -264,6 +265,31 @@ model JtbdGraphLayout {
   updatedAt DateTime @updatedAt
 
   @@unique([jtbdId, viewKey])
+}
+
+// Тип узла на холсте продукта (plans/2.0-product-leap-plan.md, C2)
+enum CanvasNodeKind {
+  SEGMENT
+  JTBD
+  HYPOTHESIS
+}
+
+// Позиции узлов на холсте продукта. Отдельно от JtbdGraphLayout: тот хранит
+// раскладку графа JTBD по представлениям (общее / по сегменту) и завязан на
+// jtbdId, а здесь узлы трёх разных моделей на одном холсте продукта.
+// Как и JtbdGraphLayout/JtbdSequenceEdge — без собственного userId, доступ
+// ограничивается через productId -> Product -> userId.
+model ProductCanvasLayout {
+  id        String         @id @default(cuid())
+  productId String
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  nodeKind  CanvasNodeKind
+  nodeId    String
+  x         Float
+  y         Float
+  updatedAt DateTime       @updatedAt
+
+  @@unique([productId, nodeKind, nodeId])
 }
 
 // Рёбра последовательности JTBD ("задача A предшествует задаче B")

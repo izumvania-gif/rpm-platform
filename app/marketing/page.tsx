@@ -36,7 +36,11 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
-        <SectionHeading title="Маркетинг" description={moduleByHref['/marketing'].description} />
+        <SectionHeading
+          level={1}
+          title="Маркетинг"
+          description={moduleByHref['/marketing'].description}
+        />
         <Link href="/marketing/new" className={buttonVariants()}>
           Новый RTB
         </Link>

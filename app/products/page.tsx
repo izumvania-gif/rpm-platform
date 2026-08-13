@@ -32,7 +32,11 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-        <SectionHeading title="Продукты" description={moduleByHref['/products'].description} />
+        <SectionHeading
+          level={1}
+          title="Продукты"
+          description={moduleByHref['/products'].description}
+        />
         <Link href="/products/new" className={buttonVariants()}>
           Новый продукт
         </Link>

@@ -38,5 +38,14 @@ export async function hasDataBeyondBase(userId: string): Promise<boolean> {
 }
 
 export async function getNavStage(userId: string): Promise<NavStage> {
-  return deriveNavStage(await hasDataBeyondBase(userId))
+  try {
+    return deriveNavStage(await hasDataBeyondBase(userId))
+  } catch {
+    // This runs in the ROOT layout, so an exception here takes down every
+    // route at once — a database hiccup turned the whole app into a 500 with
+    // no navigation, which is how this was found. The nav stage is a display
+    // preference and must never be able to do that. Falling back to 'full'
+    // fails safe in the direction that hides nothing.
+    return 'full'
+  }
 }

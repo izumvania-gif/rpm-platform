@@ -54,10 +54,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className={cn(inter.className, manrope.variable, plexMono.variable)}>
+        {/* Skip-link (plans/2.0-hardening-plan.md, B3). Measured on /pm: 12
+            consecutive stops through the navigation before the focus reaches
+            any content, on every page. `sr-only focus:not-sr-only` keeps it
+            invisible until it is focused — it must stay in the DOM and in the
+            tab order, so display:none is not an option. */}
+        <a
+          href="#main"
+          className="sr-only rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50"
+        >
+          Перейти к содержимому
+        </a>
         <SiteNav autoStage={autoStage} />
         <KeyboardShortcuts />
         <QuickCapture />
-        {children}
+        {/* One wrapper here rather than an id on all 73 page-level <main>
+            elements: the target only has to exist once, and this cannot drift
+            out of sync when a new page is added. tabIndex={-1} is required —
+            without it several browsers scroll to the anchor but leave focus
+            behind in the nav, so the next Tab continues from the header. */}
+        <div id="main" tabIndex={-1} className="outline-none">
+          {children}
+        </div>
       </body>
     </html>
   )

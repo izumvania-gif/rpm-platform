@@ -21,6 +21,7 @@ export default async function DepartmentsPage() {
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <SectionHeading
+          level={1}
           title="Департаменты"
           description="Стратегическая группировка продуктов для CPO — например MFA-продукты, Электронная подпись, IoT-безопасность"
         />

@@ -31,6 +31,7 @@ export default async function InboxPage({
   return (
     <main className="container py-12 space-y-8">
       <SectionHeading
+        level={1}
         title="Инбокс"
         description="Вставьте заметки, транскрипт или список — каждая строка станет черновой записью нужного типа"
       />

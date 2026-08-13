@@ -32,7 +32,11 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-        <SectionHeading title="Сегменты" description={moduleByHref['/segments'].description} />
+        <SectionHeading
+          level={1}
+          title="Сегменты"
+          description={moduleByHref['/segments'].description}
+        />
         <div className="flex flex-wrap gap-2">
           <Link href="/reports/segments-jtbd" className={buttonVariants({ variant: 'outline' })}>
             Матрица Сегменты × JTBD

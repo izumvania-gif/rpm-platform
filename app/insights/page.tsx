@@ -38,7 +38,11 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
-        <SectionHeading title="Инсайты" description={moduleByHref['/insights'].description} />
+        <SectionHeading
+          level={1}
+          title="Инсайты"
+          description={moduleByHref['/insights'].description}
+        />
         <Link href="/insights/new" className={buttonVariants()}>
           Новый инсайт
         </Link>

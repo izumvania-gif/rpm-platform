@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { HypothesisStatus, type Hypothesis, type Product } from '@prisma/client'
@@ -96,7 +98,7 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
                   >
                     <Card
                       className={cn(
-                        'border-l-4 shadow-sm transition-shadow hover:shadow-md hover:-translate-y-0.5',
+                        'group border-l-4 shadow-sm transition-shadow hover:shadow-md hover:-translate-y-0.5',
                         settledId === h.id && 'motion-safe:animate-card-settle'
                       )}
                       style={{ borderLeftColor: tone.border }}
@@ -118,10 +120,38 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
                             action={toggleHypothesisPinned.bind(null, h.id, !h.pinned)}
                           />
                         </div>
-                        <CardTitle className="text-sm font-medium line-clamp-3">
-                          {h.statement}
+                        {/* A real link, not a div with onClick (B1/B2 of
+                            plans/2.0-hardening-plan.md): the card was
+                            draggable+clickable but had no tabIndex, no role
+                            and no key handler, so it could not be opened from
+                            a keyboard and no screen reader announced it as
+                            interactive. The outer div keeps its click handler
+                            for the "click anywhere on the card" affordance;
+                            this stops propagation so one click is one push. */}
+                        <CardTitle className="text-sm font-medium">
+                          <Link
+                            href={`/hypotheses/${h.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="line-clamp-3 rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            {h.statement}
+                          </Link>
                         </CardTitle>
-                        <CardDescription>{h.product.name}</CardDescription>
+                        <CardDescription className="flex items-center justify-between gap-2">
+                          <span className="truncate">{h.product.name}</span>
+                          {/* Dragging between columns is the only way to change
+                              status with a mouse, and it is unusable without
+                              one. Same escape hatch the Gantt chart uses: a real
+                              link to the form, hidden by opacity (never
+                              display:none) so it stays in the tab order. */}
+                          <Link
+                            href={`/hypotheses/${h.id}/edit`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="shrink-0 rounded-sm text-xs underline opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
+                          >
+                            Изменить статус
+                          </Link>
+                        </CardDescription>
                       </CardHeader>
                     </Card>
                   </div>

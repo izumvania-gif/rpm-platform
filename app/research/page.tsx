@@ -50,7 +50,11 @@ export default async function ResearchPage({
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-        <SectionHeading title="Исследования" description={moduleByHref['/research'].description} />
+        <SectionHeading
+          level={1}
+          title="Исследования"
+          description={moduleByHref['/research'].description}
+        />
         <Link href="/research/new" className={buttonVariants()}>
           Новое исследование
         </Link>

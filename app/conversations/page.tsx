@@ -45,6 +45,7 @@ export default async function ConversationsPage({
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <SectionHeading
+          level={1}
           title="Разговоры"
           description={moduleByHref['/conversations'].description}
         />

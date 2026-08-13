@@ -20,6 +20,7 @@ export default async function PeoplePage() {
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <SectionHeading
+          level={1}
           title="Люди"
           description="Справочник команды — кто чем занимается и за какие продукты отвечает"
         />

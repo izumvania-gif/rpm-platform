@@ -44,7 +44,11 @@ export default async function CompetitorsPage({
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-        <SectionHeading title="Конкуренты" description={moduleByHref['/competitors'].description} />
+        <SectionHeading
+          level={1}
+          title="Конкуренты"
+          description={moduleByHref['/competitors'].description}
+        />
         <Link href="/competitors/new" className={buttonVariants()}>
           Новый конкурент
         </Link>

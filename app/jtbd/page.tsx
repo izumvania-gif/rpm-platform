@@ -37,7 +37,7 @@ export default async function JtbdPage() {
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
-        <SectionHeading title="JTBD" description={moduleByHref['/jtbd'].description} />
+        <SectionHeading level={1} title="JTBD" description={moduleByHref['/jtbd'].description} />
         <div className="flex flex-wrap items-center gap-2">
           <JtbdViewTabs active="list" />
           <Link href="/jtbd/new" className={buttonVariants()}>

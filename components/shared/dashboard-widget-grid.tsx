@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
-import { GripVertical, Settings2, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, GripVertical, Settings2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   dashboardWidgetDefs,
@@ -73,6 +73,21 @@ function DashboardSettingsOverlay({
   onClose: () => void
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
+
+  // Reordering was drag-only, which no link can fix (unlike opening a record —
+  // see the kanban): dragging IS the action. So it gets real buttons, and the
+  // pointer path is left exactly as it was.
+  // plans/2.0-hardening-plan.md, B2.
+  function moveBy(id: string, delta: number) {
+    const from = layout.findIndex((w) => w.id === id)
+    const to = from + delta
+    if (from < 0 || to < 0 || to >= layout.length) return
+    const next = [...layout]
+    const [moved] = next.splice(from, 1)
+    next.splice(to, 0, moved)
+    onChange(next)
+  }
+
   const titleById: Record<string, string> = Object.fromEntries(
     dashboardWidgetDefs.map((d: DashboardWidgetDef) => [d.id, d.title])
   )
@@ -128,7 +143,8 @@ function DashboardSettingsOverlay({
           </button>
         </div>
         <p className="mb-4 text-xs text-muted-foreground">
-          Перетащите, чтобы изменить порядок. Настройка сохраняется в этом браузере.
+          Перетащите или используйте стрелки, чтобы изменить порядок. Настройка сохраняется в этом
+          браузере.
         </p>
         <ul className="space-y-1.5">
           {layout.map((w) => (
@@ -149,6 +165,7 @@ function DashboardSettingsOverlay({
             >
               <GripVertical
                 size={14}
+                aria-hidden
                 className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
               />
               <label className="flex flex-1 cursor-pointer items-center gap-2">
@@ -160,6 +177,26 @@ function DashboardSettingsOverlay({
                 />
                 {titleById[w.id] ?? w.id}
               </label>
+              <div className="flex shrink-0 gap-0.5">
+                <button
+                  type="button"
+                  aria-label={`Переместить выше: ${titleById[w.id] ?? w.id}`}
+                  disabled={layout[0]?.id === w.id}
+                  onClick={() => moveBy(w.id, -1)}
+                  className="rounded-sm px-1.5 py-0.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                >
+                  <ChevronUp size={14} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Переместить ниже: ${titleById[w.id] ?? w.id}`}
+                  disabled={layout[layout.length - 1]?.id === w.id}
+                  onClick={() => moveBy(w.id, 1)}
+                  className="rounded-sm px-1.5 py-0.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                >
+                  <ChevronDown size={14} aria-hidden />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

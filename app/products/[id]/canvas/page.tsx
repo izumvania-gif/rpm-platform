@@ -44,6 +44,7 @@ export default async function ProductCanvasPage({ params }: { params: { id: stri
     <main className="container py-12 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <SectionHeading
+          level={1}
           title={`Холст: ${product.name}`}
           description="Цепочка дискавери целиком: сегмент → задача клиента → гипотеза. Связи тянутся мышью, узел создаётся двойным кликом."
         />

@@ -21,6 +21,67 @@ beforeEach(ensureTestUser)
 const DAY_MS = 24 * 60 * 60 * 1000
 
 describe('getProductsOverview', () => {
+  // Batched into 3 groupBy-based queries (plans/2.0-hardening-plan.md, A2).
+  // These pin the cases the per-product loop got for free and a groupBy does
+  // not: a product with nothing attached produces no rows at all.
+  it('returns zeroed counts for a product with no JTBD and no hypotheses', async () => {
+    const product = await createTestProduct({ name: 'Пустой' })
+    const [row] = await getProductsOverview(product.userId)
+
+    expect(row.jtbdCoverage).toEqual({ confirmed: 0, total: 0, percent: 0 })
+    expect(Object.values(row.hypothesisCounts).every((n) => n === 0)).toBe(true)
+    // Every status key is present, not just the ones with rows — the UI reads
+    // them positionally.
+    expect(Object.keys(row.hypothesisCounts).sort()).toEqual(
+      ['CONFIRMED', 'DRAFT', 'IN_REVIEW', 'REJECTED'].sort()
+    )
+  })
+
+  it('keeps each product’s counts to itself when several exist', async () => {
+    // The bug a groupBy rewrite can plausibly introduce: rows landing on the
+    // wrong product, which a single-product test would never catch.
+    const a = await createTestProduct({ name: 'A', slug: `a-${Date.now()}` })
+    const b = await createTestProduct({ name: 'B', slug: `b-${Date.now()}` })
+    await prisma.jTBD.create({
+      data: { title: 'A1', category: 'C', confirmed: true, productId: a.id, userId: a.userId },
+    })
+    await prisma.jTBD.create({
+      data: { title: 'B1', category: 'C', confirmed: false, productId: b.id, userId: b.userId },
+    })
+    await prisma.jTBD.create({
+      data: { title: 'B2', category: 'C', confirmed: false, productId: b.id, userId: b.userId },
+    })
+    await prisma.hypothesis.create({
+      data: { statement: 'HB', status: 'IN_REVIEW', productId: b.id, userId: b.userId },
+    })
+
+    const rows = await getProductsOverview(a.userId)
+    const rowA = rows.find((r) => r.id === a.id)!
+    const rowB = rows.find((r) => r.id === b.id)!
+
+    expect(rowA.jtbdCoverage).toEqual({ confirmed: 1, total: 1, percent: 100 })
+    expect(rowB.jtbdCoverage).toEqual({ confirmed: 0, total: 2, percent: 0 })
+    expect(rowA.hypothesisCounts.IN_REVIEW).toBe(0)
+    expect(rowB.hypothesisCounts.IN_REVIEW).toBe(1)
+  })
+
+  it('excludes another user’s records from the counts', async () => {
+    const mine = await createTestProduct({ name: 'Мой' })
+    const other = await prisma.user.create({
+      data: { email: `other-overview-${Date.now()}@example.com`, passwordHash: 'x' },
+    })
+    const foreign = await prisma.product.create({
+      data: { name: 'Чужой', slug: `foreign-ov-${Date.now()}`, userId: other.id },
+    })
+    await prisma.jTBD.create({
+      data: { title: 'F', category: 'C', confirmed: true, productId: foreign.id, userId: other.id },
+    })
+
+    const rows = await getProductsOverview(mine.userId)
+    expect(rows.map((r) => r.id)).toEqual([mine.id])
+    expect(rows[0].jtbdCoverage.total).toBe(0)
+  })
+
   it('returns JTBD coverage and hypothesis counts per product', async () => {
     const product = await createTestProduct({ name: 'A' })
     await prisma.jTBD.create({

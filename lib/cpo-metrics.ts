@@ -5,13 +5,12 @@
 // calls for one.
 import { RoadmapStatus, type Stage } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { roadmapStatusOrder } from '@/lib/labels'
+import { hypothesisStatusOrder, roadmapStatusOrder } from '@/lib/labels'
 import { groupByQuarter } from '@/lib/roadmap'
 import { buildGanttLayout, type GanttLayout, type GanttSourceItem } from '@/lib/roadmap-gantt'
 import {
+  coveragePercent,
   getGapsCounts,
-  getHypothesisStatusCounts,
-  getJtbdCoverage,
   getProductsWithoutRecentResearch,
   getSegmentsWithoutJtbd,
   getStuckHypotheses,
@@ -30,26 +29,65 @@ export interface ProductOverviewRow {
   hypothesisCounts: HypothesisStatusCounts
 }
 
+/**
+ * Three queries, not 1 + 3×N (plans/2.0-hardening-plan.md, A2).
+ *
+ * This used to fan out per product — `getJtbdCoverage` (2 counts) and
+ * `getHypothesisStatusCounts` (1 groupBy) inside a `products.map`. Measured on
+ * 20 seeded products: **61 Prisma operations, 111ms**, growing strictly
+ * linearly (151 at 50 products, 301 at 100) on every single load of /cpo.
+ *
+ * Grouping by `productId` gets the same numbers in a fixed 3 operations. The
+ * per-product helpers stay exactly as they are — they are the right shape for
+ * a caller that wants one product, and are still used that way elsewhere.
+ */
 export async function getProductsOverview(userId: string): Promise<ProductOverviewRow[]> {
-  const products = await prisma.product.findMany({
-    where: { userId },
-    orderBy: { name: 'asc' },
-    select: {
-      id: true,
-      name: true,
-      stage: true,
-      department: { select: { id: true, name: true, color: true } },
-    },
+  const [products, jtbdRows, hypothesisRows] = await Promise.all([
+    prisma.product.findMany({
+      where: { userId },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        stage: true,
+        department: { select: { id: true, name: true, color: true } },
+      },
+    }),
+    prisma.jTBD.groupBy({ by: ['productId', 'confirmed'], where: { userId }, _count: true }),
+    prisma.hypothesis.groupBy({ by: ['productId', 'status'], where: { userId }, _count: true }),
+  ])
+
+  const coverage = new Map<string, { confirmed: number; total: number }>()
+  for (const row of jtbdRows) {
+    const entry = coverage.get(row.productId) ?? { confirmed: 0, total: 0 }
+    entry.total += row._count
+    if (row.confirmed) entry.confirmed += row._count
+    coverage.set(row.productId, entry)
+  }
+
+  const statuses = new Map<string, HypothesisStatusCounts>()
+  for (const row of hypothesisRows) {
+    const entry = statuses.get(row.productId) ?? emptyHypothesisCounts()
+    entry[row.status] = row._count
+    statuses.set(row.productId, entry)
+  }
+
+  return products.map((product) => {
+    // A product with no JTBD/hypotheses produces no groupBy rows at all, so
+    // the zero case has to come from here rather than from the query.
+    const { confirmed, total } = coverage.get(product.id) ?? { confirmed: 0, total: 0 }
+    return {
+      ...product,
+      // Same helper the per-product path uses, so the rounding cannot drift
+      // between the two.
+      jtbdCoverage: { confirmed, total, percent: coveragePercent(confirmed, total) },
+      hypothesisCounts: statuses.get(product.id) ?? emptyHypothesisCounts(),
+    }
   })
-  return Promise.all(
-    products.map(async (product) => {
-      const [jtbdCoverage, hypothesisCounts] = await Promise.all([
-        getJtbdCoverage(userId, product.id),
-        getHypothesisStatusCounts(userId, product.id),
-      ])
-      return { ...product, jtbdCoverage, hypothesisCounts }
-    })
-  )
+}
+
+function emptyHypothesisCounts(): HypothesisStatusCounts {
+  return Object.fromEntries(hypothesisStatusOrder.map((s) => [s, 0])) as HypothesisStatusCounts
 }
 
 // Same fallback-sorts-last convention as lib/roadmap-gantt.ts's own

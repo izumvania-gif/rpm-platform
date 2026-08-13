@@ -17,6 +17,9 @@ import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { researchGroupMeta, positioningGroupMeta } from '@/lib/module-meta'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 import { BulkAddPanel } from '@/components/shared/bulk-add-panel'
+import { CsvImportPanel } from '@/components/shared/csv-import-panel'
+import { StarterTemplatePanel } from '@/components/shared/starter-template-panel'
+import { templateSummaries } from '@/lib/starter-templates'
 
 export const dynamic = 'force-dynamic'
 
@@ -218,9 +221,18 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
         </p>
       </div>
 
-      {/* Bulk paste-many (plans/2.0-product-leap-plan.md, A1) — sits above the
+      {/* Bulk entry (plans/2.0-product-leap-plan.md, A1 + A2) — sits above the
           module sections because it fills several of them at once. */}
-      <BulkAddPanel productId={product.id} />
+      <div className="flex flex-wrap items-start gap-2 print:hidden">
+        <BulkAddPanel productId={product.id} />
+        <CsvImportPanel productId={product.id} />
+        {/* Starter templates (A4) only while the product is still near-empty —
+            once it has real content, a one-click bulk insert of plausible
+            filler is noise rather than a head start. */}
+        {isNearEmpty && (
+          <StarterTemplatePanel productId={product.id} templates={templateSummaries()} />
+        )}
+      </div>
 
       <div className="space-y-5">
         <SectionHeading

@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils'
 import { SiteNav } from '@/components/shared/site-nav'
 import { KeyboardShortcuts } from '@/components/shared/keyboard-shortcuts'
 import { QuickCapture } from '@/components/shared/quick-capture'
+import { getNavStage } from '@/lib/nav-stage'
+import { getCurrentUserId } from '@/lib/current-user'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 const manrope = Manrope({
@@ -38,14 +40,21 @@ const THEME_INIT_SCRIPT = `
 })();
 `
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Progressive disclosure of the nav (plans/2.0-product-leap-plan.md, C1).
+  // Derived per render rather than cached: it is a handful of parallel indexed
+  // existence checks, and the answer must be current the moment a user creates
+  // their first record outside the base chain — a stale "basic" would hide a
+  // section they just filled.
+  const autoStage = await getNavStage(getCurrentUserId())
+
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className={cn(inter.className, manrope.variable, plexMono.variable)}>
-        <SiteNav />
+        <SiteNav autoStage={autoStage} />
         <KeyboardShortcuts />
         <QuickCapture />
         {children}

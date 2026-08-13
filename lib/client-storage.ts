@@ -1,8 +1,11 @@
 'use client'
 
+import type { NavStage } from '@/lib/nav-disclosure'
+
 const RECENTLY_VIEWED_KEY = 'rpm:recently-viewed'
 const DEFAULT_PRODUCT_KEY = 'rpm:default-product-id'
 const DASHBOARD_LAYOUT_KEY = 'rpm:dashboard-layout'
+const NAV_STAGE_KEY = 'rpm:nav-stage'
 const RECENTLY_VIEWED_LIMIT = 8
 
 export interface RecentlyViewedEntry {
@@ -73,6 +76,29 @@ export function setDashboardLayout(layout: DashboardWidgetLayout[]) {
   if (typeof window === 'undefined') return
   try {
     window.localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(layout))
+  } catch {
+    // ignore
+  }
+}
+
+// Explicit nav stage override (plans/2.0-product-leap-plan.md, C1). Null means
+// "follow the workspace's own data"; a stored value pins the choice. Per-browser
+// like everything else here — it is a display preference, not a permission.
+export function getNavStageOverride(): NavStage | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(NAV_STAGE_KEY)
+    return raw === 'basic' || raw === 'full' ? raw : null
+  } catch {
+    return null
+  }
+}
+
+export function setNavStageOverride(stage: NavStage | null) {
+  if (typeof window === 'undefined') return
+  try {
+    if (stage === null) window.localStorage.removeItem(NAV_STAGE_KEY)
+    else window.localStorage.setItem(NAV_STAGE_KEY, stage)
   } catch {
     // ignore
   }

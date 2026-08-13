@@ -11,17 +11,11 @@ import { DashboardGapsSummary } from '@/components/shared/dashboard-gaps-summary
 import { DashboardJtbdCoverage } from '@/components/shared/dashboard-jtbd-coverage'
 import { DashboardHypothesisFunnel } from '@/components/shared/dashboard-hypothesis-funnel'
 import { DashboardResearchCadence } from '@/components/shared/dashboard-research-cadence'
-import {
-  productModule,
-  researchGroupMeta,
-  researchModules,
-  positioningGroupMeta,
-  positioningModules,
-  moduleByHref,
-  type ModuleMeta,
-} from '@/lib/module-meta'
+import { productModule, moduleByHref } from '@/lib/module-meta'
 import { stageLabels } from '@/lib/labels'
-import { signalToneColors, type SignalTone } from '@/lib/signal-colors'
+import { ModuleRail } from '@/components/shared/module-rail'
+import { getNavStage } from '@/lib/nav-stage'
+import { isBaseModule } from '@/lib/nav-disclosure'
 import {
   getGapsCounts,
   getHypothesisStatusCounts,
@@ -30,40 +24,6 @@ import {
 } from '@/lib/dashboard-metrics'
 
 export const dynamic = 'force-dynamic'
-
-// Compact navigation, not a data widget — always visible, not part of the
-// customizable grid (plans/archive/dashboard-redesign-plan.md Фаза 4). Replaces the
-// 9 large count-only tiles that used to conflate "get to a section" with
-// "see a number"; the numbers that actually matter now live in the
-// actionable widgets above instead of here.
-function ModuleRail({ counts }: { counts: Record<string, number> }) {
-  const items: { module: ModuleMeta; tone?: SignalTone }[] = [
-    { module: productModule },
-    ...researchModules.map((module) => ({ module, tone: researchGroupMeta.tone })),
-    ...positioningModules.map((module) => ({ module, tone: positioningGroupMeta.tone })),
-  ]
-  return (
-    <nav aria-label="Разделы" className="mb-8 flex gap-1.5 overflow-x-auto pb-1">
-      {items.map(({ module, tone }) => {
-        const Icon = module.icon
-        const accent = tone ? signalToneColors[tone].border : 'hsl(var(--primary))'
-        return (
-          <Link
-            key={module.href}
-            href={module.href}
-            className="flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
-          >
-            <Icon size={15} strokeWidth={1.75} style={{ color: accent }} />
-            {module.label}
-            <span className="font-mono text-xs text-muted-foreground/70">
-              {counts[module.href]}
-            </span>
-          </Link>
-        )
-      })}
-    </nav>
-  )
-}
 
 interface FeedItem {
   href: string
@@ -318,6 +278,15 @@ export default async function Home() {
     '/insights': insightCount,
   }
 
+  // The dashboard already counts every module, so it derives the disclosure
+  // stage from what it has instead of paying getNavStage's extra queries (C1).
+  // Note the rail's counts cover only nav modules — Люди/Департаменты are not
+  // on it — so this asks lib/nav-stage.ts only when the counts say "basic",
+  // which is exactly when the answer could still be wrong.
+  const navStage = Object.entries(counts).some(([href, n]) => n > 0 && !isBaseModule(href))
+    ? 'full'
+    : await getNavStage(userId)
+
   const featuredProduct = recentProducts[0]
 
   return (
@@ -332,7 +301,11 @@ export default async function Home() {
           <CardContent className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5">
             <div className="min-w-0">
               <div className="mb-1 flex flex-wrap items-center gap-2">
-                <productModule.icon size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
+                <productModule.icon
+                  size={16}
+                  strokeWidth={1.75}
+                  className="shrink-0 text-primary"
+                />
                 <Link
                   href={`/products/${featuredProduct.id}`}
                   className="truncate font-display text-xl font-bold hover:underline"
@@ -351,10 +324,7 @@ export default async function Home() {
               <span className="font-mono text-sm text-muted-foreground">
                 {productCount} {productCount === 1 ? 'продукт' : 'продуктов'}
               </span>
-              <Link
-                href="/products"
-                className={buttonVariants({ variant: 'outline', size: 'sm' })}
-              >
+              <Link href="/products" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
                 Все продукты
                 <ArrowUpRight size={14} />
               </Link>
@@ -377,7 +347,7 @@ export default async function Home() {
         </Card>
       )}
 
-      <ModuleRail counts={counts} />
+      <ModuleRail counts={counts} autoStage={navStage} />
 
       <div className="mb-8">
         <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
@@ -419,7 +389,9 @@ export default async function Home() {
                             />
                           )}
                           <span className="min-w-0 flex-1 truncate">{item.title}</span>
-                          <span className="shrink-0 text-xs text-muted-foreground">{item.kind}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {item.kind}
+                          </span>
                         </Link>
                       </li>
                     )

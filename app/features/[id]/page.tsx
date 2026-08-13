@@ -106,7 +106,22 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
         </CardHeader>
         <CardContent>
           {feature.rtbs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Пока нет RTB.</p>
+            /* Derive, don't demand (C4): a feature nothing in marketing leans
+               on is a real gap in the positioning chain, so it says what is
+               missing and offers the action instead of a flat "Пока нет RTB."
+               Phrased as an observation, not an error — a feature can legitimately
+               ship before its marketing claim exists. */
+            <div className="space-y-2">
+              <p className="text-sm">
+                На эту фичу не опирается ни одно маркетинговое обещание — её нечем продавать.
+              </p>
+              <Link
+                href={`/marketing/new?productId=${feature.productId}&featureId=${feature.id}`}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                Сформулировать обещание
+              </Link>
+            </div>
           ) : (
             <ul className="space-y-2">
               {feature.rtbs.map((r) => (

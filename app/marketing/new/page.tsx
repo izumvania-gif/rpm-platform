@@ -8,7 +8,14 @@ export const dynamic = 'force-dynamic'
 export default async function NewRTBPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: {
+    error?: string
+    productId?: string
+    duplicateFrom?: string
+    // Set by the "this feature has no marketing claim" callout (C4) so the
+    // form opens with that feature already ticked.
+    featureId?: string
+  }
 }) {
   const userId = getCurrentUserId()
   const [products, features, duplicateSource] = await Promise.all([
@@ -41,7 +48,10 @@ export default async function NewRTBPage({
                   productId: searchParams.productId ?? duplicateSource.productId,
                   featureIds: duplicateSource.features.map((f) => f.id),
                 }
-              : { productId: searchParams.productId }
+              : {
+                  productId: searchParams.productId,
+                  featureIds: searchParams.featureId ? [searchParams.featureId] : undefined,
+                }
           }
           error={searchParams.error}
           submitLabel="Создать"

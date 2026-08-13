@@ -14,6 +14,7 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { QuickAddInsight } from '@/components/shared/quick-add-insight'
+import { InsightSuggestions } from '@/components/conversations/insight-suggestions'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 
 export const dynamic = 'force-dynamic'
@@ -136,7 +137,16 @@ export default async function ConversationDetailPage({ params }: { params: { id:
             </span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Derived suggestions above the manual form (C4): the transcript
+              already holds the quotes, so offer them before asking. */}
+          <InsightSuggestions
+            productId={conversation.productId}
+            conversationId={conversation.id}
+            segmentId={conversation.segmentId}
+            transcript={conversation.transcript}
+            existingInsightTexts={conversation.insights.map((i) => i.text)}
+          />
           <QuickAddInsight
             productId={conversation.productId}
             conversationId={conversation.id}

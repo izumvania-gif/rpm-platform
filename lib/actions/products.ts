@@ -133,3 +133,16 @@ export async function updateProductField(
   revalidatePath(`/products/${id}`)
   return { ok: true }
 }
+
+// Product list for the global quick-capture overlay (plans/2.0-product-leap-plan.md,
+// A3). Fetched lazily on first open rather than passed down from the root
+// layout — the overlay is mounted on every page, and every page in this app
+// is force-dynamic, so eager fetching would add a query to every navigation
+// for a feature most page views never use.
+export async function listProductsForCapture(): Promise<{ id: string; name: string }[]> {
+  return prisma.product.findMany({
+    where: { userId: getCurrentUserId() },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true },
+  })
+}

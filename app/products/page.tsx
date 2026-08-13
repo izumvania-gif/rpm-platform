@@ -9,6 +9,7 @@ import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { stageLabels } from '@/lib/labels'
 import { moduleByHref } from '@/lib/module-meta'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,7 +55,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
       )}
 
       {products.length === 0 ? (
-        <p className="text-muted-foreground">Продуктов пока нет. Создайте первый продукт.</p>
+        <EmptyState moduleKey="/products" />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (

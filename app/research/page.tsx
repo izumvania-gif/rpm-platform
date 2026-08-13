@@ -12,6 +12,7 @@ import { toggleResearchPinned } from '@/lib/actions/research'
 import { statusLabels, typeLabels } from '@/lib/labels'
 import { ResearchFilterForm } from '@/components/forms/research-filter-form'
 import { moduleByHref } from '@/lib/module-meta'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,7 +73,7 @@ export default async function ResearchPage({
       </div>
 
       {researches.length === 0 ? (
-        <p className="text-muted-foreground">Исследований пока нет.</p>
+        <EmptyState moduleKey="/research" />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

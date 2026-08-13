@@ -6,6 +6,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { PinButton } from '@/components/shared/pin-button'
 import { PersonAvatar } from '@/components/shared/person-avatar'
 import { togglePersonPinned } from '@/lib/actions/people'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,7 @@ export default async function PeoplePage() {
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <SectionHeading
           title="Люди"
-          description="Справочник команды — кто чем занимается и за какие продукты отвечает (plans/platform-views-plan.md)"
+          description="Справочник команды — кто чем занимается и за какие продукты отвечает"
         />
         <Link href="/people/new" className={buttonVariants()}>
           Новый человек
@@ -28,7 +29,7 @@ export default async function PeoplePage() {
       </div>
 
       {people.length === 0 ? (
-        <p className="text-muted-foreground">Пока никого нет в справочнике.</p>
+        <EmptyState moduleKey="/people" />
       ) : (
         <ul className="divide-y rounded-md border">
           {people.map((person) => (

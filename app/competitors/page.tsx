@@ -8,6 +8,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleCompetitorPinned } from '@/lib/actions/competitors'
 import { moduleByHref } from '@/lib/module-meta'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,7 +74,7 @@ export default async function CompetitorsPage({
       )}
 
       {competitors.length === 0 ? (
-        <p className="text-muted-foreground">Конкурентов пока нет.</p>
+        <EmptyState moduleKey="/competitors" />
       ) : (
         <div className="space-y-8">
           {groups.map((group) => (

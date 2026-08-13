@@ -4,6 +4,7 @@ import './globals.css'
 import { cn } from '@/lib/utils'
 import { SiteNav } from '@/components/shared/site-nav'
 import { KeyboardShortcuts } from '@/components/shared/keyboard-shortcuts'
+import { QuickCapture } from '@/components/shared/quick-capture'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 const manrope = Manrope({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn(inter.className, manrope.variable, plexMono.variable)}>
         <SiteNav />
         <KeyboardShortcuts />
+        <QuickCapture />
         {children}
       </body>
     </html>

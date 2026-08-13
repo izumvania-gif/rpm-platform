@@ -35,6 +35,7 @@ import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
 import { groupByQuarter } from '@/lib/roadmap'
 import { buildGanttLayout } from '@/lib/roadmap-gantt'
 import { pluralizeRu } from '@/lib/utils'
+import { EmptyState } from '@/components/shared/empty-state'
 
 const STEP_FORMS: [string, string, string] = ['шаг', 'шага', 'шагов']
 
@@ -211,9 +212,9 @@ export default async function PmPage({
                   {roadmapView === 'gantt' ? (
                     <GanttChart layout={buildGanttLayout(roadmapItems)} allowTrackChange />
                   ) : roadmapItems.length === 0 ? (
-                    <p className="p-5 text-sm text-muted-foreground">
-                      Пока нет пунктов роадмапа для этого продукта.
-                    </p>
+                    <div className="p-5">
+                      <EmptyState moduleKey="/pm/roadmap" productId={product.id} variant="inline" />
+                    </div>
                   ) : (
                     <div className="divide-y">
                       {groupByQuarter(roadmapItems).map(([quarter, items]) => (
@@ -301,9 +302,9 @@ export default async function PmPage({
                 }
               >
                 {team.length === 0 ? (
-                  <p className="p-5 text-sm text-muted-foreground">
-                    В команде этого продукта пока никого нет.
-                  </p>
+                  <div className="p-5">
+                    <EmptyState moduleKey="/pm/team" variant="inline" icon={Users2} />
+                  </div>
                 ) : (
                   <ul className="divide-y">
                     {team.map(({ person, activeCount, totalCount, inRoster, membershipId }) => (
@@ -342,15 +343,19 @@ export default async function PmPage({
                 id="action-plans"
                 icon={ClipboardList}
                 title="Экшн-планы"
-                description="Заранее написанное «что делать» для предсказуемых нештатных ситуаций — открыть готовый план быстрее, чем придумывать реакцию в моменте (plans/pm-time-allocation-research.md §1)"
+                description="Заранее написанное «что делать» для предсказуемых нештатных ситуаций — открыть готовый план быстрее, чем придумывать реакцию в моменте"
                 tone="secondary"
                 contentClassName="p-0"
                 action={<AddActionPlanForm productId={product.id} people={people} />}
               >
                 {actionPlans.length === 0 ? (
-                  <p className="p-5 text-sm text-muted-foreground">
-                    Пока нет экшн-планов для этого продукта.
-                  </p>
+                  <div className="p-5">
+                    <EmptyState
+                      moduleKey="/pm/action-plans"
+                      productId={product.id}
+                      variant="inline"
+                    />
+                  </div>
                 ) : (
                   <ul className="divide-y">
                     {actionPlans.map((plan) => (
@@ -446,9 +451,7 @@ export default async function PmPage({
                     people={people}
                   />
                 ) : processes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    У этого продукта пока нет описанных процессов.
-                  </p>
+                  <EmptyState moduleKey="/pm/processes" productId={product.id} variant="inline" />
                 ) : (
                   <ul className="divide-y rounded-md border">
                     {processes.map((process) => (

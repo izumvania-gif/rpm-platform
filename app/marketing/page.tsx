@@ -8,6 +8,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleRTBPinned } from '@/lib/actions/rtbs'
 import { moduleByHref } from '@/lib/module-meta'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,7 +68,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
       )}
 
       {rtbs.length === 0 ? (
-        <p className="text-muted-foreground">RTB пока нет.</p>
+        <EmptyState moduleKey="/marketing" />
       ) : (
         <div className="space-y-8">
           {groups.map((group) => (

@@ -16,6 +16,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { researchGroupMeta, positioningGroupMeta } from '@/lib/module-meta'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
+import { BulkAddPanel } from '@/components/shared/bulk-add-panel'
 
 export const dynamic = 'force-dynamic'
 
@@ -216,6 +217,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           />
         </p>
       </div>
+
+      {/* Bulk paste-many (plans/2.0-product-leap-plan.md, A1) — sits above the
+          module sections because it fills several of them at once. */}
+      <BulkAddPanel productId={product.id} />
 
       <div className="space-y-5">
         <SectionHeading

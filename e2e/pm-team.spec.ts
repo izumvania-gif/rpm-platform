@@ -31,7 +31,7 @@ test('add an existing person to the team roster, then remove them', async ({ pag
   await page.waitForURL(/\/people\/(?!new)[^/]+$/)
 
   await page.goto(`/pm?productId=${productId}`)
-  await expect(page.getByText('В команде этого продукта пока никого нет.')).toBeVisible()
+  await expect(page.getByText('Команда продукта — явно добавленные люди')).toBeVisible()
 
   await page.getByRole('button', { name: '+ Добавить в команду' }).click()
   await selectRadixOption(page, page.getByLabel('Человек'), personName)
@@ -43,7 +43,7 @@ test('add an existing person to the team roster, then remove them', async ({ pag
   page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Удалить' }).click()
   await page.waitForURL(/scrollTo=team/)
-  await expect(page.getByText('В команде этого продукта пока никого нет.')).toBeVisible()
+  await expect(page.getByText('Команда продукта — явно добавленные люди')).toBeVisible()
 })
 
 test('create a new person directly from the team roster form', async ({ page }) => {

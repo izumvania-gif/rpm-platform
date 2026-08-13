@@ -4,6 +4,7 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { pluralizeRu } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { SectionHeading } from '@/components/shared/section-heading'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,7 @@ export default async function DepartmentsPage() {
       </div>
 
       {departments.length === 0 ? (
-        <p className="text-muted-foreground">Пока нет ни одного департамента.</p>
+        <EmptyState moduleKey="/departments" />
       ) : (
         <ul className="divide-y rounded-md border">
           {departments.map((department) => (

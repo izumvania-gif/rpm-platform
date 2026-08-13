@@ -84,6 +84,14 @@ export function KeyboardShortcutsOverlay() {
                 <span className="text-muted-foreground">Новая запись в разделе</span>
                 <Kbd>N</Kbd>
               </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Быстрый захват</span>
+                <span className="flex items-center gap-1">
+                  <Kbd>C</Kbd>
+                  <span className="text-xs text-muted-foreground">или</span>
+                  <Kbd>⌘K</Kbd>
+                </span>
+              </div>
             </div>
           </div>
         </div>

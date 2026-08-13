@@ -21,6 +21,9 @@ const GOTO_ROUTES: Record<string, string> = Object.fromEntries(
   gotoShortcuts.map((s) => [s.key, s.href])
 )
 
+/** Fired on "c" or Cmd/Ctrl+K; QuickCapture listens for it. */
+export const QUICK_CAPTURE_EVENT = 'rpm:quick-capture'
+
 export function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false
   const tag = target.tagName
@@ -44,6 +47,13 @@ export function KeyboardShortcuts() {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      // Cmd/Ctrl+K is a global command — it works even from inside a field,
+      // unlike the bare-letter shortcuts below.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        document.dispatchEvent(new CustomEvent(QUICK_CAPTURE_EVENT))
+        return
+      }
       if (e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target)) return
 
       if (awaitingGoto.current) {
@@ -73,6 +83,18 @@ export function KeyboardShortcuts() {
           e.preventDefault()
           router.push(match[1])
         }
+        return
+      }
+
+      // Quick capture (plans/2.0-product-leap-plan.md, A3). Handled here
+      // rather than in QuickCapture's own listener because "c" is also the
+      // second key of the "g c" goto sequence — two independent listeners
+      // would both fire on it, opening the overlay while navigating away.
+      // Owning the sequence state, this branch is only reached when no "g"
+      // is pending.
+      if (e.key === 'c') {
+        e.preventDefault()
+        document.dispatchEvent(new CustomEvent(QUICK_CAPTURE_EVENT))
       }
     }
 

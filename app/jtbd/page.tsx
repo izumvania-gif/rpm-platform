@@ -13,6 +13,7 @@ import { jtbdJobTypeLabels } from '@/lib/jtbd-job-types'
 import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
 import { moduleByHref } from '@/lib/module-meta'
 import { coveragePercent } from '@/lib/dashboard-metrics'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -74,7 +75,7 @@ export default async function JtbdPage() {
       )}
 
       {jtbds.length === 0 ? (
-        <p className="text-muted-foreground">JTBD пока нет.</p>
+        <EmptyState moduleKey="/jtbd" />
       ) : (
         <div className="space-y-8">
           {Array.from(byCategory.entries()).map(([category, items]) => (

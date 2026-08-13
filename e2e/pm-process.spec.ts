@@ -10,7 +10,7 @@ test('create a process, add a step, edit it via the inspector, then delete step 
 
   await page.goto(`/pm?productId=${productId}`)
   await expect(page.getByRole('heading', { name: 'Процесс' })).toBeVisible()
-  await expect(page.getByText('У этого продукта пока нет описанных процессов.')).toBeVisible()
+  await expect(page.getByText('Процесс — кто что делает')).toBeVisible()
 
   // Inline "Добавить процесс" (plans/2.0-ux-improvement-plan.md, Фаза 5) —
   // no navigation away from /pm.
@@ -53,7 +53,7 @@ test('create a process, add a step, edit it via the inspector, then delete step 
   page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Удалить' }).click()
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&scrollTo=process$`))
-  await expect(page.getByText('У этого продукта пока нет описанных процессов.')).toBeVisible()
+  await expect(page.getByText('Процесс — кто что делает')).toBeVisible()
 })
 
 test('create an action plan with ordered steps and tags, then delete it', async ({ page }) => {

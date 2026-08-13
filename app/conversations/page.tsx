@@ -9,6 +9,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleConversationPinned } from '@/lib/actions/conversations'
 import { moduleByHref } from '@/lib/module-meta'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +44,10 @@ export default async function ConversationsPage({
   return (
     <main className="container py-12">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-        <SectionHeading title="Разговоры" description={moduleByHref['/conversations'].description} />
+        <SectionHeading
+          title="Разговоры"
+          description={moduleByHref['/conversations'].description}
+        />
         <Link href="/conversations/new" className={buttonVariants()}>
           Новый разговор
         </Link>
@@ -65,7 +69,7 @@ export default async function ConversationsPage({
       </div>
 
       {conversations.length === 0 ? (
-        <p className="text-muted-foreground">Разговоров пока нет.</p>
+        <EmptyState moduleKey="/conversations" />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

@@ -9,6 +9,7 @@ import { TagBadges } from '@/components/shared/tag-badges'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleSegmentPinned } from '@/lib/actions/segments'
 import { moduleByHref } from '@/lib/module-meta'
+import { EmptyState } from '@/components/shared/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,7 +59,7 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
       </div>
 
       {segments.length === 0 ? (
-        <p className="text-muted-foreground">Сегментов пока нет.</p>
+        <EmptyState moduleKey="/segments" />
       ) : (
         <ul className="divide-y rounded-md border">
           {segments.map((segment) => (

@@ -66,7 +66,10 @@ function compareWithFallbackLast(a: string, b: string, fallback: string): number
 
 export function buildGanttLayout(items: GanttSourceItem[]): GanttLayout {
   const milestones: GanttMilestone[] = items
-    .filter((item): item is GanttSourceItem & { startDate: Date } => item.isMilestone && item.startDate !== null)
+    .filter(
+      (item): item is GanttSourceItem & { startDate: Date } =>
+        item.isMilestone && item.startDate !== null
+    )
     .map((item) => ({ id: item.id, title: item.title, date: item.startDate }))
     .sort((a, b) => a.date.getTime() - b.date.getTime())
 
@@ -84,9 +87,13 @@ export function buildGanttLayout(items: GanttSourceItem[]): GanttLayout {
     if (!groupMap.has(groupKey)) groupMap.set(groupKey, new Map())
     const trackMap = groupMap.get(groupKey)!
     if (!trackMap.has(trackKey)) trackMap.set(trackKey, [])
-    trackMap
-      .get(trackKey)!
-      .push({ id: item.id, title: item.title, status: item.status, startDate: item.startDate, endDate: item.endDate })
+    trackMap.get(trackKey)!.push({
+      id: item.id,
+      title: item.title,
+      status: item.status,
+      startDate: item.startDate,
+      endDate: item.endDate,
+    })
   }
 
   const groups: GanttGroup[] = Array.from(groupMap.entries())

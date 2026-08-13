@@ -28,8 +28,14 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
   if (!research) notFound()
 
   const [segments, jtbds] = await Promise.all([
-    prisma.segment.findMany({ where: { productId: research.productId, userId }, orderBy: { name: 'asc' } }),
-    prisma.jTBD.findMany({ where: { productId: research.productId, userId }, orderBy: { title: 'asc' } }),
+    prisma.segment.findMany({
+      where: { productId: research.productId, userId },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.jTBD.findMany({
+      where: { productId: research.productId, userId },
+      orderBy: { title: 'asc' },
+    }),
   ])
 
   const deleteResearchWithId = deleteResearch.bind(null, research.id)

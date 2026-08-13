@@ -49,7 +49,12 @@ export const researchModules: ModuleMeta[] = [
     description: 'Репозиторий клиентских исследований',
     icon: FileSearch,
   },
-  { href: '/segments', label: 'Сегменты', description: 'Сегменты клиентов по продуктам', icon: Users },
+  {
+    href: '/segments',
+    label: 'Сегменты',
+    description: 'Сегменты клиентов по продуктам',
+    icon: Users,
+  },
   { href: '/jtbd', label: 'JTBD', description: 'Задачи клиентов по категориям', icon: Compass },
   {
     href: '/hypotheses',

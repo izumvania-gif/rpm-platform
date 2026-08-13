@@ -39,7 +39,11 @@ export function CompetitorsStepForm({
   return (
     <div className="space-y-4">
       <div className="space-y-2 rounded-md border p-3">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Название конкурента" />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Название конкурента"
+        />
         <Textarea
           value={positioning}
           onChange={(e) => setPositioning(e.target.value)}
@@ -52,7 +56,11 @@ export function CompetitorsStepForm({
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <WizardEntryList
-        items={competitors.map((c) => ({ id: c.id, label: c.name, meta: c.positioning ?? undefined }))}
+        items={competitors.map((c) => ({
+          id: c.id,
+          label: c.name,
+          meta: c.positioning ?? undefined,
+        }))}
         emptyLabel="Конкурентов пока нет — добавьте первого выше."
       />
     </div>

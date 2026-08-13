@@ -47,9 +47,7 @@ test('creating a product in onboarding mode walks through all seven wizard steps
   await expect(page.getByRole('heading', { name: productName })).toBeVisible()
 })
 
-test('"Пропустить настройку" leaves the wizard for the product page directly', async ({
-  page,
-}) => {
+test('"Пропустить настройку" leaves the wizard for the product page directly', async ({ page }) => {
   const productName = uniqueName('Skip Wizard Product')
   await page.goto('/products/new')
   await page.getByLabel('Название').fill(productName)

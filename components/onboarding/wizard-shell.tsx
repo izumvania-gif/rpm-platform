@@ -74,10 +74,7 @@ export function WizardShell({
         ) : (
           <span />
         )}
-        <Link
-          href={`/products/${productId}/onboarding/${nextKey}`}
-          className={buttonVariants()}
-        >
+        <Link href={`/products/${productId}/onboarding/${nextKey}`} className={buttonVariants()}>
           Далее →
         </Link>
       </div>

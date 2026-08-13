@@ -12,13 +12,26 @@ describe('deleting a product cascades through every related model', () => {
   it('removes segments, JTBD, hypotheses, conversations, competitors, features, RTBs, insights, and resources', async () => {
     const product = await createTestProduct()
     const segment = await prisma.segment.create({
-      data: { name: 'S', slug: 's', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'S',
+        slug: 's',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const jtbd = await prisma.jTBD.create({
       data: { title: 'T', category: 'C', productId: product.id, userId: product.userId },
     })
     const research = await prisma.research.create({
-      data: { title: 'R', date: new Date(), type: 'MANUAL', productId: product.id, userId: product.userId },
+      data: {
+        title: 'R',
+        date: new Date(),
+        type: 'MANUAL',
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const hypothesis = await prisma.hypothesis.create({
       data: {
@@ -37,7 +50,12 @@ describe('deleting a product cascades through every related model', () => {
     })
     await prisma.competitorNewsItem.create({ data: { title: 'News', competitorId: competitor.id } })
     const feature = await prisma.feature.create({
-      data: { name: 'F', productId: product.id, userId: product.userId, jtbds: { connect: { id: jtbd.id } } },
+      data: {
+        name: 'F',
+        productId: product.id,
+        userId: product.userId,
+        jtbds: { connect: { id: jtbd.id } },
+      },
     })
     const rtb = await prisma.rTB.create({
       data: { statement: 'RTB', productId: product.id, userId: product.userId },
@@ -60,7 +78,9 @@ describe('deleting a product cascades through every related model', () => {
     ).toBe(0)
     expect(await prisma.conversation.findUnique({ where: { id: conversation.id } })).toBeNull()
     expect(await prisma.competitor.findUnique({ where: { id: competitor.id } })).toBeNull()
-    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(0)
+    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(
+      0
+    )
     expect(await prisma.feature.findUnique({ where: { id: feature.id } })).toBeNull()
     expect(await prisma.rTB.findUnique({ where: { id: rtb.id } })).toBeNull()
     expect(await prisma.insight.findUnique({ where: { id: insight.id } })).toBeNull()

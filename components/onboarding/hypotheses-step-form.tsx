@@ -31,7 +31,12 @@ export function HypothesesStepForm({
   function submit() {
     if (!statement.trim()) return
     startTransition(async () => {
-      const result = await createHypothesisQuick(productId, statement, jtbdId || null, segmentId || null)
+      const result = await createHypothesisQuick(
+        productId,
+        statement,
+        jtbdId || null,
+        segmentId || null
+      )
       if (!result.ok) {
         setError(result.error)
         return

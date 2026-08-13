@@ -50,7 +50,9 @@ describe('updateHypothesis', () => {
         buildFormData({ statement: 'S2', status: 'DRAFT', productId: product.id })
       )
     )
-    expect(await prisma.hypothesisStatusChange.count({ where: { hypothesisId: hypothesis.id } })).toBe(1)
+    expect(
+      await prisma.hypothesisStatusChange.count({ where: { hypothesisId: hypothesis.id } })
+    ).toBe(1)
 
     // Different status: new history row.
     await captureRedirect(() =>
@@ -59,7 +61,9 @@ describe('updateHypothesis', () => {
         buildFormData({ statement: 'S2', status: 'IN_REVIEW', productId: product.id })
       )
     )
-    expect(await prisma.hypothesisStatusChange.count({ where: { hypothesisId: hypothesis.id } })).toBe(2)
+    expect(
+      await prisma.hypothesisStatusChange.count({ where: { hypothesisId: hypothesis.id } })
+    ).toBe(2)
   })
 })
 
@@ -80,7 +84,9 @@ describe('deleteHypothesis / toggleHypothesisPinned / updateHypothesisStatus', (
       data: { statement: 'S', status: 'DRAFT', productId: product.id, userId: product.userId },
     })
     await toggleHypothesisPinned(hypothesis.id, true)
-    expect((await prisma.hypothesis.findUnique({ where: { id: hypothesis.id } }))?.pinned).toBe(true)
+    expect((await prisma.hypothesis.findUnique({ where: { id: hypothesis.id } }))?.pinned).toBe(
+      true
+    )
   })
 
   it('updateHypothesisStatus moves the kanban card and appends history (used by drag-and-drop)', async () => {
@@ -126,10 +132,18 @@ describe('updateHypothesisField', () => {
   it('clears priority when given an empty value', async () => {
     const product = await createTestProduct()
     const hypothesis = await prisma.hypothesis.create({
-      data: { statement: 'S', status: 'DRAFT', priority: 5, productId: product.id, userId: product.userId },
+      data: {
+        statement: 'S',
+        status: 'DRAFT',
+        priority: 5,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const result = await updateHypothesisField(hypothesis.id, 'priority', '')
     expect(result).toEqual({ ok: true })
-    expect((await prisma.hypothesis.findUnique({ where: { id: hypothesis.id } }))?.priority).toBeNull()
+    expect(
+      (await prisma.hypothesis.findUnique({ where: { id: hypothesis.id } }))?.priority
+    ).toBeNull()
   })
 })

@@ -366,7 +366,11 @@ function GraphInner({
             <p className="text-muted-foreground">
               {category ? 'Нет JTBD в этой категории.' : 'У этого продукта пока нет JTBD.'}
             </p>
-            <AddJtbdPanelInline productId={productId} categories={categories} segmentId={segmentId} />
+            <AddJtbdPanelInline
+              productId={productId}
+              categories={categories}
+              segmentId={segmentId}
+            />
           </div>
         ) : (
           <ReactFlow
@@ -470,10 +474,10 @@ function AddJtbdPanelInline({
         ))}
       </datalist>
       <Select
-            aria-label="Тип задачи"
-            value={jobType}
-            onChange={(e) => setJobType(e.target.value as JtbdJobType)}
-          >
+        aria-label="Тип задачи"
+        value={jobType}
+        onChange={(e) => setJobType(e.target.value as JtbdJobType)}
+      >
         {jtbdJobTypeOrder.map((type) => (
           <option key={type} value={type}>
             {jtbdJobTypeLabels[type]}

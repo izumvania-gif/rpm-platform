@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createProduct, deleteProduct, updateProduct, updateProductField } from '@/lib/actions/products'
+import {
+  createProduct,
+  deleteProduct,
+  updateProduct,
+  updateProductField,
+} from '@/lib/actions/products'
 import { prisma } from '@/lib/prisma'
 import { DEFAULT_USER_ID } from '@/lib/current-user'
 import { buildFormData, captureRedirect, ensureTestUser } from '../helpers'
@@ -143,9 +148,7 @@ describe('updateProductField', () => {
 
     let result = await updateProductField(product.id, 'ownerId', owner.id)
     expect(result).toEqual({ ok: true })
-    expect((await prisma.product.findUnique({ where: { id: product.id } }))?.ownerId).toBe(
-      owner.id
-    )
+    expect((await prisma.product.findUnique({ where: { id: product.id } }))?.ownerId).toBe(owner.id)
 
     result = await updateProductField(product.id, 'ownerId', '')
     expect(result).toEqual({ ok: true })
@@ -159,8 +162,8 @@ describe('updateProductField', () => {
 
     const result = await updateProductField(product.id, 'publicSummary', 'Public pitch')
     expect(result).toEqual({ ok: true })
-    expect(
-      (await prisma.product.findUnique({ where: { id: product.id } }))?.publicSummary
-    ).toBe('Public pitch')
+    expect((await prisma.product.findUnique({ where: { id: product.id } }))?.publicSummary).toBe(
+      'Public pitch'
+    )
   })
 })

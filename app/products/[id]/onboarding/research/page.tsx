@@ -14,7 +14,10 @@ export default async function OnboardingResearchPage({ params }: { params: { id:
   const [segments, jtbds, research, conversations, insights] = await Promise.all([
     prisma.segment.findMany({ where: { productId: product.id, userId }, orderBy: { name: 'asc' } }),
     prisma.jTBD.findMany({ where: { productId: product.id, userId }, orderBy: { title: 'asc' } }),
-    prisma.research.findMany({ where: { productId: product.id, userId }, orderBy: { createdAt: 'asc' } }),
+    prisma.research.findMany({
+      where: { productId: product.id, userId },
+      orderBy: { createdAt: 'asc' },
+    }),
     prisma.conversation.findMany({
       where: { productId: product.id, userId },
       orderBy: { createdAt: 'asc' },

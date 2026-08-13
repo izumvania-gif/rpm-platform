@@ -57,7 +57,10 @@ describe('updateFeature / deleteFeature / toggleFeaturePinned', () => {
 
     const formData = buildFormData({ name: 'F2', productId: product.id }, { jtbdIds: [jtbdB.id] })
     await captureRedirect(() => updateFeature(feature.id, formData))
-    const updated = await prisma.feature.findUnique({ where: { id: feature.id }, include: { jtbds: true } })
+    const updated = await prisma.feature.findUnique({
+      where: { id: feature.id },
+      include: { jtbds: true },
+    })
     expect(updated?.jtbds.map((j) => j.id)).toEqual([jtbdB.id])
   })
 

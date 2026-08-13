@@ -41,7 +41,9 @@ describe('updateProductResource / deleteProductResource', () => {
     const formData = buildFormData({ title: 'New', kind: 'DEVELOPER_DOC', productId: product.id })
     const redirectPath = await captureRedirect(() => updateProductResource(resource.id, formData))
     expect(redirectPath).toBe(`/products/${product.id}`)
-    expect((await prisma.productResource.findUnique({ where: { id: resource.id } }))?.title).toBe('New')
+    expect((await prisma.productResource.findUnique({ where: { id: resource.id } }))?.title).toBe(
+      'New'
+    )
   })
 
   it('deletes a resource', async () => {

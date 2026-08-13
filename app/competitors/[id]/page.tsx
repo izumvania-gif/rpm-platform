@@ -116,7 +116,9 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
             <dd>
               <InlineEditableField
                 value={
-                  competitor.lastCheckedAt ? competitor.lastCheckedAt.toISOString().slice(0, 10) : ''
+                  competitor.lastCheckedAt
+                    ? competitor.lastCheckedAt.toISOString().slice(0, 10)
+                    : ''
                 }
                 type="date"
                 action={updateCompetitorField.bind(null, competitor.id, 'lastCheckedAt')}

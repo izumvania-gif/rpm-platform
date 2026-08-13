@@ -8,7 +8,11 @@ import {
   reconcileDashboardLayout,
   type DashboardWidgetDef,
 } from '@/lib/dashboard-widgets'
-import { getDashboardLayout, setDashboardLayout, type DashboardWidgetLayout } from '@/lib/client-storage'
+import {
+  getDashboardLayout,
+  setDashboardLayout,
+  type DashboardWidgetLayout,
+} from '@/lib/client-storage'
 import { cn } from '@/lib/utils'
 
 // Renders the dashboard's customizable widgets in a saved (or default) order,
@@ -17,7 +21,9 @@ import { cn } from '@/lib/utils'
 // server content keyed by widget id — a Server Component can pass finished
 // JSX into a Client Component as a prop, it just can't be constructed here.
 export function DashboardWidgetGrid({ widgets }: { widgets: Record<string, ReactNode> }) {
-  const [layout, setLayout] = useState<DashboardWidgetLayout[]>(() => reconcileDashboardLayout(null))
+  const [layout, setLayout] = useState<DashboardWidgetLayout[]>(() =>
+    reconcileDashboardLayout(null)
+  )
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
@@ -90,7 +96,11 @@ function DashboardSettingsOverlay({
     if (fromIndex === -1 || toIndex === -1) return
     const next = [...layout]
     const [moved] = next.splice(fromIndex, 1)
-    next.splice(next.findIndex((w) => w.id === targetId), 0, moved)
+    next.splice(
+      next.findIndex((w) => w.id === targetId),
+      0,
+      moved
+    )
     onChange(next)
   }
 

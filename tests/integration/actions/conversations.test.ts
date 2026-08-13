@@ -38,7 +38,9 @@ describe('updateConversation / deleteConversation / toggleConversationPinned', (
     })
     const formData = buildFormData({ title: 'New', date: '2026-03-01', productId: product.id })
     await captureRedirect(() => updateConversation(conversation.id, formData))
-    expect((await prisma.conversation.findUnique({ where: { id: conversation.id } }))?.title).toBe('New')
+    expect((await prisma.conversation.findUnique({ where: { id: conversation.id } }))?.title).toBe(
+      'New'
+    )
   })
 
   it('deletes a conversation', async () => {
@@ -57,7 +59,9 @@ describe('updateConversation / deleteConversation / toggleConversationPinned', (
       data: { title: 'Pin', date: new Date(), productId: product.id, userId: product.userId },
     })
     await toggleConversationPinned(conversation.id, true)
-    expect((await prisma.conversation.findUnique({ where: { id: conversation.id } }))?.pinned).toBe(true)
+    expect((await prisma.conversation.findUnique({ where: { id: conversation.id } }))?.pinned).toBe(
+      true
+    )
   })
 })
 

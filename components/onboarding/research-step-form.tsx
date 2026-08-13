@@ -13,7 +13,10 @@ import { createInsightQuick } from '@/lib/actions/insights'
 import { typeLabels } from '@/lib/labels'
 import { WizardEntryList } from './wizard-entry-list'
 
-type ConversationWithRelations = Conversation & { segment: Segment | null; research: Research | null }
+type ConversationWithRelations = Conversation & {
+  segment: Segment | null
+  research: Research | null
+}
 type InsightWithRelations = Insight & {
   segment: Segment | null
   jtbd: JTBD | null
@@ -88,7 +91,10 @@ export function ResearchStepForm({
       }
       const segment = segments.find((s) => s.id === conversationSegmentId) ?? null
       const researchItem = research.find((r) => r.id === conversationResearchId) ?? null
-      setConversations((prev) => [...prev, { ...result.conversation, segment, research: researchItem }])
+      setConversations((prev) => [
+        ...prev,
+        { ...result.conversation, segment, research: researchItem },
+      ])
       setConversationTitle('')
       setConversationError(null)
     })
@@ -236,7 +242,10 @@ export function ResearchStepForm({
                 </option>
               ))}
             </Select>
-            <Select value={insightResearchId} onChange={(e) => setInsightResearchId(e.target.value)}>
+            <Select
+              value={insightResearchId}
+              onChange={(e) => setInsightResearchId(e.target.value)}
+            >
               <option value="">Исследование не указано</option>
               {research.map((r) => (
                 <option key={r.id} value={r.id}>

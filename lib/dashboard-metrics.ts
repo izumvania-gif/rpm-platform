@@ -87,7 +87,9 @@ export async function getHypothesisStatusCounts(
     where: { userId, productId },
     _count: true,
   })
-  const counts = Object.fromEntries(hypothesisStatusOrder.map((s) => [s, 0])) as HypothesisStatusCounts
+  const counts = Object.fromEntries(
+    hypothesisStatusOrder.map((s) => [s, 0])
+  ) as HypothesisStatusCounts
   for (const row of grouped) counts[row.status] = row._count
   return counts
 }
@@ -120,7 +122,11 @@ export async function getResearchCadence(
 
   return eachMonthOfInterval({ start: rangeStart, end: new Date() }).map((monthStart) => {
     const key = format(monthStart, 'yyyy-MM')
-    return { monthStart, label: format(monthStart, 'LLL', { locale: ru }), count: buckets.get(key) ?? 0 }
+    return {
+      monthStart,
+      label: format(monthStart, 'LLL', { locale: ru }),
+      count: buckets.get(key) ?? 0,
+    }
   })
 }
 

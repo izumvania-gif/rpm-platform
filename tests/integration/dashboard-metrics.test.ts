@@ -22,10 +22,22 @@ describe('getUnconfirmedJtbds', () => {
   it('returns only unconfirmed JTBDs, with product included', async () => {
     const product = await createTestProduct()
     await prisma.jTBD.create({
-      data: { title: 'Confirmed', category: 'C', confirmed: true, productId: product.id, userId: product.userId },
+      data: {
+        title: 'Confirmed',
+        category: 'C',
+        confirmed: true,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const unconfirmed = await prisma.jTBD.create({
-      data: { title: 'Unconfirmed', category: 'C', confirmed: false, productId: product.id, userId: product.userId },
+      data: {
+        title: 'Unconfirmed',
+        category: 'C',
+        confirmed: false,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
 
     const result = await getUnconfirmedJtbds(product.userId)
@@ -38,10 +50,24 @@ describe('getSegmentsWithoutJtbd', () => {
   it('returns only segments with zero linked JTBDs', async () => {
     const product = await createTestProduct()
     const covered = await prisma.segment.create({
-      data: { name: 'Covered', slug: 'covered', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'Covered',
+        slug: 'covered',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const uncovered = await prisma.segment.create({
-      data: { name: 'Uncovered', slug: 'uncovered', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'Uncovered',
+        slug: 'uncovered',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.jTBD.create({
       data: {
@@ -139,13 +165,31 @@ describe('getJtbdCoverage', () => {
     const productA = await createTestProduct({ name: 'A' })
     const productB = await createTestProduct({ name: 'B' })
     await prisma.jTBD.create({
-      data: { title: 'A1', category: 'C', confirmed: true, productId: productA.id, userId: productA.userId },
+      data: {
+        title: 'A1',
+        category: 'C',
+        confirmed: true,
+        productId: productA.id,
+        userId: productA.userId,
+      },
     })
     await prisma.jTBD.create({
-      data: { title: 'A2', category: 'C', confirmed: false, productId: productA.id, userId: productA.userId },
+      data: {
+        title: 'A2',
+        category: 'C',
+        confirmed: false,
+        productId: productA.id,
+        userId: productA.userId,
+      },
     })
     await prisma.jTBD.create({
-      data: { title: 'B1', category: 'C', confirmed: true, productId: productB.id, userId: productB.userId },
+      data: {
+        title: 'B1',
+        category: 'C',
+        confirmed: true,
+        productId: productB.id,
+        userId: productB.userId,
+      },
     })
 
     const overall = await getJtbdCoverage(productA.userId)
@@ -160,13 +204,28 @@ describe('getHypothesisStatusCounts', () => {
   it('zero-fills every status and counts what exists', async () => {
     const product = await createTestProduct()
     await prisma.hypothesis.create({
-      data: { statement: 'H1', status: HypothesisStatus.DRAFT, productId: product.id, userId: product.userId },
+      data: {
+        statement: 'H1',
+        status: HypothesisStatus.DRAFT,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.hypothesis.create({
-      data: { statement: 'H2', status: HypothesisStatus.DRAFT, productId: product.id, userId: product.userId },
+      data: {
+        statement: 'H2',
+        status: HypothesisStatus.DRAFT,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.hypothesis.create({
-      data: { statement: 'H3', status: HypothesisStatus.CONFIRMED, productId: product.id, userId: product.userId },
+      data: {
+        statement: 'H3',
+        status: HypothesisStatus.CONFIRMED,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
 
     const counts = await getHypothesisStatusCounts(product.userId)
@@ -184,7 +243,13 @@ describe('getResearchCadence', () => {
     const product = await createTestProduct()
     const now = new Date()
     await prisma.research.create({
-      data: { title: 'This month', type: ResearchType.MANUAL, date: now, productId: product.id, userId: product.userId },
+      data: {
+        title: 'This month',
+        type: ResearchType.MANUAL,
+        date: now,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
 
     const cadence = await getResearchCadence(product.userId, 3)
@@ -198,10 +263,22 @@ describe('getResearchCadence', () => {
     const productB = await createTestProduct({ name: 'B' })
     const now = new Date()
     await prisma.research.create({
-      data: { title: 'A research', type: ResearchType.MANUAL, date: now, productId: productA.id, userId: productA.userId },
+      data: {
+        title: 'A research',
+        type: ResearchType.MANUAL,
+        date: now,
+        productId: productA.id,
+        userId: productA.userId,
+      },
     })
     await prisma.research.create({
-      data: { title: 'B research', type: ResearchType.MANUAL, date: now, productId: productB.id, userId: productB.userId },
+      data: {
+        title: 'B research',
+        type: ResearchType.MANUAL,
+        date: now,
+        productId: productB.id,
+        userId: productB.userId,
+      },
     })
 
     const cadence = await getResearchCadence(productA.userId, 1, productA.id)
@@ -221,10 +298,23 @@ describe('getGapsCounts', () => {
   it('aggregates the 4 gap queries into counts', async () => {
     const product = await createTestProduct()
     await prisma.jTBD.create({
-      data: { title: 'Unconfirmed', category: 'C', confirmed: false, productId: product.id, userId: product.userId },
+      data: {
+        title: 'Unconfirmed',
+        category: 'C',
+        confirmed: false,
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.segment.create({
-      data: { name: 'Uncovered', slug: 'uncovered', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'Uncovered',
+        slug: 'uncovered',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.hypothesis.create({
       data: {

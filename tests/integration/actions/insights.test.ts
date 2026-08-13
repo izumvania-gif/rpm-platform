@@ -16,13 +16,26 @@ describe('createInsight', () => {
   it('creates an insight with all four optional relations set at once', async () => {
     const product = await createTestProduct()
     const segment = await prisma.segment.create({
-      data: { name: 'S', slug: 's', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'S',
+        slug: 's',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const jtbd = await prisma.jTBD.create({
       data: { title: 'T', category: 'C', productId: product.id, userId: product.userId },
     })
     const research = await prisma.research.create({
-      data: { title: 'R', date: new Date(), type: 'MANUAL', productId: product.id, userId: product.userId },
+      data: {
+        title: 'R',
+        date: new Date(),
+        type: 'MANUAL',
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const conversation = await prisma.conversation.create({
       data: { title: 'Conv', date: new Date(), productId: product.id, userId: product.userId },

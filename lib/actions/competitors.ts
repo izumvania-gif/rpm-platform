@@ -6,12 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import {
-  optionalDate,
-  optionalString,
-  toTagsArray,
-  type InlineFieldResult,
-} from '@/lib/validation'
+import { optionalDate, optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const competitorSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
@@ -107,13 +102,7 @@ export async function createCompetitorQuick(
 export async function updateCompetitorField(
   id: string,
   field:
-    | 'name'
-    | 'url'
-    | 'positioning'
-    | 'features'
-    | 'pricingModel'
-    | 'companySize'
-    | 'lastCheckedAt',
+    'name' | 'url' | 'positioning' | 'features' | 'pricingModel' | 'companySize' | 'lastCheckedAt',
   value: string
 ): Promise<InlineFieldResult> {
   switch (field) {

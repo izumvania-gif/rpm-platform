@@ -158,7 +158,9 @@ export function JtbdForm({
             собственной раскладкой узлов.
           </p>
           {productSegments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">У выбранного продукта пока нет сегментов.</p>
+            <p className="text-sm text-muted-foreground">
+              У выбранного продукта пока нет сегментов.
+            </p>
           ) : (
             <div className="space-y-1 max-h-48 overflow-y-auto rounded-md border p-2">
               {productSegments.map((s) => (

@@ -48,7 +48,12 @@ export function PersonForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="avatarUrl">Ссылка на аватар</Label>
-          <Input id="avatarUrl" name="avatarUrl" type="url" defaultValue={defaultValues?.avatarUrl ?? ''} />
+          <Input
+            id="avatarUrl"
+            name="avatarUrl"
+            type="url"
+            defaultValue={defaultValues?.avatarUrl ?? ''}
+          />
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="skills">Навыки/компетенции (через запятую)</Label>

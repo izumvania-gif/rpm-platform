@@ -60,12 +60,7 @@ export function CompetitorNewsList({
               <div>
                 <p className="font-medium">
                   {item.url ? (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:underline"
-                    >
+                    <a href={item.url} target="_blank" rel="noreferrer" className="hover:underline">
                       {item.title}
                     </a>
                   ) : (
@@ -102,11 +97,7 @@ export function CompetitorNewsList({
           />
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
-        <Textarea
-          placeholder="Заметка"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
+        <Textarea placeholder="Заметка" value={note} onChange={(e) => setNote(e.target.value)} />
         {error && <p className="text-xs text-destructive">{error}</p>}
         <Button type="button" disabled={isPending || !title.trim()} onClick={submit}>
           Добавить запись

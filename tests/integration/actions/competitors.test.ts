@@ -57,7 +57,9 @@ describe('updateCompetitor / deleteCompetitor / toggleCompetitorPinned', () => {
 
     const redirectPath = await captureRedirect(() => deleteCompetitor(competitor.id))
     expect(redirectPath).toBe('/competitors')
-    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(0)
+    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(
+      0
+    )
   })
 
   it('toggles pinned', async () => {
@@ -66,7 +68,9 @@ describe('updateCompetitor / deleteCompetitor / toggleCompetitorPinned', () => {
       data: { name: 'Pin', features: [], productId: product.id, userId: product.userId },
     })
     await toggleCompetitorPinned(competitor.id, true)
-    expect((await prisma.competitor.findUnique({ where: { id: competitor.id } }))?.pinned).toBe(true)
+    expect((await prisma.competitor.findUnique({ where: { id: competitor.id } }))?.pinned).toBe(
+      true
+    )
   })
 })
 
@@ -125,9 +129,13 @@ describe('competitor news log', () => {
     expect(created.ok).toBe(true)
     if (!created.ok) return
 
-    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(1)
+    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(
+      1
+    )
     await deleteCompetitorNewsItem(created.item.id, competitor.id)
-    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(0)
+    expect(await prisma.competitorNewsItem.count({ where: { competitorId: competitor.id } })).toBe(
+      0
+    )
   })
 
   it('rejects a missing title', async () => {

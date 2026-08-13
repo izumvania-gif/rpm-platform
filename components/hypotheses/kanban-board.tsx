@@ -104,10 +104,7 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
                     >
                       <CardHeader>
                         <div className="flex items-center justify-between gap-2">
-                          <div
-                            className="flex items-center gap-1.5"
-                            style={{ color: tone.border }}
-                          >
+                          <div className="flex items-center gap-1.5" style={{ color: tone.border }}>
                             <StatusIcon size={13} strokeWidth={2} />
                             <span className="font-mono text-[10.5px] uppercase tracking-wide">
                               {h.updatedAt.toLocaleDateString('ru-RU', {

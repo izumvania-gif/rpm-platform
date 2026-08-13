@@ -32,10 +32,22 @@ describe('createSegment', () => {
   it('rejects a duplicate slug within the same product', async () => {
     const product = await createTestProduct()
     await prisma.segment.create({
-      data: { name: 'A', slug: 'dup', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'A',
+        slug: 'dup',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
 
-    const formData = buildFormData({ name: 'B', slug: 'dup', color: '#3B82F6', productId: product.id })
+    const formData = buildFormData({
+      name: 'B',
+      slug: 'dup',
+      color: '#3B82F6',
+      productId: product.id,
+    })
     const redirectPath = await captureRedirect(() => createSegment(formData))
     expect(redirectPath).toMatch(/^\/segments\/new\?error=/)
   })
@@ -45,7 +57,14 @@ describe('updateSegment / deleteSegment / toggleSegmentPinned', () => {
   it('updates a segment', async () => {
     const product = await createTestProduct()
     const segment = await prisma.segment.create({
-      data: { name: 'Old', slug: 'seg', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'Old',
+        slug: 'seg',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
 
     const formData = buildFormData({
@@ -66,7 +85,14 @@ describe('updateSegment / deleteSegment / toggleSegmentPinned', () => {
       data: { title: 'T', category: 'C', productId: product.id, userId: product.userId },
     })
     const segment = await prisma.segment.create({
-      data: { name: 'Del', slug: 'del', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'Del',
+        slug: 'del',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await prisma.jtbdGraphLayout.create({
       data: { jtbdId: jtbd.id, viewKey: segment.id, x: 1, y: 2 },
@@ -81,7 +107,14 @@ describe('updateSegment / deleteSegment / toggleSegmentPinned', () => {
   it('toggles pinned', async () => {
     const product = await createTestProduct()
     const segment = await prisma.segment.create({
-      data: { name: 'Pin', slug: 'pin', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'Pin',
+        slug: 'pin',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     await toggleSegmentPinned(segment.id, true)
     expect((await prisma.segment.findUnique({ where: { id: segment.id } }))?.pinned).toBe(true)
@@ -120,7 +153,14 @@ describe('updateSegmentField', () => {
   it('updates audienceShare inline', async () => {
     const product = await createTestProduct()
     const segment = await prisma.segment.create({
-      data: { name: 'S', slug: 's', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'S',
+        slug: 's',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const result = await updateSegmentField(segment.id, 'audienceShare', '55')
     expect(result).toEqual({ ok: true })
@@ -130,7 +170,14 @@ describe('updateSegmentField', () => {
   it('rejects an out-of-range audienceShare', async () => {
     const product = await createTestProduct()
     const segment = await prisma.segment.create({
-      data: { name: 'S', slug: 's2', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'S',
+        slug: 's2',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const result = await updateSegmentField(segment.id, 'audienceShare', '150')
     expect(result.ok).toBe(false)

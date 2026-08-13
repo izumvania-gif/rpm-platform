@@ -76,7 +76,10 @@ export default async function JtbdDetailPage({
           <InlineEditableField
             value={jtbd.jobType}
             type="select"
-            options={jtbdJobTypeOrder.map((type) => ({ value: type, label: jtbdJobTypeLabels[type] }))}
+            options={jtbdJobTypeOrder.map((type) => ({
+              value: type,
+              label: jtbdJobTypeLabels[type],
+            }))}
             action={updateJtbdField.bind(null, jtbd.id, 'jobType')}
             display="jobType"
           />

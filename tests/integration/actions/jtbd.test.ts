@@ -22,10 +22,24 @@ describe('createJtbd', () => {
   it('creates a JTBD and connects it to multiple segments', async () => {
     const product = await createTestProduct()
     const segmentA = await prisma.segment.create({
-      data: { name: 'A', slug: 'a', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'A',
+        slug: 'a',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const segmentB = await prisma.segment.create({
-      data: { name: 'B', slug: 'b', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'B',
+        slug: 'b',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
 
     const formData = buildFormData(
@@ -51,10 +65,24 @@ describe('updateJtbd', () => {
   it('replaces the segment set and honors redirectTo', async () => {
     const product = await createTestProduct()
     const segmentA = await prisma.segment.create({
-      data: { name: 'A', slug: 'a', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'A',
+        slug: 'a',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const segmentB = await prisma.segment.create({
-      data: { name: 'B', slug: 'b', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'B',
+        slug: 'b',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
     const jtbd = await prisma.jTBD.create({
       data: {
@@ -67,13 +95,22 @@ describe('updateJtbd', () => {
     })
 
     const formData = buildFormData(
-      { title: 'T2', category: 'C', jobType: 'SMALL_JOB', productId: product.id, redirectTo: '/jtbd/graph' },
+      {
+        title: 'T2',
+        category: 'C',
+        jobType: 'SMALL_JOB',
+        productId: product.id,
+        redirectTo: '/jtbd/graph',
+      },
       { segmentIds: [segmentB.id] }
     )
     const redirectPath = await captureRedirect(() => updateJtbd(jtbd.id, formData))
     expect(redirectPath).toBe('/jtbd/graph')
 
-    const updated = await prisma.jTBD.findUnique({ where: { id: jtbd.id }, include: { segments: true } })
+    const updated = await prisma.jTBD.findUnique({
+      where: { id: jtbd.id },
+      include: { segments: true },
+    })
     expect(updated?.segments.map((s) => s.id)).toEqual([segmentB.id])
   })
 })
@@ -125,13 +162,19 @@ describe('jtbd-graph actions', () => {
     expect((await prisma.jTBD.findUnique({ where: { id: child.id } }))?.parentId).toBe(parent.id)
   })
 
-  it('setJtbdParent rejects making a node its own descendant\'s child', async () => {
+  it("setJtbdParent rejects making a node its own descendant's child", async () => {
     const product = await createTestProduct()
     const grandparent = await prisma.jTBD.create({
       data: { title: 'GP', category: 'C', productId: product.id, userId: product.userId },
     })
     const parent = await prisma.jTBD.create({
-      data: { title: 'P', category: 'C', productId: product.id, userId: product.userId, parentId: grandparent.id },
+      data: {
+        title: 'P',
+        category: 'C',
+        productId: product.id,
+        userId: product.userId,
+        parentId: grandparent.id,
+      },
     })
 
     const result = await setJtbdParent(grandparent.id, parent.id)
@@ -152,7 +195,9 @@ describe('jtbd-graph actions', () => {
     const duplicate = await createJtbdSequenceEdge(a.id, b.id)
     expect(duplicate.ok).toBe(false)
 
-    const edge = await prisma.jtbdSequenceEdge.findFirst({ where: { fromJtbdId: a.id, toJtbdId: b.id } })
+    const edge = await prisma.jtbdSequenceEdge.findFirst({
+      where: { fromJtbdId: a.id, toJtbdId: b.id },
+    })
     expect(edge).not.toBeNull()
     await deleteJtbdSequenceEdge(edge!.id)
     expect(await prisma.jtbdSequenceEdge.count()).toBe(0)
@@ -161,10 +206,19 @@ describe('jtbd-graph actions', () => {
   it('createJtbdQuick creates a JTBD with segments in one call', async () => {
     const product = await createTestProduct()
     const segment = await prisma.segment.create({
-      data: { name: 'S', slug: 's', color: '#3B82F6', tags: [], productId: product.id, userId: product.userId },
+      data: {
+        name: 'S',
+        slug: 's',
+        color: '#3B82F6',
+        tags: [],
+        productId: product.id,
+        userId: product.userId,
+      },
     })
 
-    const result = await createJtbdQuick(product.id, 'Quick job', 'Category', 'MICRO_JOB', [segment.id])
+    const result = await createJtbdQuick(product.id, 'Quick job', 'Category', 'MICRO_JOB', [
+      segment.id,
+    ])
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.jtbd.jobType).toBe('MICRO_JOB')

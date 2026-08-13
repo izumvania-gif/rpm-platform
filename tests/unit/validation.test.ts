@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { optionalDate, optionalNumber, optionalString, toLines, toTagsArray } from '@/lib/validation'
+import {
+  optionalDate,
+  optionalNumber,
+  optionalString,
+  toLines,
+  toTagsArray,
+} from '@/lib/validation'
 
 describe('optionalString', () => {
   const schema = z.object({ value: optionalString() })

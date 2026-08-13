@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, type InlineFieldResult } from '@/lib/validation'
 
 const productSchema = z.object({
@@ -64,6 +65,8 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(id: string, formData: FormData) {
+  await assertOwned('product', id, getCurrentUserId())
+
   const parsed = parseProductForm(formData)
   if (!parsed.success) {
     redirect(`/products/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -88,6 +91,8 @@ export async function updateProduct(id: string, formData: FormData) {
 }
 
 export async function deleteProduct(id: string) {
+  await assertOwned('product', id, getCurrentUserId())
+
   await prisma.product.delete({ where: { id } })
   revalidatePath('/products')
   redirect('/products')
@@ -98,6 +103,9 @@ export async function updateProductField(
   field: 'name' | 'description' | 'stage' | 'ownerId' | 'publicSummary' | 'departmentId',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('product', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'name': {
       const name = value.trim()

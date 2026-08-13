@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const researchSchema = z.object({
@@ -36,6 +37,10 @@ export async function createResearch(formData: FormData) {
     redirect(`/research/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { tags, ...data } = parsed.data
   const research = await prisma.research.create({
     data: { ...data, tags: toTagsArray(tags), userId: getCurrentUserId() },
@@ -45,6 +50,8 @@ export async function createResearch(formData: FormData) {
 }
 
 export async function updateResearch(id: string, formData: FormData) {
+  await assertOwned('research', id, getCurrentUserId())
+
   const parsed = parseResearchForm(formData)
   if (!parsed.success) {
     redirect(`/research/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -61,12 +68,16 @@ export async function updateResearch(id: string, formData: FormData) {
 }
 
 export async function deleteResearch(id: string) {
+  await assertOwned('research', id, getCurrentUserId())
+
   await prisma.research.delete({ where: { id } })
   revalidatePath('/research')
   redirect('/research')
 }
 
 export async function toggleResearchPinned(id: string, pinned: boolean) {
+  await assertOwned('research', id, getCurrentUserId())
+
   await prisma.research.update({ where: { id }, data: { pinned } })
   revalidatePath('/research')
   revalidatePath(`/research/${id}`)
@@ -78,6 +89,9 @@ export async function createResearchQuick(
   title: string,
   type: ResearchType
 ): Promise<{ ok: true; research: Research } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedTitle = title.trim()
   if (!productId || !trimmedTitle) {
     return { ok: false, error: 'Укажите продукт и название' }
@@ -105,6 +119,9 @@ export async function updateResearchField(
   field: 'title' | 'description' | 'date' | 'status' | 'type' | 'tags',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('research', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'title': {
       const title = value.trim()

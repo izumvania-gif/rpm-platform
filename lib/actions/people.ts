@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const personSchema = z.object({
@@ -42,6 +43,8 @@ export async function createPerson(formData: FormData) {
 }
 
 export async function updatePerson(id: string, formData: FormData) {
+  await assertOwned('person', id, getCurrentUserId())
+
   const parsed = parsePersonForm(formData)
   if (!parsed.success) {
     redirect(`/people/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -58,12 +61,16 @@ export async function updatePerson(id: string, formData: FormData) {
 }
 
 export async function deletePerson(id: string) {
+  await assertOwned('person', id, getCurrentUserId())
+
   await prisma.person.delete({ where: { id } })
   revalidatePath('/people')
   redirect('/people')
 }
 
 export async function togglePersonPinned(id: string, pinned: boolean) {
+  await assertOwned('person', id, getCurrentUserId())
+
   await prisma.person.update({ where: { id }, data: { pinned } })
   revalidatePath('/people')
   revalidatePath(`/people/${id}`)
@@ -74,6 +81,9 @@ export async function updatePersonField(
   field: 'name' | 'role' | 'team' | 'email' | 'avatarUrl' | 'skills',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('person', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'name': {
       const name = value.trim()

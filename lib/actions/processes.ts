@@ -5,6 +5,8 @@ import type { Process } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 
 // CRUD for the Process entity itself (plans/platform-views-plan.md §10) —
 // separate from lib/actions/process.ts, which owns the steps/edges inside
@@ -31,12 +33,18 @@ export async function createProcess(formData: FormData) {
     )
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const process = await prisma.process.create({ data: parsed.data })
   revalidatePath('/pm')
   redirect(`/pm?productId=${process.productId}&processId=${process.id}&scrollTo=process`)
 }
 
 export async function updateProcess(id: string, formData: FormData) {
+  await assertOwned('process', id, getCurrentUserId())
+
   const parsed = parseProcessForm(formData)
   if (!parsed.success) {
     redirect(`/pm/processes/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -55,6 +63,9 @@ export async function createProcessQuick(
   productId: string,
   title: string
 ): Promise<{ ok: true; process: Process } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedTitle = title.trim()
   if (!trimmedTitle) return { ok: false, error: 'Название обязательно' }
 
@@ -64,6 +75,8 @@ export async function createProcessQuick(
 }
 
 export async function deleteProcess(id: string) {
+  await assertOwned('process', id, getCurrentUserId())
+
   const process = await prisma.process.delete({ where: { id } })
   revalidatePath('/pm')
   redirect(`/pm?productId=${process.productId}&scrollTo=process`)

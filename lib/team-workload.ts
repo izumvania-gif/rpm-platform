@@ -27,7 +27,14 @@ export async function getProductTeamWorkload(
       include: { owner: true },
     }),
     prisma.processStep.findMany({
-      where: { process: { productId }, assignedPersonId: { not: null } },
+      // The userId leg is not redundant (plans/2.0-hardening-plan.md, Фаза 2):
+      // this function is handed a productId by its caller, and filtering on
+      // that alone returns another user's steps if the id ever comes from
+      // somewhere less trusted than today's page props.
+      where: {
+        process: { productId, product: { userId } },
+        assignedPersonId: { not: null },
+      },
       include: { assignedPerson: true },
     }),
   ])
@@ -71,7 +78,11 @@ export interface TeamMember extends PersonWorkload {
 export async function getProductTeam(userId: string, productId: string): Promise<TeamMember[]> {
   const [workload, members] = await Promise.all([
     getProductTeamWorkload(userId, productId),
-    prisma.productTeamMember.findMany({ where: { productId }, include: { person: true } }),
+    prisma.productTeamMember.findMany({
+      // Same reasoning as the processStep query above.
+      where: { productId, product: { userId } },
+      include: { person: true },
+    }),
   ])
 
   const byPerson = new Map<string, TeamMember>()

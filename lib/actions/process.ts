@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import type { ProcessStep } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -20,6 +22,9 @@ export async function createProcessStepQuick(
   y: number,
   assignedPersonId?: string
 ): Promise<{ ok: true; step: ProcessStep } | { ok: false; error: string }> {
+  const denied = await denyUnowned('process', processId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedTitle = title.trim()
   if (!processId || !trimmedTitle) {
     return { ok: false, error: 'Укажите название шага' }
@@ -42,6 +47,9 @@ export async function updateProcessStep(
   id: string,
   data: { title: string; assignedPersonId: string | null }
 ): Promise<ActionResult> {
+  const denied = await denyUnowned('processStep', id, getCurrentUserId())
+  if (denied) return denied
+
   const title = data.title.trim()
   if (!title) return { ok: false, error: 'Название не может быть пустым' }
 
@@ -54,6 +62,9 @@ export async function updateProcessStep(
 }
 
 export async function deleteProcessStep(id: string): Promise<void> {
+  // Void return — no channel for an error, so an unowned record 404s.
+  await assertOwned('processStep', id, getCurrentUserId())
+
   await prisma.processStep.delete({ where: { id } })
   revalidatePath('/pm')
 }
@@ -62,6 +73,14 @@ export async function saveProcessStepPositions(
   entries: { stepId: string; x: number; y: number }[]
 ): Promise<void> {
   if (entries.length === 0) return
+
+  // Same reasoning as saveJtbdGraphPositions: a bulk write driven by
+  // client-supplied ids has to check every one of them.
+  const userId = getCurrentUserId()
+  for (const entry of entries) {
+    await assertOwned('processStep', entry.stepId, userId)
+  }
+
   await prisma.$transaction(
     entries.map((entry) =>
       prisma.processStep.update({
@@ -82,6 +101,13 @@ export async function createProcessEdge(
     return { ok: false, error: 'Шаг не может вести сам в себя' }
   }
 
+  // Both endpoints — see createJtbdSequenceEdge for why one is not enough.
+  const userId = getCurrentUserId()
+  const denied =
+    (await denyUnowned('processStep', fromStepId, userId)) ??
+    (await denyUnowned('processStep', toStepId, userId))
+  if (denied) return denied
+
   try {
     await prisma.processEdge.create({
       data: { fromStepId, toStepId, label: label?.trim() || undefined },
@@ -94,6 +120,9 @@ export async function createProcessEdge(
 }
 
 export async function deleteProcessEdge(id: string): Promise<void> {
+  // Void return — no channel for an error, so an unowned record 404s.
+  await assertOwned('processEdge', id, getCurrentUserId())
+
   await prisma.processEdge.delete({ where: { id } })
   revalidatePath('/pm')
 }

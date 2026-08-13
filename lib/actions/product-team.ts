@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { denyUnowned } from '@/lib/ownership'
 
 // Product team roster (plans/2.0-ux-improvement-plan.md, Фаза 2) — the two
 // non-redirecting entry points mirror the createXQuick pattern already used
@@ -17,6 +18,9 @@ export async function addProductTeamMemberQuick(
   productId: string,
   personId: string
 ): Promise<ProductTeamMemberResult> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   if (!personId) return { ok: false, error: 'Выберите человека' }
 
   try {
@@ -39,6 +43,9 @@ export async function createPersonAndAddToTeamQuick(
   name: string,
   role: string
 ): Promise<ProductTeamMemberResult> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedName = name.trim()
   if (!trimmedName) return { ok: false, error: 'Укажите имя' }
 
@@ -66,6 +73,9 @@ export async function createPersonAndAddToTeamQuick(
 // rather than a Quick action, since DeleteButton submits a real <form>.
 // Does not touch the underlying Person record.
 export async function removeProductTeamMember(id: string) {
+  const denied = await denyUnowned('productTeamMember', id, getCurrentUserId())
+  if (denied) return denied
+
   const member = await prisma.productTeamMember.delete({ where: { id } })
   revalidatePath('/pm')
   redirect(`/pm?productId=${member.productId}&scrollTo=team`)

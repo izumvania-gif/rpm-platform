@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import {
   optionalNumber,
   optionalString,
@@ -46,6 +47,10 @@ export async function createSegment(formData: FormData) {
     redirect(`/segments/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { tags, ...data } = parsed.data
   try {
     const segment = await prisma.segment.create({
@@ -64,6 +69,8 @@ export async function createSegment(formData: FormData) {
 }
 
 export async function updateSegment(id: string, formData: FormData) {
+  await assertOwned('segment', id, getCurrentUserId())
+
   const parsed = parseSegmentForm(formData)
   if (!parsed.success) {
     redirect(`/segments/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -89,6 +96,8 @@ export async function updateSegment(id: string, formData: FormData) {
 }
 
 export async function deleteSegment(id: string) {
+  await assertOwned('segment', id, getCurrentUserId())
+
   // The segment's own id doubles as the viewKey for its JTBD graph layout —
   // no FK to clean up automatically (viewKey is a plain string, not a
   // relation), so drop those rows explicitly before/alongside the segment.
@@ -99,6 +108,8 @@ export async function deleteSegment(id: string) {
 }
 
 export async function toggleSegmentPinned(id: string, pinned: boolean) {
+  await assertOwned('segment', id, getCurrentUserId())
+
   await prisma.segment.update({ where: { id }, data: { pinned } })
   revalidatePath('/segments')
   revalidatePath(`/segments/${id}`)
@@ -109,6 +120,9 @@ export async function createSegmentQuick(
   productId: string,
   name: string
 ): Promise<{ ok: true; segment: Segment } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedName = name.trim()
   if (!productId || !trimmedName) {
     return { ok: false, error: 'Укажите продукт и название' }
@@ -152,6 +166,9 @@ export async function updateSegmentField(
   field: 'name' | 'description' | 'audienceShare' | 'tags',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('segment', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'name': {
       const name = value.trim()

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import {
   optionalNumber,
   optionalString,
@@ -43,6 +44,10 @@ export async function createHypothesis(formData: FormData) {
     redirect(`/hypotheses/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { tags, ...data } = parsed.data
   await prisma.hypothesis.create({
     data: {
@@ -57,6 +62,8 @@ export async function createHypothesis(formData: FormData) {
 }
 
 export async function updateHypothesis(id: string, formData: FormData) {
+  await assertOwned('hypothesis', id, getCurrentUserId())
+
   const parsed = parseHypothesisForm(formData)
   if (!parsed.success) {
     redirect(`/hypotheses/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -80,12 +87,16 @@ export async function updateHypothesis(id: string, formData: FormData) {
 }
 
 export async function deleteHypothesis(id: string) {
+  await assertOwned('hypothesis', id, getCurrentUserId())
+
   await prisma.hypothesis.delete({ where: { id } })
   revalidatePath('/hypotheses')
   redirect('/hypotheses')
 }
 
 export async function updateHypothesisStatus(id: string, status: HypothesisStatus) {
+  await assertOwned('hypothesis', id, getCurrentUserId())
+
   await prisma.hypothesis.update({
     where: { id },
     data: { status, statusChanges: { create: { status } } },
@@ -95,6 +106,8 @@ export async function updateHypothesisStatus(id: string, status: HypothesisStatu
 }
 
 export async function toggleHypothesisPinned(id: string, pinned: boolean) {
+  await assertOwned('hypothesis', id, getCurrentUserId())
+
   await prisma.hypothesis.update({ where: { id }, data: { pinned } })
   revalidatePath('/hypotheses')
   revalidatePath(`/hypotheses/${id}`)
@@ -107,6 +120,9 @@ export async function createHypothesisQuick(
   jtbdId?: string | null,
   segmentId?: string | null
 ): Promise<{ ok: true; hypothesis: Hypothesis } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedStatement = statement.trim()
   if (!productId || !trimmedStatement) {
     return { ok: false, error: 'Укажите продукт и формулировку' }
@@ -133,6 +149,9 @@ export async function updateHypothesisField(
   field: 'statement' | 'priority' | 'tags',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('hypothesis', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'statement': {
       const statement = value.trim()

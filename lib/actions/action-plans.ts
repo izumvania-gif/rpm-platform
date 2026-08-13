@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, toLines, toTagsArray } from '@/lib/validation'
 
 type ActionPlanQuick = Prisma.ActionPlanGetPayload<{
@@ -46,6 +47,10 @@ export async function createActionPlan(formData: FormData) {
     )
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { steps, tags, ...data } = parsed.data
   await prisma.actionPlan.create({
     data: { ...data, steps: toLines(steps), tags: toTagsArray(tags), userId: getCurrentUserId() },
@@ -55,6 +60,8 @@ export async function createActionPlan(formData: FormData) {
 }
 
 export async function updateActionPlan(id: string, formData: FormData) {
+  await assertOwned('actionPlan', id, getCurrentUserId())
+
   const parsed = parseActionPlanForm(formData)
   if (!parsed.success) {
     redirect(
@@ -72,12 +79,16 @@ export async function updateActionPlan(id: string, formData: FormData) {
 }
 
 export async function deleteActionPlan(id: string) {
+  await assertOwned('actionPlan', id, getCurrentUserId())
+
   const plan = await prisma.actionPlan.delete({ where: { id } })
   revalidatePath('/pm')
   redirect(`/pm?productId=${plan.productId}&scrollTo=action-plans`)
 }
 
 export async function toggleActionPlanPinned(id: string, pinned: boolean) {
+  await assertOwned('actionPlan', id, getCurrentUserId())
+
   await prisma.actionPlan.update({ where: { id }, data: { pinned } })
   revalidatePath('/pm')
 }
@@ -93,6 +104,9 @@ export async function createActionPlanQuick(
   steps: string,
   ownerId: string
 ): Promise<{ ok: true; plan: ActionPlanQuick } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedScenario = scenario.trim()
   if (!trimmedScenario) return { ok: false, error: 'Сценарий обязателен' }
 

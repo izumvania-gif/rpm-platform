@@ -60,3 +60,19 @@ export async function createTestProcess(productId: string, overrides: { title?: 
     data: { title: overrides.title ?? 'Test Process', productId },
   })
 }
+
+/**
+ * Runs an action expected to be refused by the ownership guard
+ * (lib/ownership.ts), which raises a 404 rather than returning an error.
+ * Fails loudly if the action completed instead — a silent pass here would
+ * mean the write went through.
+ */
+export async function expectNotFound(fn: () => Promise<unknown>): Promise<void> {
+  try {
+    await fn()
+  } catch (e) {
+    if (e instanceof Error && e.message === 'NOT_FOUND') return
+    throw e
+  }
+  throw new Error('Expected the action to raise a 404, but it completed')
+}

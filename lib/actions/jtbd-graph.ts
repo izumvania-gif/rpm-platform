@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { JtbdJobType, type JTBD } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -20,6 +21,9 @@ async function isDescendant(rootId: string, candidateId: string, userId: string)
 }
 
 export async function setJtbdParent(id: string, parentId: string | null): Promise<ActionResult> {
+  const denied = await denyUnowned('jtbd', id, getCurrentUserId())
+  if (denied) return denied
+
   const userId = getCurrentUserId()
 
   if (parentId === id) {
@@ -47,6 +51,14 @@ export async function createJtbdSequenceEdge(
     return { ok: false, error: 'Задача не может предшествовать самой себе' }
   }
 
+  // BOTH endpoints, not just one: an edge is a write that touches two records,
+  // and checking only the source would let a foreign job be linked in as the
+  // target.
+  const userId = getCurrentUserId()
+  const denied =
+    (await denyUnowned('jtbd', fromJtbdId, userId)) ?? (await denyUnowned('jtbd', toJtbdId, userId))
+  if (denied) return denied
+
   try {
     await prisma.jtbdSequenceEdge.create({ data: { fromJtbdId, toJtbdId } })
   } catch {
@@ -57,6 +69,10 @@ export async function createJtbdSequenceEdge(
 }
 
 export async function deleteJtbdSequenceEdge(id: string): Promise<void> {
+  // Returns void, so there is no channel to hand an error back through —
+  // an unowned edge raises a 404 like the other void actions.
+  await assertOwned('jtbdSequenceEdge', id, getCurrentUserId())
+
   await prisma.jtbdSequenceEdge.delete({ where: { id } })
   revalidatePath('/jtbd/graph')
 }
@@ -68,6 +84,9 @@ export async function createJtbdQuick(
   jobType: JtbdJobType,
   segmentIds?: string[]
 ): Promise<{ ok: true; jtbd: JTBD } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedTitle = title.trim()
   const trimmedCategory = category.trim()
   if (!productId || !trimmedTitle || !trimmedCategory) {
@@ -98,6 +117,15 @@ export async function saveJtbdGraphPositions(
   viewKey: string
 ): Promise<void> {
   if (entries.length === 0) return
+
+  // Every id in the batch is checked. A layout save is a bulk write driven
+  // entirely by client-supplied ids, so one unowned entry is enough to write
+  // into someone else's graph.
+  const userId = getCurrentUserId()
+  for (const entry of entries) {
+    await assertOwned('jtbd', entry.jtbdId, userId)
+  }
+
   await prisma.$transaction(
     entries.map((entry) =>
       prisma.jtbdGraphLayout.upsert({

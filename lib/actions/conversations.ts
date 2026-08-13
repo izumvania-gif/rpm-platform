@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const conversationSchema = z.object({
@@ -36,6 +37,10 @@ export async function createConversation(formData: FormData) {
     redirect(`/conversations/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { tags, ...data } = parsed.data
   const conversation = await prisma.conversation.create({
     data: { ...data, tags: toTagsArray(tags), userId: getCurrentUserId() },
@@ -45,6 +50,8 @@ export async function createConversation(formData: FormData) {
 }
 
 export async function updateConversation(id: string, formData: FormData) {
+  await assertOwned('conversation', id, getCurrentUserId())
+
   const parsed = parseConversationForm(formData)
   if (!parsed.success) {
     redirect(
@@ -63,12 +70,16 @@ export async function updateConversation(id: string, formData: FormData) {
 }
 
 export async function deleteConversation(id: string) {
+  await assertOwned('conversation', id, getCurrentUserId())
+
   await prisma.conversation.delete({ where: { id } })
   revalidatePath('/conversations')
   redirect('/conversations')
 }
 
 export async function toggleConversationPinned(id: string, pinned: boolean) {
+  await assertOwned('conversation', id, getCurrentUserId())
+
   await prisma.conversation.update({ where: { id }, data: { pinned } })
   revalidatePath('/conversations')
   revalidatePath(`/conversations/${id}`)
@@ -81,6 +92,9 @@ export async function createConversationQuick(
   segmentId?: string | null,
   researchId?: string | null
 ): Promise<{ ok: true; conversation: Conversation } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedTitle = title.trim()
   if (!productId || !trimmedTitle) {
     return { ok: false, error: 'Укажите продукт и название' }
@@ -105,6 +119,9 @@ export async function updateConversationField(
   field: 'title' | 'transcript' | 'date' | 'tags',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('conversation', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'title': {
       const title = value.trim()

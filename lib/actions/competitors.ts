@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalDate, optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const competitorSchema = z.object({
@@ -38,6 +39,10 @@ export async function createCompetitor(formData: FormData) {
     redirect(`/competitors/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { features, ...data } = parsed.data
   const competitor = await prisma.competitor.create({
     data: { ...data, features: toTagsArray(features), userId: getCurrentUserId() },
@@ -47,6 +52,8 @@ export async function createCompetitor(formData: FormData) {
 }
 
 export async function updateCompetitor(id: string, formData: FormData) {
+  await assertOwned('competitor', id, getCurrentUserId())
+
   const parsed = parseCompetitorForm(formData)
   if (!parsed.success) {
     redirect(`/competitors/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -63,12 +70,16 @@ export async function updateCompetitor(id: string, formData: FormData) {
 }
 
 export async function deleteCompetitor(id: string) {
+  await assertOwned('competitor', id, getCurrentUserId())
+
   await prisma.competitor.delete({ where: { id } })
   revalidatePath('/competitors')
   redirect('/competitors')
 }
 
 export async function toggleCompetitorPinned(id: string, pinned: boolean) {
+  await assertOwned('competitor', id, getCurrentUserId())
+
   await prisma.competitor.update({ where: { id }, data: { pinned } })
   revalidatePath('/competitors')
   revalidatePath(`/competitors/${id}`)
@@ -80,6 +91,9 @@ export async function createCompetitorQuick(
   name: string,
   positioning?: string
 ): Promise<{ ok: true; competitor: Competitor } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedName = name.trim()
   if (!productId || !trimmedName) {
     return { ok: false, error: 'Укажите продукт и название' }
@@ -105,6 +119,9 @@ export async function updateCompetitorField(
     'name' | 'url' | 'positioning' | 'features' | 'pricingModel' | 'companySize' | 'lastCheckedAt',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('competitor', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'name': {
       const name = value.trim()

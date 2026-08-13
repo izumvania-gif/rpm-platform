@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const jtbdSchema = z.object({
@@ -39,6 +40,10 @@ export async function createJtbd(formData: FormData) {
     redirect(`/jtbd/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { tags, ...data } = parsed.data
   const jtbd = await prisma.jTBD.create({
     data: {
@@ -53,6 +58,8 @@ export async function createJtbd(formData: FormData) {
 }
 
 export async function updateJtbd(id: string, formData: FormData) {
+  await assertOwned('jtbd', id, getCurrentUserId())
+
   const { parsed, segmentIds } = parseJtbdForm(formData)
   if (!parsed.success) {
     redirect(`/jtbd/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -74,12 +81,16 @@ export async function updateJtbd(id: string, formData: FormData) {
 }
 
 export async function deleteJtbd(id: string) {
+  await assertOwned('jtbd', id, getCurrentUserId())
+
   await prisma.jTBD.delete({ where: { id } })
   revalidatePath('/jtbd')
   redirect('/jtbd')
 }
 
 export async function toggleJtbdPinned(id: string, pinned: boolean) {
+  await assertOwned('jtbd', id, getCurrentUserId())
+
   await prisma.jTBD.update({ where: { id }, data: { pinned } })
   revalidatePath('/jtbd')
   revalidatePath(`/jtbd/${id}`)
@@ -91,6 +102,9 @@ export async function updateJtbdField(
   field: 'title' | 'category' | 'description' | 'jobType' | 'tags',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('jtbd', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'title': {
       const title = value.trim()

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalDate, optionalString } from '@/lib/validation'
 
 type RoadmapItemQuick = Prisma.RoadmapItemGetPayload<{
@@ -65,6 +66,10 @@ export async function createRoadmapItem(formData: FormData) {
     )
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   await prisma.roadmapItem.create({
     data: { ...parsed.data, userId: getCurrentUserId() },
   })
@@ -73,6 +78,8 @@ export async function createRoadmapItem(formData: FormData) {
 }
 
 export async function updateRoadmapItem(id: string, formData: FormData) {
+  await assertOwned('roadmapItem', id, getCurrentUserId())
+
   const parsed = parseRoadmapItemForm(formData)
   if (!parsed.success) {
     redirect(`/pm/roadmap/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -84,12 +91,16 @@ export async function updateRoadmapItem(id: string, formData: FormData) {
 }
 
 export async function deleteRoadmapItem(id: string) {
+  await assertOwned('roadmapItem', id, getCurrentUserId())
+
   const item = await prisma.roadmapItem.delete({ where: { id } })
   revalidatePath('/pm')
   redirect(`/pm?productId=${item.productId}&scrollTo=roadmap`)
 }
 
 export async function toggleRoadmapItemPinned(id: string, pinned: boolean) {
+  await assertOwned('roadmapItem', id, getCurrentUserId())
+
   await prisma.roadmapItem.update({ where: { id }, data: { pinned } })
   revalidatePath('/pm')
 }
@@ -108,6 +119,9 @@ export async function updateRoadmapItemDates(
   endDate?: string,
   track?: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const denied = await denyUnowned('roadmapItem', id, getCurrentUserId())
+  if (denied) return denied
+
   const parsedStart = z.coerce.date().safeParse(startDate)
   if (!parsedStart.success) return { ok: false, error: 'Некорректная дата начала' }
 
@@ -147,6 +161,9 @@ export async function createRoadmapItemQuick(
   quarter: string,
   ownerId: string
 ): Promise<{ ok: true; item: RoadmapItemQuick } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedTitle = title.trim()
   if (!trimmedTitle) return { ok: false, error: 'Название обязательно' }
 

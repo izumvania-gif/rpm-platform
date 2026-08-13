@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import type { InlineFieldResult } from '@/lib/validation'
 
 const rtbSchema = z.object({
@@ -30,6 +31,10 @@ export async function createRTB(formData: FormData) {
     redirect(`/marketing/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const rtb = await prisma.rTB.create({
     data: {
       ...parsed.data,
@@ -42,6 +47,8 @@ export async function createRTB(formData: FormData) {
 }
 
 export async function updateRTB(id: string, formData: FormData) {
+  await assertOwned('rtb', id, getCurrentUserId())
+
   const { parsed, featureIds } = parseRTBForm(formData)
   if (!parsed.success) {
     redirect(`/marketing/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -60,12 +67,16 @@ export async function updateRTB(id: string, formData: FormData) {
 }
 
 export async function deleteRTB(id: string) {
+  await assertOwned('rtb', id, getCurrentUserId())
+
   await prisma.rTB.delete({ where: { id } })
   revalidatePath('/marketing')
   redirect('/marketing')
 }
 
 export async function toggleRTBPinned(id: string, pinned: boolean) {
+  await assertOwned('rtb', id, getCurrentUserId())
+
   await prisma.rTB.update({ where: { id }, data: { pinned } })
   revalidatePath('/marketing')
   revalidatePath(`/marketing/${id}`)
@@ -77,6 +88,9 @@ export async function createRTBQuick(
   statement: string,
   featureIds: string[] = []
 ): Promise<{ ok: true; rtb: RTB } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedStatement = statement.trim()
   if (!productId || !trimmedStatement) {
     return { ok: false, error: 'Укажите продукт и формулировку' }
@@ -96,6 +110,9 @@ export async function createRTBQuick(
 }
 
 export async function updateRTBField(id: string, value: string): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('rtb', id, getCurrentUserId())
+  if (denied) return denied
+
   const statement = value.trim()
   if (!statement) return { ok: false, error: 'Формулировка не может быть пустой' }
   await prisma.rTB.update({ where: { id }, data: { statement } })

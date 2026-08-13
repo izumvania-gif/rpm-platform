@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, type InlineFieldResult } from '@/lib/validation'
 
 const featureSchema = z.object({
@@ -33,6 +34,10 @@ export async function createFeature(formData: FormData) {
     redirect(`/features/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const feature = await prisma.feature.create({
     data: {
       ...parsed.data,
@@ -46,6 +51,8 @@ export async function createFeature(formData: FormData) {
 }
 
 export async function updateFeature(id: string, formData: FormData) {
+  await assertOwned('feature', id, getCurrentUserId())
+
   const { parsed, jtbdIds, rtbIds } = parseFeatureForm(formData)
   if (!parsed.success) {
     redirect(`/features/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -65,12 +72,16 @@ export async function updateFeature(id: string, formData: FormData) {
 }
 
 export async function deleteFeature(id: string) {
+  await assertOwned('feature', id, getCurrentUserId())
+
   await prisma.feature.delete({ where: { id } })
   revalidatePath('/features')
   redirect('/features')
 }
 
 export async function toggleFeaturePinned(id: string, pinned: boolean) {
+  await assertOwned('feature', id, getCurrentUserId())
+
   await prisma.feature.update({ where: { id }, data: { pinned } })
   revalidatePath('/features')
   revalidatePath(`/features/${id}`)
@@ -82,6 +93,9 @@ export async function createFeatureQuick(
   name: string,
   jtbdIds: string[] = []
 ): Promise<{ ok: true; feature: Feature } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedName = name.trim()
   if (!productId || !trimmedName) {
     return { ok: false, error: 'Укажите продукт и название' }
@@ -105,6 +119,9 @@ export async function updateFeatureField(
   field: 'name' | 'description',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('feature', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'name': {
       const name = value.trim()

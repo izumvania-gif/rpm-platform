@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const insightSchema = z.object({
@@ -36,6 +37,10 @@ export async function createInsight(formData: FormData) {
     redirect(`/insights/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const { tags, ...data } = parsed.data
   const insight = await prisma.insight.create({
     data: { ...data, tags: toTagsArray(tags), userId: getCurrentUserId() },
@@ -45,6 +50,8 @@ export async function createInsight(formData: FormData) {
 }
 
 export async function updateInsight(id: string, formData: FormData) {
+  await assertOwned('insight', id, getCurrentUserId())
+
   const parsed = parseInsightForm(formData)
   if (!parsed.success) {
     redirect(`/insights/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -61,12 +68,16 @@ export async function updateInsight(id: string, formData: FormData) {
 }
 
 export async function deleteInsight(id: string) {
+  await assertOwned('insight', id, getCurrentUserId())
+
   await prisma.insight.delete({ where: { id } })
   revalidatePath('/insights')
   redirect('/insights')
 }
 
 export async function toggleInsightPinned(id: string, pinned: boolean) {
+  await assertOwned('insight', id, getCurrentUserId())
+
   await prisma.insight.update({ where: { id }, data: { pinned } })
   revalidatePath('/insights')
   revalidatePath(`/insights/${id}`)
@@ -81,6 +92,9 @@ export async function createInsightQuick(
   researchId?: string | null,
   conversationId?: string | null
 ): Promise<{ ok: true; insight: Insight } | { ok: false; error: string }> {
+  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  if (denied) return denied
+
   const trimmedText = text.trim()
   if (!productId || !trimmedText) {
     return { ok: false, error: 'Укажите продукт и текст' }
@@ -107,6 +121,9 @@ export async function updateInsightField(
   field: 'text' | 'tags',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('insight', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'text': {
       const text = value.trim()

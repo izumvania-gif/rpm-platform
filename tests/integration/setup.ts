@@ -36,6 +36,12 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn((url: string) => {
     throw new Error(`REDIRECT:${url}`)
   }),
+  // The ownership guard (lib/ownership.ts) raises a 404 for redirect-style
+  // actions, so it needs the same treatment as redirect: a catchable signal
+  // instead of a real framework throw. See captureNotFound in helpers.ts.
+  notFound: vi.fn(() => {
+    throw new Error('NOT_FOUND')
+  }),
 }))
 
 vi.mock('next/cache', () => ({

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, type InlineFieldResult } from '@/lib/validation'
 
 const departmentSchema = z.object({
@@ -35,6 +36,8 @@ export async function createDepartment(formData: FormData) {
 }
 
 export async function updateDepartment(id: string, formData: FormData) {
+  await assertOwned('department', id, getCurrentUserId())
+
   const parsed = parseDepartmentForm(formData)
   if (!parsed.success) {
     redirect(`/departments/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -68,6 +71,8 @@ export async function assignProductsToDepartment(departmentId: string, formData:
 }
 
 export async function deleteDepartment(id: string) {
+  await assertOwned('department', id, getCurrentUserId())
+
   await prisma.department.delete({ where: { id } })
   revalidatePath('/departments')
   revalidatePath('/products')
@@ -79,6 +84,9 @@ export async function updateDepartmentField(
   field: 'name' | 'color' | 'description',
   value: string
 ): Promise<InlineFieldResult> {
+  const denied = await denyUnowned('department', id, getCurrentUserId())
+  if (denied) return denied
+
   switch (field) {
     case 'name': {
       const name = value.trim()

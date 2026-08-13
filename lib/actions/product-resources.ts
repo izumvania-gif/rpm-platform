@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { assertOwned } from '@/lib/ownership'
 import { optionalString } from '@/lib/validation'
 
 const productResourceSchema = z.object({
@@ -32,6 +33,10 @@ export async function createProductResource(formData: FormData) {
     redirect(`/resources/new?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
   }
 
+  // The product comes from the client's form, so it has to be proved
+  // owned before anything is written into it.
+  await assertOwned('product', parsed.data.productId, getCurrentUserId())
+
   const resource = await prisma.productResource.create({
     data: { ...parsed.data, userId: getCurrentUserId() },
   })
@@ -40,6 +45,8 @@ export async function createProductResource(formData: FormData) {
 }
 
 export async function updateProductResource(id: string, formData: FormData) {
+  await assertOwned('productResource', id, getCurrentUserId())
+
   const parsed = parseProductResourceForm(formData)
   if (!parsed.success) {
     redirect(`/resources/${id}/edit?error=${encodeURIComponent(parsed.error.issues[0].message)}`)
@@ -54,6 +61,8 @@ export async function updateProductResource(id: string, formData: FormData) {
 }
 
 export async function deleteProductResource(id: string) {
+  await assertOwned('productResource', id, getCurrentUserId())
+
   const resource = await prisma.productResource.delete({ where: { id } })
   revalidatePath(`/products/${resource.productId}`)
   redirect(`/products/${resource.productId}`)

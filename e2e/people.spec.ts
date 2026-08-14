@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { confirmDelete, createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
 
 test('create a person, inline-edit their role, then delete them', async ({ page }) => {
   const name = uniqueName('Alice PM')
@@ -21,8 +21,7 @@ test('create a person, inline-edit their role, then delete them', async ({ page 
   await roleInput.press('Enter')
   await expect(page.getByRole('button', { name: 'Head of Product' })).toBeVisible()
 
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page)
   await page.waitForURL('/people')
   await expect(page.getByText(name)).toHaveCount(0)
 })

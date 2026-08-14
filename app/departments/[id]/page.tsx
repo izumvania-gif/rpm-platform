@@ -65,7 +65,9 @@ export default async function DepartmentDetailPage({ params }: { params: { id: s
             </Link>
             <DeleteButton
               action={deleteDepartmentWithId}
-              confirmMessage="Удалить департамент? Продукты останутся, но потеряют эту группировку."
+              confirmMessage="Удалить департамент?"
+              impact={{ model: 'department', id: department.id }}
+              name={department.name}
             />
           </div>
         </div>

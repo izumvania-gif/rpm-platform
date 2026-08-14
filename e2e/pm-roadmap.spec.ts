@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { confirmDelete, createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
 
 test('add a roadmap item on /pm, see it grouped by quarter, then delete it', async ({ page }) => {
   const productName = uniqueName('Roadmap Product')
@@ -22,8 +22,7 @@ test('add a roadmap item on /pm, see it grouped by quarter, then delete it', asy
   await expect(page.getByText(itemTitle)).toBeVisible()
   await expect(page.getByText('В работе')).toBeVisible()
 
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page)
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
   await expect(page.getByText(itemTitle)).toHaveCount(0)
 })

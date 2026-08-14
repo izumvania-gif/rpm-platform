@@ -51,7 +51,11 @@ export default async function InsightDetailPage({ params }: { params: { id: stri
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteInsightWithId} />
+            <DeleteButton
+              action={deleteInsightWithId}
+              impact={{ model: 'insight', id: insight.id }}
+              name={insight.text}
+            />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">

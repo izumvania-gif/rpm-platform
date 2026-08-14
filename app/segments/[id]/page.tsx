@@ -55,7 +55,11 @@ export default async function SegmentDetailPage({ params }: { params: { id: stri
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteSegmentWithId} />
+            <DeleteButton
+              action={deleteSegmentWithId}
+              impact={{ model: 'segment', id: segment.id }}
+              name={segment.name}
+            />
           </div>
         </div>
         <div className="flex items-center gap-3 mb-4 text-sm text-muted-foreground">

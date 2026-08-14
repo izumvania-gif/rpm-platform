@@ -45,7 +45,11 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
             >
               Редактировать
             </Link>
-            <DeleteButton action={deletePersonWithId} />
+            <DeleteButton
+              action={deletePersonWithId}
+              impact={{ model: 'person', id: person.id }}
+              name={person.name}
+            />
           </div>
         </div>
         <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">

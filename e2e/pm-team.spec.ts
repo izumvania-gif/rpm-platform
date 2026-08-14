@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectRadixOption, uniqueName } from './helpers'
+import { confirmDelete, createProductViaUI, selectRadixOption, uniqueName } from './helpers'
 
 test('the product block on /pm inline-edits name, stage, and description', async ({ page }) => {
   const productName = uniqueName('Team Hub Product')
@@ -40,8 +40,7 @@ test('add an existing person to the team roster, then remove them', async ({ pag
   await expect(page.getByText(personName)).toBeVisible()
   await expect(page.getByText('0 активных · 0 всего')).toBeVisible()
 
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page, page.getByRole('button', { name: 'Убрать' }))
   await page.waitForURL(/scrollTo=team/)
   await expect(page.getByText('Команда продукта — явно добавленные люди')).toBeVisible()
 })

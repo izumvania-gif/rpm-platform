@@ -164,7 +164,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             </Link>
             <DeleteButton
               action={deleteProductWithId}
-              confirmMessage="Удалить продукт вместе со всеми исследованиями и сегментами?"
+              confirmMessage="Удалить продукт со всем его содержимым?"
+              impact={{ model: 'product', id: product.id }}
+              name={product.name}
             />
           </div>
         </div>
@@ -406,7 +408,11 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                       >
                         Редактировать
                       </Link>
-                      <DeleteButton action={deleteProductResource.bind(null, resource.id)} />
+                      <DeleteButton
+                        action={deleteProductResource.bind(null, resource.id)}
+                        impact={{ model: 'productResource', id: resource.id }}
+                        name={resource.title}
+                      />
                     </span>
                   </li>
                 ))}

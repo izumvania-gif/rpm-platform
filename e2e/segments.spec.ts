@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { confirmDelete, createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
 
 test('create a segment with tags and audience share, then edit it inline', async ({ page }) => {
   const productName = uniqueName('Segments Product')
@@ -37,8 +37,7 @@ test('deleting a segment cascades from the product page', async ({ page }) => {
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/segments\/[^/]+$/)
 
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page)
   await page.waitForURL('/segments')
 
   await page.goto(productUrl)

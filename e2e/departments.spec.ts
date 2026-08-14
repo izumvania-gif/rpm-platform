@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { selectOptionRobust, uniqueName } from './helpers'
+import { confirmDelete, selectOptionRobust, uniqueName } from './helpers'
 
 test('create a department, assign it to a product, then rename and delete it', async ({ page }) => {
   const departmentName = uniqueName('MFA-продукты')
@@ -33,8 +33,7 @@ test('create a department, assign it to a product, then rename and delete it', a
   await nameInput.press('Enter')
   await expect(page.getByRole('heading', { name: renamed })).toBeVisible()
 
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page)
   await page.waitForURL(/\/departments$/)
   await expect(page.getByText(renamed)).toHaveCount(0)
 })

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectRadixOption, uniqueName } from './helpers'
+import { confirmDelete, createProductViaUI, selectRadixOption, uniqueName } from './helpers'
 
 test('create, inline-edit, and delete a product', async ({ page }) => {
   const name = uniqueName('E2E Product')
@@ -18,9 +18,7 @@ test('create, inline-edit, and delete a product', async ({ page }) => {
   // Print button is present and doesn't throw when invoked.
   await page.getByRole('button', { name: 'Печать' }).click()
 
-  // Delete with the native confirm() dialog accepted.
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page)
   await page.waitForURL('/products')
   await expect(page.getByText(renamed)).toHaveCount(0)
 })

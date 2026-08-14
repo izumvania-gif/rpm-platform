@@ -25,6 +25,7 @@ import { ProcessStepNode } from './process-step-node'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { ConfirmDeleteDialog } from '@/components/shared/delete-button'
 import {
   createProcessEdge,
   createProcessStepQuick,
@@ -155,6 +156,7 @@ function StepInspector({
   const [title, setTitle] = useState(step.title)
   const [assignedPersonId, setAssignedPersonId] = useState(step.assignedPersonId ?? '')
   const [error, setError] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function save() {
@@ -173,8 +175,11 @@ function StepInspector({
     })
   }
 
+  // Same reasoning as DeleteButton (plans/2.0-hardening-plan.md, B4): a step
+  // silently takes every edge touching it, so the dialog counts them first.
+  // The dialog is shared, the delete itself is not a form submit — this panel
+  // has to stay on the canvas and refresh, not redirect.
   function remove() {
-    if (!confirm('Удалить шаг вместе со связями?')) return
     startTransition(async () => {
       await deleteProcessStep(step.id)
       router.refresh()
@@ -216,11 +221,24 @@ function StepInspector({
             variant="destructive"
             disabled={isPending}
             className="ml-auto"
-            onClick={remove}
+            aria-haspopup="dialog"
+            onClick={() => setConfirming(true)}
           >
             Удалить
           </Button>
         </div>
+        {confirming && (
+          <ConfirmDeleteDialog
+            confirmMessage="Удалить шаг процесса?"
+            name={step.title}
+            impact={{ model: 'processStep', id: step.id }}
+            onConfirm={() => {
+              setConfirming(false)
+              remove()
+            }}
+            onClose={() => setConfirming(false)}
+          />
+        )}
       </div>
     </Panel>
   )

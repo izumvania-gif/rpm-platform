@@ -51,7 +51,11 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteRTBWithId} />
+            <DeleteButton
+              action={deleteRTBWithId}
+              impact={{ model: 'rtb', id: rtb.id }}
+              name={rtb.statement}
+            />
           </div>
         </div>
         <Link

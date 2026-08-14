@@ -75,7 +75,11 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteHypothesisWithId} />
+            <DeleteButton
+              action={deleteHypothesisWithId}
+              impact={{ model: 'hypothesis', id: hypothesis.id }}
+              name={hypothesis.statement}
+            />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">

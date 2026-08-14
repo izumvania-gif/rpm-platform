@@ -273,7 +273,11 @@ export default async function PmPage({
                                     >
                                       Редактировать
                                     </Link>
-                                    <DeleteButton action={deleteRoadmapItem.bind(null, item.id)} />
+                                    <DeleteButton
+                                      action={deleteRoadmapItem.bind(null, item.id)}
+                                      impact={{ model: 'roadmapItem', id: item.id }}
+                                      name={item.title}
+                                    />
                                   </div>
                                 </li>
                               )
@@ -331,6 +335,9 @@ export default async function PmPage({
                           <DeleteButton
                             action={removeProductTeamMember.bind(null, membershipId)}
                             confirmMessage="Убрать из команды продукта?"
+                            impact={{ model: 'productTeamMember', id: membershipId }}
+                            name={person.name}
+                            label="Убрать"
                           />
                         )}
                       </li>
@@ -398,7 +405,11 @@ export default async function PmPage({
                             >
                               Редактировать
                             </Link>
-                            <DeleteButton action={deleteActionPlan.bind(null, plan.id)} />
+                            <DeleteButton
+                              action={deleteActionPlan.bind(null, plan.id)}
+                              impact={{ model: 'actionPlan', id: plan.id }}
+                              name={plan.scenario}
+                            />
                           </div>
                         </div>
                       </li>
@@ -435,7 +446,9 @@ export default async function PmPage({
                       </Link>
                       <DeleteButton
                         action={deleteProcess.bind(null, selectedProcess.id)}
-                        confirmMessage="Удалить процесс вместе со всеми его шагами и связями?"
+                        confirmMessage="Удалить процесс?"
+                        impact={{ model: 'process', id: selectedProcess.id }}
+                        name={selectedProcess.title}
                       />
                     </div>
                   ) : (

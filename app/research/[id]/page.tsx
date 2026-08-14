@@ -72,7 +72,11 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteResearchWithId} />
+            <DeleteButton
+              action={deleteResearchWithId}
+              impact={{ model: 'research', id: research.id }}
+              name={research.title}
+            />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">

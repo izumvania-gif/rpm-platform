@@ -69,7 +69,11 @@ export default async function JtbdDetailPage({
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteJtbdWithId} />
+            <DeleteButton
+              action={deleteJtbdWithId}
+              impact={{ model: 'jtbd', id: jtbd.id }}
+              name={jtbd.title}
+            />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">

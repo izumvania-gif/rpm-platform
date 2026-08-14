@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, uniqueName } from './helpers'
+import { confirmDelete, createProductViaUI, uniqueName } from './helpers'
 
 test('create a process, add a step, edit it via the inspector, then delete step and process', async ({
   page,
@@ -39,8 +39,10 @@ test('create a process, add a step, edit it via the inspector, then delete step 
   // the "Процесс: ..." header also has its own "Удалить" button (for the
   // process itself), so an unscoped locator here would be ambiguous.
   await page.getByText(renamed).click()
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByTestId('rf__wrapper').getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(
+    page,
+    page.getByTestId('rf__wrapper').getByRole('button', { name: 'Удалить' })
+  )
   await expect(page.getByText('В этом процессе пока нет шагов.')).toBeVisible()
 
   // Back to the process list, then delete the process itself.
@@ -50,8 +52,7 @@ test('create a process, add a step, edit it via the inspector, then delete step 
 
   await page.getByText(processTitle).click()
   await page.waitForURL(/\/pm\?productId=.+&processId=.+/)
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page)
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&scrollTo=process$`))
   await expect(page.getByText('Процесс — кто что делает')).toBeVisible()
 })
@@ -82,8 +83,7 @@ test('create an action plan with ordered steps and tags, then delete it', async 
   await expect(page.getByText('Оценить масштаб')).toBeVisible()
 
   const planRow = page.locator('li', { hasText: scenario })
-  page.once('dialog', (dialog) => dialog.accept())
-  await planRow.getByRole('button', { name: 'Удалить' }).click()
+  await confirmDelete(page, planRow.getByRole('button', { name: 'Удалить' }))
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
   await expect(page.getByText(scenario)).toHaveCount(0)
 })

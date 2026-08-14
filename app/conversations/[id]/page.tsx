@@ -76,7 +76,11 @@ export default async function ConversationDetailPage({ params }: { params: { id:
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteConversationWithId} />
+            <DeleteButton
+              action={deleteConversationWithId}
+              impact={{ model: 'conversation', id: conversation.id }}
+              name={conversation.title}
+            />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">

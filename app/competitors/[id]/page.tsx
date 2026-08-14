@@ -63,7 +63,11 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteCompetitorWithId} />
+            <DeleteButton
+              action={deleteCompetitorWithId}
+              impact={{ model: 'competitor', id: competitor.id }}
+              name={competitor.name}
+            />
           </div>
         </div>
         <div className="flex items-center gap-3 mb-4 text-sm text-muted-foreground">

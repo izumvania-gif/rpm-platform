@@ -51,7 +51,11 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
             >
               Редактировать
             </Link>
-            <DeleteButton action={deleteFeatureWithId} />
+            <DeleteButton
+              action={deleteFeatureWithId}
+              impact={{ model: 'feature', id: feature.id }}
+              name={feature.name}
+            />
           </div>
         </div>
         <Link

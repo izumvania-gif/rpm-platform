@@ -77,3 +77,25 @@ export async function selectOptionRobust(
   await trigger.click()
   await page.getByRole('option', { name: optionLabel, exact: true }).click()
 }
+
+/**
+ * Deleting is now two steps: the trigger opens a dialog that counts what the
+ * cascade would take (plans/2.0-hardening-plan.md, B4), and the confirm lives
+ * inside it. The specs used to accept a native `confirm()` with
+ * `page.once('dialog', ...)`, which silently does nothing now.
+ *
+ * `trigger` is the button that opens the dialog — pass a scoped locator when
+ * the page has several (a row's delete vs. the page header's).
+ */
+export async function confirmDelete(
+  page: Page,
+  trigger: ReturnType<Page['getByRole']> = page.getByRole('button', { name: 'Удалить' })
+): Promise<void> {
+  await trigger.click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  // Waits out the count: the dialog opens before getDeleteImpact resolves,
+  // and a spec that confirms instantly would never exercise the numbers.
+  await expect(dialog.getByText('Считаем связанные записи...')).toHaveCount(0)
+  await dialog.getByRole('button', { name: /^(Удалить|Убрать)$/ }).click()
+}

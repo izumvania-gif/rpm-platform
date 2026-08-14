@@ -20,14 +20,13 @@ function item(overrides: Partial<GanttSourceItem> & { id: string }): GanttSource
 }
 
 describe('buildGanttLayout', () => {
-  it('returns an empty layout when nothing has dates', () => {
+  it('draws nothing when nothing has dates, but still hands back every item', () => {
+    // Not an empty result: these two items exist, and a chart that returned
+    // nothing is exactly why they used to be invisible on this tab.
     const result = buildGanttLayout([item({ id: '1' }), item({ id: '2', isMilestone: true })])
-    expect(result).toEqual({
-      groups: [],
-      milestones: [],
-      rangeStart: result.rangeStart,
-      rangeEnd: result.rangeEnd,
-    })
+    expect(result.groups).toEqual([])
+    expect(result.milestones).toEqual([])
+    expect(result.unscheduled.map((u) => u.id)).toEqual(['1', '2'])
   })
 
   it('groups bar items by trackGroup then track, falling back for unset fields', () => {
@@ -127,6 +126,37 @@ describe('buildGanttLayout', () => {
     const result = buildGanttLayout(items)
     expect(result.milestones).toEqual([])
     expect(result.groups[0].tracks[0].bars.map((b) => b.id)).toEqual(['valid'])
+    // Excluded from the chart, but not dropped on the floor — they go to the
+    // tray so the PM can put them on the timeline without leaving the tab.
+    expect(result.unscheduled.map((u) => u.id)).toEqual(['no-end', 'no-milestone-date'])
+  })
+
+  it('names what each unscheduled item is missing', () => {
+    const result = buildGanttLayout([
+      item({ id: 'nothing' }),
+      item({ id: 'no-end', startDate: new Date('2026-01-01') }),
+      item({ id: 'no-start', endDate: new Date('2026-01-05') }),
+      item({ id: 'milestone', isMilestone: true }),
+    ])
+    expect(result.unscheduled.map((u) => `${u.id}: ${u.missing}`)).toEqual([
+      'nothing: нет дат',
+      'no-end: нет даты окончания',
+      'no-start: нет даты начала',
+      'milestone: нет даты вехи',
+    ])
+  })
+
+  it('leaves the tray empty once everything is on the chart', () => {
+    const result = buildGanttLayout([
+      item({ id: 'a', startDate: new Date('2026-01-01'), endDate: new Date('2026-01-10') }),
+      item({ id: 'm', isMilestone: true, startDate: new Date('2026-01-05') }),
+    ])
+    expect(result.unscheduled).toEqual([])
+  })
+
+  it('carries the milestone flag, so a dropped milestone gets a date and not a span', () => {
+    const result = buildGanttLayout([item({ id: 'm', isMilestone: true })])
+    expect(result.unscheduled[0]).toMatchObject({ id: 'm', isMilestone: true })
   })
 
   it('pads the computed range beyond the min/max dates', () => {

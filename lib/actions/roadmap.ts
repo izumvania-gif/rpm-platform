@@ -117,7 +117,11 @@ export async function updateRoadmapItemDates(
   id: string,
   startDate: string,
   endDate?: string,
-  track?: string
+  track?: string,
+  // Only the tray drop passes this: an unscheduled item has neither lane
+  // field, so putting it on the timeline has to set the group as well as the
+  // track. Dragging an existing bar still never rewrites its group.
+  trackGroup?: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const denied = await denyUnowned('roadmapItem', id, getCurrentUserId())
   if (denied) return denied
@@ -141,6 +145,7 @@ export async function updateRoadmapItemDates(
       startDate: parsedStart.data,
       ...(newEndDate !== undefined ? { endDate: newEndDate } : {}),
       ...(track !== undefined ? { track: track.trim() || null } : {}),
+      ...(trackGroup !== undefined ? { trackGroup: trackGroup.trim() || null } : {}),
     },
   })
   revalidatePath('/pm')

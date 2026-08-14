@@ -42,18 +42,51 @@ export interface GanttGroup {
   tracks: GanttTrackRow[]
 }
 
+/**
+ * A roadmap item the chart cannot place yet.
+ *
+ * This is the whole reason planning used to mean bouncing between the two
+ * tabs: «Добавить пункт» creates a title/status/quarter/owner and no dates,
+ * and a bar needs both — so a freshly created item was invisible here, and the
+ * only way to find out it existed was to switch to «Список». The chart now
+ * carries these along so it can show everything and let them be dropped onto
+ * the timeline.
+ */
+export interface UnscheduledItem {
+  id: string
+  title: string
+  status: RoadmapStatus
+  isMilestone: boolean
+  /** What is missing, in the user's words. */
+  missing: string
+}
+
 export interface GanttLayout {
   groups: GanttGroup[]
   milestones: GanttMilestone[]
+  unscheduled: UnscheduledItem[]
   rangeStart: Date
   rangeEnd: Date
 }
 
-const EMPTY_LAYOUT: GanttLayout = {
+const EMPTY_LAYOUT: Omit<GanttLayout, 'unscheduled'> = {
   groups: [],
   milestones: [],
   rangeStart: new Date(),
   rangeEnd: new Date(),
+}
+
+/**
+ * A milestone needs only its date; a bar needs both ends. Saying which one is
+ * missing is what lets the tray chip explain itself instead of just sitting
+ * there.
+ */
+function missingSchedule(item: GanttSourceItem): string | null {
+  if (item.isMilestone) return item.startDate === null ? 'нет даты вехи' : null
+  if (item.startDate === null && item.endDate === null) return 'нет дат'
+  if (item.startDate === null) return 'нет даты начала'
+  if (item.endDate === null) return 'нет даты окончания'
+  return null
 }
 
 // Fallback label always sorts last; everything else alphabetically — same
@@ -78,7 +111,22 @@ export function buildGanttLayout(items: GanttSourceItem[]): GanttLayout {
       !item.isMilestone && item.startDate !== null && item.endDate !== null
   )
 
-  if (barItems.length === 0 && milestones.length === 0) return EMPTY_LAYOUT
+  const unscheduled: UnscheduledItem[] = items.flatMap((item) => {
+    const missing = missingSchedule(item)
+    return missing
+      ? [
+          {
+            id: item.id,
+            title: item.title,
+            status: item.status,
+            isMilestone: item.isMilestone,
+            missing,
+          },
+        ]
+      : []
+  })
+
+  if (barItems.length === 0 && milestones.length === 0) return { ...EMPTY_LAYOUT, unscheduled }
 
   const groupMap = new Map<string, Map<string, GanttBar[]>>()
   for (const item of barItems) {
@@ -122,6 +170,7 @@ export function buildGanttLayout(items: GanttSourceItem[]): GanttLayout {
   return {
     groups,
     milestones,
+    unscheduled,
     rangeStart: new Date(minTime - pad),
     rangeEnd: new Date(maxTime + pad),
   }

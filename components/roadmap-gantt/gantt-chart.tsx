@@ -10,7 +10,12 @@ import { roadmapStatusLabels, roadmapStatusOrder, roadmapStatusTone } from '@/li
 import { signalToneColors } from '@/lib/signal-colors'
 import { cn } from '@/lib/utils'
 import { updateRoadmapItemDates } from '@/lib/actions/roadmap'
-import { NO_TRACK_GROUP_LABEL, type GanttBar, type GanttLayout } from '@/lib/roadmap-gantt'
+import {
+  NO_TRACK_GROUP_LABEL,
+  type GanttBar,
+  type GanttLayout,
+  type UnscheduledItem,
+} from '@/lib/roadmap-gantt'
 
 // Editable canvas (plans/2.0-ux-improvement-plan.md, Фаза 6) — a client
 // component, an architectural reversal from the original "no client
@@ -20,6 +25,12 @@ import { NO_TRACK_GROUP_LABEL, type GanttBar, type GanttLayout } from '@/lib/roa
 // Pointer Events + setPointerCapture (same "no new drag library"
 // philosophy already used by the hypothesis kanban board and the
 // @xyflow/react canvases), not a dedicated DnD library.
+// Dropping an unscheduled item gives it a span, because a bar needs two
+// dates. Two weeks is a starting guess the PM then drags — the alternative,
+// asking for an end date in a dialog, is the trip to a form this whole tray
+// exists to remove.
+const DEFAULT_SCHEDULE_DAYS = 14
+
 const MIN_BAR_WIDTH_PERCENT = 0.6
 const MIN_DURATION_MS = 24 * 60 * 60 * 1000
 
@@ -42,7 +53,7 @@ function labelFitsInBar(title: string, widthPercent: number): boolean {
   return availablePx >= title.length * CHAR_WIDTH_PX
 }
 
-type DragMode = 'move' | 'resize-start' | 'resize-end' | 'milestone'
+type DragMode = 'move' | 'resize-start' | 'resize-end' | 'milestone' | 'schedule'
 
 interface DragState {
   id: string
@@ -74,7 +85,7 @@ export function GanttChart({
   allowTrackChange?: boolean
 }) {
   const router = useRouter()
-  const { groups, milestones, rangeStart, rangeEnd } = layout
+  const { groups, milestones, unscheduled, rangeStart, rangeEnd } = layout
   const timelineRef = useRef<HTMLDivElement>(null)
   const [overrides, setOverrides] = useState<Record<string, Override>>({})
   const [drag, setDrag] = useState<DragState | null>(null)
@@ -83,13 +94,8 @@ export function GanttChart({
   const [dragError, setDragError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
-  if (groups.length === 0 && milestones.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Ни у одного пункта роадмапа не заполнены даты «Начало»/«Конец» (или дата вехи) — заполните
-        их в форме пункта, чтобы увидеть диаграмму Ганта.
-      </p>
-    )
+  if (groups.length === 0 && milestones.length === 0 && unscheduled.length === 0) {
+    return <p className="text-sm text-muted-foreground">В роадмапе пока нет пунктов.</p>
   }
 
   const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
@@ -114,6 +120,15 @@ export function GanttChart({
       })),
     ]
   })
+
+  // Scheduling needs the date *under* the pointer, not a delta from where the
+  // drag began — the item has no bar to move from.
+  function dateAtClientX(clientX: number): Date {
+    const rect = timelineRef.current?.getBoundingClientRect()
+    if (!rect || rect.width <= 0) return new Date(rangeStart)
+    const fraction = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1)
+    return new Date(rangeStart.getTime() + fraction * totalSpanMs)
+  }
 
   function pointerDeltaMs(e: ReactPointerEvent, startX: number): number {
     const timelineWidth = timelineRef.current?.getBoundingClientRect().width || 1
@@ -142,6 +157,21 @@ export function GanttChart({
     })
   }
 
+  function startScheduleDrag(e: ReactPointerEvent<HTMLElement>, item: UnscheduledItem) {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setDragError(null)
+    setDrag({
+      id: item.id,
+      mode: 'schedule',
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      initialStart: dateAtClientX(e.clientX),
+      initialEnd: null,
+      initialGroup: null,
+      initialTrack: null,
+    })
+  }
+
   function startMilestoneDrag(e: ReactPointerEvent<HTMLDivElement>, id: string, date: Date) {
     e.currentTarget.setPointerCapture(e.pointerId)
     setDragError(null)
@@ -159,6 +189,14 @@ export function GanttChart({
 
   function handlePointerMove(e: ReactPointerEvent<HTMLDivElement>) {
     if (!drag || e.pointerId !== drag.pointerId) return
+
+    if (drag.mode === 'schedule') {
+      const el = document.elementFromPoint(e.clientX, e.clientY)
+      const rowEl = el?.closest('[data-track-key]') as HTMLElement | null
+      setHoverTrackKey(rowEl?.dataset.trackKey ?? null)
+      return
+    }
+
     const deltaMs = pointerDeltaMs(e, drag.startX)
 
     let newStart = drag.initialStart
@@ -191,8 +229,51 @@ export function GanttChart({
     }
   }
 
+  /** Puts an item on the timeline: shared by the tray drop and its keyboard twin. */
+  function schedule(id: string, isMilestone: boolean, start: Date, group?: string, track?: string) {
+    const snappedStart = startOfDay(start)
+    const snappedEnd = isMilestone
+      ? undefined
+      : startOfDay(new Date(snappedStart.getTime() + DEFAULT_SCHEDULE_DAYS * 24 * 60 * 60 * 1000))
+
+    setSavingIds((prev) => new Set(prev).add(id))
+    startTransition(async () => {
+      const result = await updateRoadmapItemDates(
+        id,
+        snappedStart.toISOString(),
+        snappedEnd ? snappedEnd.toISOString() : undefined,
+        track,
+        group
+      )
+      setSavingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      if (!result.ok) {
+        setDragError(result.error)
+        return
+      }
+      router.refresh()
+    })
+  }
+
   function handlePointerUp(e: ReactPointerEvent<HTMLDivElement>) {
     if (!drag || e.pointerId !== drag.pointerId) return
+
+    if (drag.mode === 'schedule') {
+      const item = unscheduled.find((u) => u.id === drag.id)
+      const droppedOnRow = hoverTrackKey
+      setDrag(null)
+      setHoverTrackKey(null)
+      // Dropped outside any lane: nothing happens, rather than guessing a lane
+      // the PM did not point at.
+      if (!item || !droppedOnRow) return
+      const [group, track] = droppedOnRow.split('::')
+      schedule(item.id, item.isMilestone, dateAtClientX(e.clientX), group, track)
+      return
+    }
+
     const current = overrides[drag.id]
     const snappedStart = startOfDay(current?.startDate ?? drag.initialStart)
     const snappedEnd =
@@ -255,6 +336,70 @@ export function GanttChart({
       </div>
 
       {dragError && <p className="text-xs text-destructive">Не удалось сохранить: {dragError}</p>}
+
+      {unscheduled.length > 0 && (
+        // The tray is the fix for the round trip: an item created here has no
+        // dates, and a bar needs two, so it used to be invisible on this tab
+        // and you had to switch to «Список» to discover it existed at all.
+        <div
+          className={cn(
+            'rounded-md border border-dashed p-3',
+            drag?.mode === 'schedule' && 'border-primary'
+          )}
+        >
+          <p className="mb-2 text-xs text-muted-foreground">
+            Не на диаграмме — {unscheduled.length}.{' '}
+            {groups.length === 0
+              ? 'Нажмите «с сегодня», чтобы поставить первый пункт на диаграмму'
+              : 'Перетащите на дорожку, чтобы запланировать'}
+            {drag?.mode === 'schedule' && !hoverTrackKey && ' — отпустите над дорожкой'}
+          </p>
+          <ul className="flex flex-wrap gap-1.5">
+            {unscheduled.map((item) => {
+              const tone = signalToneColors[roadmapStatusTone[item.status]]
+              const isSaving = savingIds.has(item.id)
+              return (
+                <li key={item.id}>
+                  <div
+                    onPointerDown={(e) => startScheduleDrag(e, item)}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    title={`${item.title} — ${item.missing}`}
+                    className={cn(
+                      'flex max-w-[18rem] cursor-grab touch-none items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs',
+                      drag?.id === item.id && 'opacity-60',
+                      isSaving && 'opacity-60'
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: tone.border }}
+                    />
+                    <span className="truncate">{item.title}</span>
+                    {/* The keyboard twin of the drag: without it the tray would
+                        be a pointer-only feature, and the roadmap is the one
+                        place a PM plans from a laptop on a call. */}
+                    <button
+                      type="button"
+                      // The chip captures the pointer to start a drag, which
+                      // would otherwise swallow this button's click entirely —
+                      // same guard the bar's edit link needs.
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => schedule(item.id, item.isMilestone, new Date())}
+                      disabled={isSaving}
+                      title="Запланировать с сегодняшнего дня"
+                      className="shrink-0 rounded px-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      с сегодня
+                    </button>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-md border">
         <div className="flex min-w-[900px] pt-6 pb-6">

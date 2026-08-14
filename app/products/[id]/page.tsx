@@ -15,6 +15,7 @@ import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { ProductModuleCard } from '@/components/products/module-card'
 import { buildModuleRows, type OverviewRow } from '@/lib/product-overview'
+import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 import { DRAFT_STUCK_AFTER_MS } from '@/lib/dashboard-metrics'
 import { hypothesisStatusLabels } from '@/lib/labels'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
@@ -136,13 +137,15 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
   const jtbdRows: OverviewRow[] = product.jtbds.map((j) => ({
     href: `/jtbd/${j.id}`,
-    label: j.title,
+    label: jtbdKeyPhrase(j.title),
+    fullLabel: j.title,
     attentionHint: j.confirmed ? undefined : 'Не подтверждён исследованием',
   }))
 
   const hypothesisRows: OverviewRow[] = product.hypotheses.map((h) => ({
     href: `/hypotheses/${h.id}`,
-    label: h.statement,
+    label: hypothesisKeyPhrase(h.statement),
+    fullLabel: h.statement,
     meta: hypothesisStatusLabels[h.status],
     // The same "stuck" definition /reports/gaps uses, imported rather than
     // re-guessed, so the two pages can never disagree about the threshold.
@@ -161,7 +164,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
   const insightRows: OverviewRow[] = product.insights.map((i) => ({
     href: `/insights/${i.id}`,
-    label: i.text,
+    label: insightKeyPhrase(i.text),
+    fullLabel: i.text,
     attentionHint:
       !i.segmentId && !i.jtbdId && !i.researchId && !i.conversationId
         ? 'Ни с чем не связан'

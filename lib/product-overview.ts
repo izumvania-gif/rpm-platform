@@ -19,7 +19,10 @@ export const MAX_ROWS = 5
 
 export type OverviewRow = {
   href: string
+  /** What the row shows — may be a key phrase pulled out of a longer text. */
   label: string
+  /** The untouched original, for the tooltip. Defaults to `label`. */
+  fullLabel?: string
   /** Short right-hand state: «4 JTBD», «12 марта», «На проверке». */
   meta?: string
   /** Set only when the row is the reason someone should open this card. */

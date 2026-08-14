@@ -80,7 +80,9 @@ export function ProductModuleCard({
                   )}
                   <Link
                     href={row.href}
-                    title={row.label}
+                    // Always the untouched text: the row may show only the
+                    // key phrase, and hovering must not hide the rest.
+                    title={row.fullLabel ?? row.label}
                     className="min-w-0 flex-1 truncate hover:underline"
                   >
                     {row.label}

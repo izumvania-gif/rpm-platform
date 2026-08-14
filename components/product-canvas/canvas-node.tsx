@@ -8,6 +8,7 @@ import { danglingReason, type CanvasKind } from '@/lib/product-canvas'
 export interface ProductCanvasNodeData {
   kind: CanvasKind
   label: string
+  fullLabel?: string
   meta?: string
   dangling?: boolean
   [key: string]: unknown
@@ -29,7 +30,7 @@ const KIND_LABEL: Record<CanvasKind, string> = {
 }
 
 export function ProductCanvasNode({ data, selected }: NodeProps) {
-  const { kind, label, meta, dangling } = data as ProductCanvasNodeData
+  const { kind, label, fullLabel, meta, dangling } = data as ProductCanvasNodeData
   const tone = signalToneColors[KIND_TONE[kind]]
   const Icon = KIND_ICON[kind]
 
@@ -59,7 +60,9 @@ export function ProductCanvasNode({ data, selected }: NodeProps) {
           {KIND_LABEL[kind]}
         </span>
       </div>
-      <p className="line-clamp-2 text-[13.5px] font-medium leading-snug">{label}</p>
+      <p title={fullLabel ?? label} className="line-clamp-2 text-[13.5px] font-medium leading-snug">
+        {label}
+      </p>
       {meta && (
         <div className="mt-2 border-t pt-1.5">
           <p className="truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground">

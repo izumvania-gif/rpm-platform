@@ -99,3 +99,16 @@ export async function confirmDelete(
   await expect(dialog.getByText('Считаем связанные записи...')).toHaveCount(0)
   await dialog.getByRole('button', { name: /^(Удалить|Убрать)$/ }).click()
 }
+
+/**
+ * Finds a record by its full text where the UI shows only a key phrase.
+ *
+ * List and card views lead with the informative clause of a templated record
+ * (lib/key-phrase.ts), so «Если …, то …» loses its tail on screen — and
+ * uniqueName() puts its unique suffix exactly there. The untouched text is
+ * always kept in the element's `title`, which is both the stable anchor for a
+ * spec and the tooltip contract worth asserting.
+ */
+export function byFullText(page: Page, fullText: string) {
+  return page.locator(`[title="${fullText}"]`)
+}

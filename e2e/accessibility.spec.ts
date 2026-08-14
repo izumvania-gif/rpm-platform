@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { byFullText, createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
 
 // Accessibility fixes (plans/2.0-hardening-plan.md, Фаза 3 — B1/B2/B3).
 // These pin behaviour that is invisible on screen and therefore silently
@@ -65,12 +65,13 @@ test('a kanban card can be opened and edited without a mouse', async ({ page }) 
   await page.waitForURL(/\/hypotheses\/[0-9a-z]+$/)
 
   await page.goto('/hypotheses')
-  const card = page.locator('[draggable="true"]').filter({ hasText: statement })
+  // The card shows the key phrase; the full statement lives in the title.
+  const card = page.locator('[draggable="true"]').filter({ has: byFullText(page, statement) })
   await expect(card).toBeVisible()
 
   // The card used to be a div with onClick — draggable, but with no tabIndex,
   // no role and no key handler, so it could not be reached from a keyboard.
-  await expect(card.getByRole('link', { name: statement })).toBeVisible()
+  await expect(card.locator(`a[title="${statement}"]`)).toBeVisible()
 
   // Dragging between columns is the only pointer way to change status, so a
   // real link to the form is the keyboard equivalent.

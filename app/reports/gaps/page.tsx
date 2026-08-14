@@ -44,7 +44,9 @@ function GapGroupCard({ group, position }: { group: GapGroup; position: number }
               className="flex flex-wrap items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{task.title}</p>
+                <p className="truncate text-sm font-medium" title={task.fullTitle}>
+                  {task.title}
+                </p>
                 {/* A product row's title already is the product name. */}
                 {task.kind !== 'product-without-research' && (
                   <p className="truncate text-xs text-muted-foreground">{task.productName}</p>

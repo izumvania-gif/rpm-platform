@@ -21,6 +21,7 @@ import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { ChainRibbon } from '@/components/shared/chain-ribbon'
 import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
+import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 
 export const dynamic = 'force-dynamic'
 
@@ -107,14 +108,25 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
               {
                 title: 'JTBD',
                 items: hypothesis.jtbd
-                  ? [{ label: hypothesis.jtbd.title, href: `/jtbd/${hypothesis.jtbd.id}` }]
+                  ? [
+                      {
+                        label: jtbdKeyPhrase(hypothesis.jtbd.title),
+                        href: `/jtbd/${hypothesis.jtbd.id}`,
+                      },
+                    ]
                   : [],
                 emptyLabel: 'не привязан',
                 addHref: `/hypotheses/${hypothesis.id}/edit`,
               },
               {
                 title: 'Гипотеза',
-                items: [{ label: hypothesis.statement, href: `/hypotheses/${hypothesis.id}` }],
+                items: [
+                  {
+                    label: hypothesisKeyPhrase(hypothesis.statement),
+                    fullLabel: hypothesis.statement,
+                    href: `/hypotheses/${hypothesis.id}`,
+                  },
+                ],
                 emptyLabel: '',
                 current: true,
               },

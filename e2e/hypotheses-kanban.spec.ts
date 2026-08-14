@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { byFullText, createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
 
 test('drag a hypothesis card to a different status column', async ({ page }) => {
   const productName = uniqueName('Kanban Product')
@@ -12,7 +12,7 @@ test('drag a hypothesis card to a different status column', async ({ page }) => 
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL('/hypotheses')
 
-  const card = page.locator('[draggable="true"]', { hasText: statement })
+  const card = page.locator('[draggable="true"]').filter({ has: byFullText(page, statement) })
   await expect(card).toBeVisible()
 
   // Both the column <div> and its grid-wrapper ancestor match `has:` — the
@@ -33,10 +33,10 @@ test('drag a hypothesis card to a different status column', async ({ page }) => 
 
   // The board optimistically moves the card locally, then persists via
   // updateHypothesisStatus and router.refresh() (components/hypotheses/kanban-board.tsx).
-  await expect(inReviewColumn.getByText(statement)).toBeVisible()
+  await expect(inReviewColumn.locator(`[title="${statement}"]`)).toBeVisible()
 
   await page.goto('/hypotheses')
-  const detailLink = page.getByText(statement)
+  const detailLink = byFullText(page, statement)
   await detailLink.click()
   await expect(page.getByText('На проверке').first()).toBeVisible()
 })

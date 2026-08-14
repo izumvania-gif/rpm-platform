@@ -1,3 +1,4 @@
+import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
@@ -8,7 +9,10 @@ const RESULT_LIMIT = 20
 
 interface SearchResult {
   href: string
+  /** What the row shows — a key phrase for the templated models. */
   title: string
+  /** The untouched text, for the tooltip. Defaults to `title`. */
+  fullTitle?: string
 }
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
@@ -96,10 +100,21 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       label: 'Сегменты',
       results: segments.map((s) => ({ href: `/segments/${s.id}`, title: s.name })),
     },
-    { label: 'JTBD', results: jtbds.map((j) => ({ href: `/jtbd/${j.id}`, title: j.title })) },
+    {
+      label: 'JTBD',
+      results: jtbds.map((j) => ({
+        href: `/jtbd/${j.id}`,
+        title: jtbdKeyPhrase(j.title),
+        fullTitle: j.title,
+      })),
+    },
     {
       label: 'Гипотезы',
-      results: hypotheses.map((h) => ({ href: `/hypotheses/${h.id}`, title: h.statement })),
+      results: hypotheses.map((h) => ({
+        href: `/hypotheses/${h.id}`,
+        title: hypothesisKeyPhrase(h.statement),
+        fullTitle: h.statement,
+      })),
     },
     {
       label: 'Разговоры',
@@ -119,7 +134,11 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
     },
     {
       label: 'Инсайты',
-      results: insights.map((i) => ({ href: `/insights/${i.id}`, title: i.text })),
+      results: insights.map((i) => ({
+        href: `/insights/${i.id}`,
+        title: insightKeyPhrase(i.text),
+        fullTitle: i.text,
+      })),
     },
   ].filter((section) => section.results.length > 0)
 
@@ -142,7 +161,13 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
             <ul className="space-y-2">
               {section.results.map((result) => (
                 <li key={result.href} className="rounded-md border p-3">
-                  <Link href={result.href} className="line-clamp-2 text-sm hover:underline">
+                  <Link
+                    href={result.href}
+                    // Rows for JTBD/гипотез/инсайтов show the key phrase; the
+                    // untouched text stays reachable on hover.
+                    title={result.fullTitle ?? result.title}
+                    className="line-clamp-2 text-sm hover:underline"
+                  >
                     {result.title}
                   </Link>
                 </li>

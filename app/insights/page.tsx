@@ -10,6 +10,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleInsightPinned } from '@/lib/actions/insights'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { insightKeyPhrase } from '@/lib/key-phrase'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,7 +94,9 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
                       href={`/insights/${insight.id}`}
                       className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm hover:bg-accent/50"
                     >
-                      <span className="min-w-0 flex-1 truncate">{insight.text}</span>
+                      <span className="min-w-0 flex-1 truncate" title={insight.text}>
+                        {insightKeyPhrase(insight.text)}
+                      </span>
                       {(insight.segment || insight.jtbd) && (
                         <span className="shrink-0 text-xs text-muted-foreground">
                           {[insight.segment?.name, insight.jtbd?.title].filter(Boolean).join(' · ')}

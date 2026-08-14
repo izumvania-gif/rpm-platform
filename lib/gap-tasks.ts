@@ -1,3 +1,5 @@
+import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
+
 // Gaps as a work queue (plans/2.0-product-leap-plan.md, C3).
 //
 // /reports/gaps already knew what was missing; it just listed it. This turns
@@ -16,8 +18,15 @@ export interface GapTask {
   id: string
   kind: GapKind
   recordId: string
-  /** The record's own name, as the PM wrote it. */
+  /**
+   * What the row shows. For a JTBD or a hypothesis this is the key phrase
+   * (lib/key-phrase.ts) rather than the full templated sentence — the queue is
+   * scanned top to bottom, and «Когда …» / «Если …» openers made every row
+   * look alike exactly where the differences matter.
+   */
   title: string
+  /** The record's own name exactly as the PM wrote it, for the row's tooltip. */
+  fullTitle: string
   productName: string
   /** Where the resolving action starts — prefilled wherever the data allows. */
   href: string
@@ -103,6 +112,7 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         kind,
         recordId: segment.id,
         title: segment.name,
+        fullTitle: segment.name,
         productName: segment.product.name,
         // Both the product and the segment are known here, so the form opens
         // already pointed at them — the gap names the missing link, the link
@@ -116,6 +126,7 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         kind,
         recordId: product.id,
         title: product.name,
+        fullTitle: product.name,
         productName: product.name,
         href: `/research/new?productId=${product.id}`,
         actionLabel: 'Запланировать исследование',
@@ -125,7 +136,8 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         id: `stuck-hypothesis:${hypothesis.id}`,
         kind,
         recordId: hypothesis.id,
-        title: hypothesis.statement,
+        title: hypothesisKeyPhrase(hypothesis.statement),
+        fullTitle: hypothesis.statement,
         productName: hypothesis.product.name,
         href: `/hypotheses/${hypothesis.id}`,
         actionLabel: 'Открыть',
@@ -138,7 +150,8 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         id: `unconfirmed-jtbd:${jtbd.id}`,
         kind,
         recordId: jtbd.id,
-        title: jtbd.title,
+        title: jtbdKeyPhrase(jtbd.title),
+        fullTitle: jtbd.title,
         productName: jtbd.product.name,
         // Deliberately a link, not a one-click "Подтвердить": confirming means
         // "backed by research", and a button here would invite rubber-stamping

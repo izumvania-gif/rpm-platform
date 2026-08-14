@@ -7,6 +7,7 @@ import { signalToneColors } from '@/lib/signal-colors'
 import { Badge } from '@/components/ui/badge'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { MarketingSegmentFilterForm } from '@/components/forms/marketing-segment-filter-form'
+import { jtbdKeyPhrase } from '@/lib/key-phrase'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,8 +77,12 @@ export default async function MarketingHubPage({
                         className="h-2 w-2 shrink-0 rounded-full"
                         style={{ backgroundColor: signalToneColors.violet.border }}
                       />
-                      <Link href={`/jtbd/${jtbd.id}`} className="font-medium hover:underline">
-                        {jtbd.title}
+                      <Link
+                        href={`/jtbd/${jtbd.id}`}
+                        title={jtbd.title}
+                        className="font-medium hover:underline"
+                      >
+                        {jtbdKeyPhrase(jtbd.title)}
                       </Link>
                       {jtbd.confirmed && <Badge variant="secondary">Подтверждён</Badge>}
                     </div>

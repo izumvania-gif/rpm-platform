@@ -4,6 +4,7 @@ import type { JtbdJobType } from '@prisma/client'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { CircleCheck } from 'lucide-react'
 import { jtbdJobTypeColors, jtbdJobTypeIcon, jtbdJobTypeLabels } from '@/lib/jtbd-job-types'
+import { jtbdKeyPhrase } from '@/lib/key-phrase'
 
 export interface JtbdNodeData {
   title: string
@@ -41,7 +42,9 @@ export function JtbdNode({ data, selected }: NodeProps) {
           <title>{jtbdJobTypeLabels[jobType]}</title>
         </Icon>
       </div>
-      <p className="line-clamp-2 pr-4 text-[13.5px] font-medium leading-snug">{title}</p>
+      <p title={title} className="line-clamp-2 pr-4 text-[13.5px] font-medium leading-snug">
+        {jtbdKeyPhrase(title)}
+      </p>
       <div className="mt-2 border-t pt-1.5">
         <p className="truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
           {category}

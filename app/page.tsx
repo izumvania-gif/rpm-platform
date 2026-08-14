@@ -10,6 +10,7 @@ import { DashboardWidgetGrid } from '@/components/shared/dashboard-widget-grid'
 import { DashboardGapsSummary } from '@/components/shared/dashboard-gaps-summary'
 import { DashboardJtbdCoverage } from '@/components/shared/dashboard-jtbd-coverage'
 import { DashboardDiscoveryChain } from '@/components/shared/dashboard-discovery-chain'
+import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 import { DashboardHypothesisFunnel } from '@/components/shared/dashboard-hypothesis-funnel'
 import { DashboardResearchCadence } from '@/components/shared/dashboard-research-cadence'
 import { productModule, moduleByHref } from '@/lib/module-meta'
@@ -30,6 +31,8 @@ export const dynamic = 'force-dynamic'
 interface FeedItem {
   href: string
   title: string
+  /** Untouched original when `title` is a key phrase; used for the tooltip. */
+  fullTitle?: string
   kind: string
   moduleHref: string
   updatedAt: Date
@@ -135,14 +138,16 @@ export default async function Home() {
     })),
     ...pinnedJtbds.map((j) => ({
       href: `/jtbd/${j.id}`,
-      title: j.title,
+      title: jtbdKeyPhrase(j.title),
+      fullTitle: j.title,
       kind: 'JTBD',
       moduleHref: '/jtbd',
       updatedAt: j.updatedAt,
     })),
     ...pinnedHypotheses.map((h) => ({
       href: `/hypotheses/${h.id}`,
-      title: h.statement,
+      title: hypothesisKeyPhrase(h.statement),
+      fullTitle: h.statement,
       kind: 'Гипотеза',
       moduleHref: '/hypotheses',
       updatedAt: h.updatedAt,
@@ -177,7 +182,8 @@ export default async function Home() {
     })),
     ...pinnedInsights.map((i) => ({
       href: `/insights/${i.id}`,
-      title: i.text,
+      title: insightKeyPhrase(i.text),
+      fullTitle: i.text,
       kind: 'Инсайт',
       moduleHref: '/insights',
       updatedAt: i.updatedAt,
@@ -211,7 +217,8 @@ export default async function Home() {
     })),
     ...recentJtbds.map((j) => ({
       href: `/jtbd/${j.id}`,
-      title: j.title,
+      title: jtbdKeyPhrase(j.title),
+      fullTitle: j.title,
       kind: 'JTBD',
       moduleHref: '/jtbd',
       updatedAt: j.updatedAt,
@@ -219,7 +226,8 @@ export default async function Home() {
     })),
     ...recentHypotheses.map((h) => ({
       href: `/hypotheses/${h.id}`,
-      title: h.statement,
+      title: hypothesisKeyPhrase(h.statement),
+      fullTitle: h.statement,
       kind: 'Гипотеза',
       moduleHref: '/hypotheses',
       updatedAt: h.updatedAt,
@@ -259,7 +267,8 @@ export default async function Home() {
     })),
     ...recentInsights.map((i) => ({
       href: `/insights/${i.id}`,
-      title: i.text,
+      title: insightKeyPhrase(i.text),
+      fullTitle: i.text,
       kind: 'Инсайт',
       moduleHref: '/insights',
       updatedAt: i.updatedAt,
@@ -393,7 +402,12 @@ export default async function Home() {
                               className="shrink-0 text-muted-foreground"
                             />
                           )}
-                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                          <span
+                            className="min-w-0 flex-1 truncate"
+                            title={item.fullTitle ?? item.title}
+                          >
+                            {item.title}
+                          </span>
                           <span className="shrink-0 text-xs text-muted-foreground">
                             {item.kind}
                           </span>
@@ -428,7 +442,12 @@ export default async function Home() {
                               className="shrink-0 text-muted-foreground"
                             />
                           )}
-                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                          <span
+                            className="min-w-0 flex-1 truncate"
+                            title={item.fullTitle ?? item.title}
+                          >
+                            {item.title}
+                          </span>
                           <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
                             {item.createdAt && item.createdAt.getTime() === item.updatedAt.getTime()
                               ? 'создано'

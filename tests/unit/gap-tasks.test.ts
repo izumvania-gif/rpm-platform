@@ -95,12 +95,27 @@ describe('buildGapTasks', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('carries the record title and its product through', () => {
+  it('shows the key phrase but carries the untouched record text alongside it', () => {
     const [group] = buildGapTasks(
-      input({ stuckHypotheses: [{ id: 'h1', statement: 'Если A, то B', product }] })
+      input({
+        stuckHypotheses: [
+          { id: 'h1', statement: 'Если убрать визит в офис, то онбординг ускорится', product },
+        ],
+      })
     )
-    expect(group.tasks[0].title).toBe('Если A, то B')
+    // The queue is scanned, so the row leads with the intervention; the full
+    // sentence still travels with it for the row's tooltip.
+    expect(group.tasks[0].title).toBe('Убрать визит в офис')
+    expect(group.tasks[0].fullTitle).toBe('Если убрать визит в офис, то онбординг ускорится')
     expect(group.tasks[0].productName).toBe('Продукт А')
+  })
+
+  it('leaves a name-like title alone in both fields', () => {
+    const [group] = buildGapTasks(
+      input({ segmentsWithoutJtbd: [{ id: 's1', name: 'Банки', product }] })
+    )
+    expect(group.tasks[0].title).toBe('Банки')
+    expect(group.tasks[0].fullTitle).toBe('Банки')
   })
 
   it('states a directive in the imperative, not a label', () => {

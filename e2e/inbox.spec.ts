@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, uniqueName } from './helpers'
+import { byFullText, createProductViaUI, uniqueName } from './helpers'
 
 // The Inbox (plans/2.0-product-leap-plan.md, B1) — one paste, several types.
 
@@ -37,7 +37,8 @@ test('one mixed paste becomes records of five different types', async ({ page })
   await page.goto('/segments')
   await expect(page.getByText(segment)).toBeVisible()
   await page.goto('/hypotheses')
-  await expect(page.getByText(hypothesis)).toBeVisible()
+  // The kanban card shows the key phrase, so anchor on the full text's tooltip.
+  await expect(byFullText(page, hypothesis)).toBeVisible()
   await page.goto('/features')
   await expect(page.getByText(feature)).toBeVisible()
   await page.goto('/competitors')

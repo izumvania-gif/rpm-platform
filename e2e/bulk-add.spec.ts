@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, uniqueName } from './helpers'
+import { byFullText, createProductViaUI, uniqueName } from './helpers'
 
 // Bulk paste-many entry (plans/2.0-product-leap-plan.md, A1).
 
@@ -46,5 +46,5 @@ test('switching the entity type adds to a different module', async ({ page }) =>
   await expect(page.getByRole('status')).toHaveText('Добавлено записей: 1')
 
   await page.goto('/hypotheses')
-  await expect(page.getByText(statement)).toBeVisible()
+  await expect(byFullText(page, statement)).toBeVisible()
 })

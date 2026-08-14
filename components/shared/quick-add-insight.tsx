@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { createInsightQuick } from '@/lib/actions/insights'
+import { insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 
 export function QuickAddInsight({
   productId,
@@ -61,8 +62,8 @@ export function QuickAddInsight({
         <ul className="space-y-2">
           {insights.map((i) => (
             <li key={i.id} className="text-sm">
-              <Link href={`/insights/${i.id}`} className="hover:underline">
-                {i.text}
+              <Link href={`/insights/${i.id}`} title={i.text} className="hover:underline">
+                {insightKeyPhrase(i.text)}
               </Link>
             </li>
           ))}
@@ -86,8 +87,8 @@ export function QuickAddInsight({
           <Select value={jtbdId} onChange={(e) => setJtbdId(e.target.value)}>
             <option value="">JTBD не указан</option>
             {jtbds.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.title}
+              <option key={j.id} value={j.id} title={j.title}>
+                {jtbdKeyPhrase(j.title)}
               </option>
             ))}
           </Select>

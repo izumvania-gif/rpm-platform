@@ -14,6 +14,7 @@ import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
 import { moduleByHref } from '@/lib/module-meta'
 import { coveragePercent } from '@/lib/dashboard-metrics'
 import { EmptyState } from '@/components/shared/empty-state'
+import { jtbdKeyPhrase } from '@/lib/key-phrase'
 
 export const dynamic = 'force-dynamic'
 
@@ -91,8 +92,12 @@ export default async function JtbdPage() {
                     className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 rounded-md border p-3"
                   >
                     <div className="min-w-0">
-                      <Link href={`/jtbd/${jtbd.id}`} className="hover:underline">
-                        {jtbd.title}
+                      <Link
+                        href={`/jtbd/${jtbd.id}`}
+                        title={jtbd.title}
+                        className="hover:underline"
+                      >
+                        {jtbdKeyPhrase(jtbd.title)}
                       </Link>
                       <p className="text-xs text-muted-foreground">{jtbd.product.name}</p>
                       {jtbd.tags.length > 0 && (

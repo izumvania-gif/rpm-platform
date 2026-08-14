@@ -16,7 +16,13 @@ import { cn } from '@/lib/utils'
 // Pure presentation, no queries of its own: each page passes what it already
 // fetched.
 
-export type ChainItem = { label: string; href: string }
+export type ChainItem = {
+  /** What the chip shows — may be a key phrase (lib/key-phrase.ts). */
+  label: string
+  /** The untouched text for the tooltip; defaults to `label`. */
+  fullLabel?: string
+  href: string
+}
 
 export type RibbonStage = {
   /** Singular noun for the slot: «Сегмент», «JTBD», «Гипотеза». */
@@ -72,7 +78,7 @@ export function ChainRibbon({ stages }: { stages: RibbonStage[] }) {
                     key={item.href}
                     href={item.href}
                     className="max-w-[16rem] truncate hover:underline"
-                    title={item.label}
+                    title={item.fullLabel ?? item.label}
                   >
                     {item.label}
                   </Link>

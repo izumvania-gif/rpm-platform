@@ -16,6 +16,7 @@ import {
 } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 import { cn } from '@/lib/utils'
+import { hypothesisKeyPhrase } from '@/lib/key-phrase'
 
 type HypothesisWithProduct = Hypothesis & { product: Product }
 
@@ -132,9 +133,10 @@ export function HypothesisKanbanBoard({ hypotheses }: { hypotheses: HypothesisWi
                           <Link
                             href={`/hypotheses/${h.id}`}
                             onClick={(e) => e.stopPropagation()}
+                            title={h.statement}
                             className="line-clamp-3 rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
-                            {h.statement}
+                            {hypothesisKeyPhrase(h.statement)}
                           </Link>
                         </CardTitle>
                         <CardDescription className="flex items-center justify-between gap-2">

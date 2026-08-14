@@ -1,3 +1,4 @@
+import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 // The product canvas (plans/2.0-product-leap-plan.md, C2).
 //
 // The JTBD graph answers "how do these jobs relate to each other" — hierarchy,
@@ -19,6 +20,8 @@ export interface CanvasNodeInput {
   id: string
   kind: CanvasKind
   label: string
+  /** Untouched text for the node's tooltip — `label` may be a key phrase. */
+  fullLabel: string
   /** Small second line — category for a job, status for a hypothesis. */
   meta?: string
   /** Drives the "unfinished chain" accent; see danglingReason below. */
@@ -110,6 +113,7 @@ export function buildCanvasGraph(input: CanvasGraphInput): {
       id: nodeKey('SEGMENT', segment.id),
       kind: 'SEGMENT' as const,
       label: segment.name,
+      fullLabel: segment.name,
       // A segment with no jobs is where the chain breaks first — the same
       // judgement /reports/gaps ranks highest (C3).
       dangling: segment.jtbdIds.length === 0,
@@ -118,7 +122,8 @@ export function buildCanvasGraph(input: CanvasGraphInput): {
     ...input.jtbds.map((jtbd) => ({
       id: nodeKey('JTBD', jtbd.id),
       kind: 'JTBD' as const,
-      label: jtbd.title,
+      label: jtbdKeyPhrase(jtbd.title),
+      fullLabel: jtbd.title,
       meta: jtbd.category,
       // Two ways for a job to dangle: nobody it belongs to, or nothing testing
       // it. Either way the chain around it is incomplete.
@@ -128,7 +133,8 @@ export function buildCanvasGraph(input: CanvasGraphInput): {
     ...input.hypotheses.map((hypothesis) => ({
       id: nodeKey('HYPOTHESIS', hypothesis.id),
       kind: 'HYPOTHESIS' as const,
-      label: hypothesis.statement,
+      label: hypothesisKeyPhrase(hypothesis.statement),
+      fullLabel: hypothesis.statement,
       meta: hypothesis.status,
       dangling: hypothesis.jtbdId === null,
       position: place('HYPOTHESIS', hypothesis.id),

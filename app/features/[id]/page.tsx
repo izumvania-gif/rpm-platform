@@ -12,6 +12,7 @@ import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-track
 import { JobTypeDot } from '@/components/shared/job-type-dot'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { ChainRibbon } from '@/components/shared/chain-ribbon'
+import { jtbdKeyPhrase } from '@/lib/key-phrase'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,7 +76,11 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
               },
               {
                 title: 'JTBD',
-                items: feature.jtbds.map((j) => ({ label: j.title, href: `/jtbd/${j.id}` })),
+                items: feature.jtbds.map((j) => ({
+                  label: jtbdKeyPhrase(j.title),
+                  fullLabel: j.title,
+                  href: `/jtbd/${j.id}`,
+                })),
                 emptyLabel: 'ни одного',
                 addHref: `/features/${feature.id}/edit`,
               },

@@ -14,6 +14,7 @@ import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { ChainRibbon } from '@/components/shared/chain-ribbon'
 import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 import { isStale } from '@/lib/utils'
+import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 
 export const dynamic = 'force-dynamic'
 
@@ -101,14 +102,21 @@ export default async function JtbdDetailPage({
               },
               {
                 title: 'JTBD',
-                items: [{ label: jtbd.title, href: `/jtbd/${jtbd.id}` }],
+                items: [
+                  {
+                    label: jtbdKeyPhrase(jtbd.title),
+                    fullLabel: jtbd.title,
+                    href: `/jtbd/${jtbd.id}`,
+                  },
+                ],
                 emptyLabel: '',
                 current: true,
               },
               {
                 title: 'Гипотеза',
                 items: jtbd.hypotheses.map((h) => ({
-                  label: h.statement,
+                  label: hypothesisKeyPhrase(h.statement),
+                  fullLabel: h.statement,
                   href: `/hypotheses/${h.id}`,
                 })),
                 emptyLabel: 'ни одной',

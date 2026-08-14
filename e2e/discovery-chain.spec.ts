@@ -50,3 +50,26 @@ test('a record with a missing link shows the gap instead of hiding it', async ({
   await expect(ribbon.getByText('ни одной').first()).toBeVisible()
   await expect(ribbon.getByRole('link', { name: 'добавить' }).first()).toBeVisible()
 })
+
+test('the product page leads with what needs attention, not with everything', async ({ page }) => {
+  const productName = uniqueName('Overview Product')
+  const productUrl = await createProductViaUI(page, productName)
+
+  // Six segments, so the card must cap and choose which five to show.
+  for (let i = 0; i < 6; i++) {
+    await page.goto('/segments/new')
+    await page.getByLabel('Название').fill(uniqueName(`Сегмент ${i}`))
+    await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+    await page.getByRole('button', { name: 'Создать' }).click()
+    await page.waitForURL(/\/segments\/[^/]+$/)
+  }
+
+  await page.goto(productUrl)
+
+  // The header states the problem instead of only counting records: none of
+  // the six segments has a job yet.
+  await expect(page.getByText('6 без задач')).toBeVisible()
+
+  // Five rows, then a way to the full list — not all six inline.
+  await expect(page.getByRole('link', { name: /^Ещё 1/ })).toBeVisible()
+})

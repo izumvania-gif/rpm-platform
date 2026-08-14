@@ -13,8 +13,13 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { SectionHeading } from '@/components/shared/section-heading'
+import { ProductModuleCard } from '@/components/products/module-card'
+import { buildModuleRows, type OverviewRow } from '@/lib/product-overview'
+import { DRAFT_STUCK_AFTER_MS } from '@/lib/dashboard-metrics'
+import { hypothesisStatusLabels } from '@/lib/labels'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { researchGroupMeta, positioningGroupMeta } from '@/lib/module-meta'
+import { isStale } from '@/lib/utils'
 import { stageLabels, productResourceKindLabels } from '@/lib/labels'
 import { BulkAddPanel } from '@/components/shared/bulk-add-panel'
 import { CsvImportPanel } from '@/components/shared/csv-import-panel'
@@ -23,53 +28,6 @@ import { templateSummaries } from '@/lib/starter-templates'
 
 export const dynamic = 'force-dynamic'
 
-function ProductSection({
-  title,
-  count,
-  addHref,
-  addLabel,
-  emptyLabel,
-  items,
-}: {
-  title: string
-  count: number
-  addHref: string
-  addLabel: string
-  emptyLabel: string
-  items: { href: string; label: string }[]
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-        <CardTitle className="text-base font-semibold">
-          {title} <span className="font-normal text-muted-foreground">({count})</span>
-        </CardTitle>
-        <Link
-          href={addHref}
-          className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' shrink-0 print:hidden'}
-        >
-          {addLabel}
-        </Link>
-      </CardHeader>
-      <CardContent>
-        {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{emptyLabel}</p>
-        ) : (
-          <ul className="space-y-2">
-            {items.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="text-sm hover:underline">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const userId = getCurrentUserId()
   const [product, people, departments] = await Promise.all([
@@ -77,14 +35,29 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       where: { id: params.id, userId },
       include: {
         researches: { orderBy: { date: 'desc' } },
-        segments: { orderBy: { createdAt: 'desc' } },
+        // The per-record relation counts below are what make the module cards
+        // actionable rather than decorative: a segment with no jobs and a
+        // feature with no marketing claim are the rows worth surfacing first.
+        segments: {
+          orderBy: { createdAt: 'desc' },
+          include: { _count: { select: { jtbds: true } } },
+        },
         jtbds: { orderBy: { createdAt: 'desc' } },
         hypotheses: { orderBy: { createdAt: 'desc' } },
-        conversations: { orderBy: { date: 'desc' } },
+        conversations: {
+          orderBy: { date: 'desc' },
+          include: { _count: { select: { insights: true } } },
+        },
         competitors: { orderBy: { createdAt: 'desc' } },
         productResources: { orderBy: { createdAt: 'desc' } },
-        features: { orderBy: { createdAt: 'desc' } },
-        rtbs: { orderBy: { createdAt: 'desc' } },
+        features: {
+          orderBy: { createdAt: 'desc' },
+          include: { _count: { select: { rtbs: true } } },
+        },
+        rtbs: {
+          orderBy: { createdAt: 'desc' },
+          include: { _count: { select: { features: true } } },
+        },
         insights: { orderBy: { createdAt: 'desc' } },
       },
     }),
@@ -140,6 +113,81 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       product.jtbds.length +
       product.hypotheses.length <
     4
+
+  // Every module card's rows. Each rule below names a state the app already
+  // tracks but never showed here — the point of the card is to surface the
+  // record you should act on, not the record you happened to add last.
+  const shortDate = (date: Date) =>
+    date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+
+  const researchRows: OverviewRow[] = product.researches.map((r) => ({
+    href: `/research/${r.id}`,
+    label: `#${r.number} ${r.title}`,
+    meta: shortDate(r.date),
+    attentionHint: isStale(r.date) ? 'Давно не обновлялось' : undefined,
+  }))
+
+  const segmentRows: OverviewRow[] = product.segments.map((seg) => ({
+    href: `/segments/${seg.id}`,
+    label: seg.name,
+    meta: `${seg._count.jtbds} JTBD`,
+    attentionHint: seg._count.jtbds === 0 ? 'Ни одной задачи клиента' : undefined,
+  }))
+
+  const jtbdRows: OverviewRow[] = product.jtbds.map((j) => ({
+    href: `/jtbd/${j.id}`,
+    label: j.title,
+    attentionHint: j.confirmed ? undefined : 'Не подтверждён исследованием',
+  }))
+
+  const hypothesisRows: OverviewRow[] = product.hypotheses.map((h) => ({
+    href: `/hypotheses/${h.id}`,
+    label: h.statement,
+    meta: hypothesisStatusLabels[h.status],
+    // The same "stuck" definition /reports/gaps uses, imported rather than
+    // re-guessed, so the two pages can never disagree about the threshold.
+    attentionHint:
+      h.status === 'DRAFT' && Date.now() - h.updatedAt.getTime() > DRAFT_STUCK_AFTER_MS
+        ? 'Висит в черновике больше двух недель'
+        : undefined,
+  }))
+
+  const conversationRows: OverviewRow[] = product.conversations.map((c) => ({
+    href: `/conversations/${c.id}`,
+    label: c.title,
+    meta: shortDate(c.date),
+    attentionHint: c._count.insights === 0 ? 'Из разговора не извлечён ни один инсайт' : undefined,
+  }))
+
+  const insightRows: OverviewRow[] = product.insights.map((i) => ({
+    href: `/insights/${i.id}`,
+    label: i.text,
+    attentionHint:
+      !i.segmentId && !i.jtbdId && !i.researchId && !i.conversationId
+        ? 'Ни с чем не связан'
+        : undefined,
+  }))
+
+  const competitorRows: OverviewRow[] = product.competitors.map((c) => ({
+    href: `/competitors/${c.id}`,
+    label: c.name,
+    meta: c.lastCheckedAt ? shortDate(c.lastCheckedAt) : 'не проверяли',
+    attentionHint: !c.lastCheckedAt || isStale(c.lastCheckedAt) ? 'Давно не проверяли' : undefined,
+  }))
+
+  const featureRows: OverviewRow[] = product.features.map((f) => ({
+    href: `/features/${f.id}`,
+    label: f.name,
+    meta: `${f._count.rtbs} RTB`,
+    attentionHint: f._count.rtbs === 0 ? 'Нет маркетингового обещания' : undefined,
+  }))
+
+  const rtbRows: OverviewRow[] = product.rtbs.map((r) => ({
+    href: `/marketing/${r.id}`,
+    label: r.statement,
+    meta: `${r._count.features} фич`,
+    attentionHint: r._count.features === 0 ? 'Не опирается ни на одну фичу' : undefined,
+  }))
 
   return (
     <main className="container py-12 space-y-10">
@@ -253,65 +301,59 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           description={researchGroupMeta.description}
         />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <ProductSection
+          <ProductModuleCard
             title="Исследования"
-            count={product.researches.length}
+            data={buildModuleRows(researchRows)}
             addHref={`/research/new?productId=${product.id}`}
             addLabel="Добавить исследование"
+            allHref="/research"
             emptyLabel="Пока нет исследований."
-            items={product.researches.map((r) => ({
-              href: `/research/${r.id}`,
-              label: `#${r.number} ${r.title}`,
-            }))}
+            attentionLabel="давно не обновлялись"
           />
-          <ProductSection
+          <ProductModuleCard
             title="Сегменты"
-            count={product.segments.length}
+            data={buildModuleRows(segmentRows)}
             addHref={`/segments/new?productId=${product.id}`}
             addLabel="Добавить сегмент"
+            allHref="/segments"
             emptyLabel="Пока нет сегментов."
-            items={product.segments.map((s) => ({ href: `/segments/${s.id}`, label: s.name }))}
+            attentionLabel="без задач"
           />
-          <ProductSection
+          <ProductModuleCard
             title="JTBD"
-            count={product.jtbds.length}
+            data={buildModuleRows(jtbdRows)}
             addHref={`/jtbd/new?productId=${product.id}`}
             addLabel="Добавить JTBD"
+            allHref="/jtbd"
             emptyLabel="Пока нет JTBD."
-            items={product.jtbds.map((j) => ({ href: `/jtbd/${j.id}`, label: j.title }))}
+            attentionLabel="не подтверждены"
           />
-          <ProductSection
+          <ProductModuleCard
             title="Гипотезы"
-            count={product.hypotheses.length}
+            data={buildModuleRows(hypothesisRows)}
             addHref={`/hypotheses/new?productId=${product.id}`}
             addLabel="Добавить гипотезу"
+            allHref="/hypotheses"
             emptyLabel="Пока нет гипотез."
-            items={product.hypotheses.map((h) => ({
-              href: `/hypotheses/${h.id}`,
-              label: h.statement,
-            }))}
+            attentionLabel="зависли в черновике"
           />
-          <ProductSection
+          <ProductModuleCard
             title="Разговоры"
-            count={product.conversations.length}
+            data={buildModuleRows(conversationRows)}
             addHref={`/conversations/new?productId=${product.id}`}
             addLabel="Добавить разговор"
+            allHref="/conversations"
             emptyLabel="Пока нет разговоров."
-            items={product.conversations.map((c) => ({
-              href: `/conversations/${c.id}`,
-              label: c.title,
-            }))}
+            attentionLabel="без инсайтов"
           />
-          <ProductSection
+          <ProductModuleCard
             title="Инсайты"
-            count={product.insights.length}
+            data={buildModuleRows(insightRows)}
             addHref={`/insights/new?productId=${product.id}`}
             addLabel="Добавить инсайт"
+            allHref="/insights"
             emptyLabel="Пока нет инсайтов."
-            items={product.insights.map((i) => ({
-              href: `/insights/${i.id}`,
-              label: i.text,
-            }))}
+            attentionLabel="ни с чем не связаны"
           />
         </div>
       </div>
@@ -322,32 +364,32 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           description={positioningGroupMeta.description}
         />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <ProductSection
+          <ProductModuleCard
             title="Конкуренты"
-            count={product.competitors.length}
+            data={buildModuleRows(competitorRows)}
             addHref={`/competitors/new?productId=${product.id}`}
             addLabel="Добавить конкурента"
+            allHref="/competitors"
             emptyLabel="Пока нет конкурентов."
-            items={product.competitors.map((c) => ({
-              href: `/competitors/${c.id}`,
-              label: c.name,
-            }))}
+            attentionLabel="давно не проверяли"
           />
-          <ProductSection
+          <ProductModuleCard
             title="Фичи"
-            count={product.features.length}
+            data={buildModuleRows(featureRows)}
             addHref={`/features/new?productId=${product.id}`}
             addLabel="Добавить фичу"
+            allHref="/features"
             emptyLabel="Пока нет фич."
-            items={product.features.map((f) => ({ href: `/features/${f.id}`, label: f.name }))}
+            attentionLabel="без обещаний"
           />
-          <ProductSection
+          <ProductModuleCard
             title="Маркетинг"
-            count={product.rtbs.length}
+            data={buildModuleRows(rtbRows)}
             addHref={`/marketing/new?productId=${product.id}`}
             addLabel="Добавить RTB"
+            allHref="/marketing"
             emptyLabel="Пока нет RTB."
-            items={product.rtbs.map((r) => ({ href: `/marketing/${r.id}`, label: r.statement }))}
+            attentionLabel="без опоры на фичу"
           />
         </div>
       </div>
@@ -358,34 +400,36 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           description="Sales-kit, документация, ссылки на Confluence/Jira"
         />
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+          <CardHeader className="flex flex-row items-baseline justify-between gap-2 space-y-0 pb-3">
             <CardTitle className="text-base font-semibold">
               Ресурсы{' '}
               <span className="font-normal text-muted-foreground">
-                ({product.productResources.length})
+                {product.productResources.length}
               </span>
             </CardTitle>
             <Link
               href={`/resources/new?productId=${product.id}`}
+              aria-label="Добавить ресурс"
+              title="Добавить ресурс"
               className={
-                buttonVariants({ variant: 'outline', size: 'sm' }) + ' shrink-0 print:hidden'
+                buttonVariants({ variant: 'outline', size: 'sm' }) + ' shrink-0 px-2.5 print:hidden'
               }
             >
-              Добавить ресурс
+              +
             </Link>
           </CardHeader>
           <CardContent>
             {product.productResources.length === 0 ? (
               <p className="text-sm text-muted-foreground">Пока нет ресурсов.</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="divide-y text-sm">
                 {product.productResources.map((resource) => (
                   <li
                     key={resource.id}
-                    className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 py-1.5 first:pt-0"
                   >
-                    <span>
-                      <Badge variant="outline" className="mr-2">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Badge variant="outline" className="shrink-0">
                         {productResourceKindLabels[resource.kind]}
                       </Badge>
                       {resource.url ? (
@@ -412,6 +456,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                         action={deleteProductResource.bind(null, resource.id)}
                         impact={{ model: 'productResource', id: resource.id }}
                         name={resource.title}
+                        size="sm"
                       />
                     </span>
                   </li>

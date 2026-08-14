@@ -11,7 +11,7 @@ import type { ChainCounts } from '@/lib/discovery-chain'
 
 // Hypotheses move through the pipeline faster than research/content gets
 // written, so a shorter stuck-threshold than isStale()'s 90 days.
-const DRAFT_STUCK_AFTER_MS = 14 * 24 * 60 * 60 * 1000
+export const DRAFT_STUCK_AFTER_MS = 14 * 24 * 60 * 60 * 1000
 
 export async function getUnconfirmedJtbds(userId: string) {
   return prisma.jTBD.findMany({

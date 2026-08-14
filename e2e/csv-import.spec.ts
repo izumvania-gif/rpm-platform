@@ -74,10 +74,14 @@ test('a starter template fills a new product with linked segments, JTBD and hypo
 
   // The panel unmounts once the product is no longer near-empty, so the
   // created content itself is the confirmation.
+  //
+  // The module cards cap at five rows and the template creates six jobs, so
+  // asserting one specific title here would depend on which five the card
+  // chose. The count in the card header is the claim that all six landed;
+  // /reports/gaps below is the unabridged list.
   await expect(page.getByText('Банки топ-30')).toBeVisible()
-  await expect(
-    page.getByText('Выпустить сертификат сотруднику, не заставляя его ехать в офис')
-  ).toBeVisible()
+  await expect(page.getByText('JTBD', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('6 не подтверждены')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Взять заготовку' })).toHaveCount(0)
 
   // Everything arrives unconfirmed, so it still has to earn its status.

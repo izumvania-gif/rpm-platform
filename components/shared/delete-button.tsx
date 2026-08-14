@@ -32,6 +32,7 @@ export function DeleteButton({
   impact,
   name,
   label = 'Удалить',
+  size,
 }: {
   action: () => void
   confirmMessage?: string
@@ -39,6 +40,10 @@ export function DeleteButton({
   /** Shown in the dialog so it is obvious *which* record is about to go. */
   name?: string
   label?: string
+  /** `sm` for a delete that lives inside a row — a full-size destructive
+   * button there outshouts the content it belongs to. The dialog's own
+   * confirm button stays full size: that one is the decision. */
+  size?: 'sm'
 }) {
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -49,6 +54,7 @@ export function DeleteButton({
         ref={triggerRef}
         type="button"
         variant="destructive"
+        size={size}
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
       >

@@ -10,8 +10,10 @@ import {
   getResearchCadence,
   getSegmentsWithoutJtbd,
   getStuckHypotheses,
+  getDiscoveryChain,
   getUnconfirmedJtbds,
 } from '@/lib/dashboard-metrics'
+import { DEFAULT_USER_ID } from '@/lib/current-user'
 import { createTestProduct, ensureTestUser } from './helpers'
 
 beforeEach(ensureTestUser)
@@ -334,5 +336,80 @@ describe('getGapsCounts', () => {
       stuckHypotheses: 1,
       productsWithoutRecentResearch: 1,
     })
+  })
+})
+
+describe('getDiscoveryChain', () => {
+  it('counts each stage as total plus how much of it is attached', async () => {
+    const product = await createTestProduct()
+    const p = { productId: product.id, userId: DEFAULT_USER_ID }
+
+    // One segment with a job hanging off it, one dead end.
+    const linkedSegment = await prisma.segment.create({
+      data: { name: 'Связан', slug: `s1-${Date.now()}`, tags: [], ...p },
+    })
+    await prisma.segment.create({
+      data: { name: 'Тупик', slug: `s2-${Date.now()}`, tags: [], ...p },
+    })
+
+    const jtbd = await prisma.jTBD.create({
+      data: {
+        title: 'С сегментом',
+        category: 'к',
+        tags: [],
+        segments: { connect: { id: linkedSegment.id } },
+        ...p,
+      },
+    })
+    await prisma.jTBD.create({ data: { title: 'Без сегмента', category: 'к', tags: [], ...p } })
+
+    await prisma.hypothesis.create({
+      data: { statement: 'С JTBD', tags: [], jtbdId: jtbd.id, ...p },
+    })
+    await prisma.hypothesis.create({ data: { statement: 'Ничья', tags: [], ...p } })
+
+    const feature = await prisma.feature.create({
+      data: { name: 'С JTBD', jtbds: { connect: { id: jtbd.id } }, ...p },
+    })
+    await prisma.feature.create({ data: { name: 'Без JTBD', ...p } })
+
+    await prisma.rTB.create({
+      data: { statement: 'На фиче', features: { connect: { id: feature.id } }, ...p },
+    })
+
+    const chain = await getDiscoveryChain(DEFAULT_USER_ID)
+
+    expect(chain.segment).toEqual({ total: 2, attached: 1 })
+    expect(chain.jtbd).toEqual({ total: 2, attached: 1 })
+    expect(chain.hypothesis).toEqual({ total: 2, attached: 1 })
+    expect(chain.feature).toEqual({ total: 2, attached: 1 })
+    expect(chain.rtb).toEqual({ total: 1, attached: 1 })
+  })
+
+  it('returns zeroes rather than throwing on an empty base', async () => {
+    await ensureTestUser()
+    const chain = await getDiscoveryChain(DEFAULT_USER_ID)
+    expect(chain.segment).toEqual({ total: 0, attached: 0 })
+    expect(chain.rtb).toEqual({ total: 0, attached: 0 })
+  })
+
+  it('does not count another user’s records', async () => {
+    const them = await prisma.user.create({
+      data: { email: `other-chain-${Date.now()}@example.com`, passwordHash: 'x' },
+    })
+    const theirProduct = await prisma.product.create({
+      data: { name: 'Чужой', slug: `foreign-chain-${Date.now()}`, userId: them.id },
+    })
+    await prisma.segment.create({
+      data: {
+        name: 'Чужой сегмент',
+        slug: `fs-${Date.now()}`,
+        tags: [],
+        productId: theirProduct.id,
+        userId: them.id,
+      },
+    })
+
+    expect((await getDiscoveryChain(DEFAULT_USER_ID)).segment).toEqual({ total: 0, attached: 0 })
   })
 })

@@ -103,10 +103,12 @@ test('dragging from a segment to a job creates the real link', async ({ page }) 
 
   await expect(page.locator('.react-flow__edge')).toHaveCount(1)
 
-  // The link is a real relation: the job now lists the segment on its page.
+  // The link is a real relation: the job now lists the segment on its page —
+  // both in the chain ribbon at the top and in the segments card below, so
+  // this counts links rather than asserting a single unscoped match.
   await page.goto('/jtbd')
   await page.getByText(jobName).click()
-  await expect(page.getByText(segmentName)).toBeVisible()
+  await expect(page.getByRole('link', { name: segmentName }).first()).toBeVisible()
 })
 
 test('a link against the chain is refused with an explanation', async ({ page }) => {

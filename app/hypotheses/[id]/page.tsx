@@ -18,6 +18,7 @@ import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-track
 import { SignalBadge } from '@/components/shared/signal-badge'
 import { JobTypeDot } from '@/components/shared/job-type-dot'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { ChainRibbon } from '@/components/shared/chain-ribbon'
 import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 
@@ -28,7 +29,9 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
     where: { id: params.id, userId: getCurrentUserId() },
     include: {
       product: true,
-      jtbd: true,
+      // The job carries the rest of the chain for the ribbon: which segments
+      // it serves and which features (and their marketing claims) rest on it.
+      jtbd: { include: { segments: true, features: { include: { rtbs: true } } } },
       segment: true,
       research: true,
       statusChanges: { orderBy: { changedAt: 'desc' } },
@@ -36,6 +39,16 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
   })
 
   if (!hypothesis) notFound()
+
+  // A hypothesis can name a segment directly or inherit it from its job —
+  // the ribbon shows whichever is available, direct link first.
+  const chainSegments = hypothesis.segment
+    ? [hypothesis.segment]
+    : (hypothesis.jtbd?.segments ?? [])
+  const chainFeatures = hypothesis.jtbd?.features ?? []
+  const chainRtbs = Array.from(
+    new Map(chainFeatures.flatMap((f) => f.rtbs).map((rtb) => [rtb.id, rtb])).values()
+  )
 
   const deleteHypothesisWithId = deleteHypothesis.bind(null, hypothesis.id)
   const toggleHypothesisPinnedWithId = toggleHypothesisPinned.bind(
@@ -81,6 +94,44 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
               name={hypothesis.statement}
             />
           </div>
+        </div>
+        <div className="mb-4">
+          <ChainRibbon
+            stages={[
+              {
+                title: 'Сегмент',
+                items: chainSegments.map((s) => ({ label: s.name, href: `/segments/${s.id}` })),
+                emptyLabel: 'не привязан',
+                addHref: `/hypotheses/${hypothesis.id}/edit`,
+              },
+              {
+                title: 'JTBD',
+                items: hypothesis.jtbd
+                  ? [{ label: hypothesis.jtbd.title, href: `/jtbd/${hypothesis.jtbd.id}` }]
+                  : [],
+                emptyLabel: 'не привязан',
+                addHref: `/hypotheses/${hypothesis.id}/edit`,
+              },
+              {
+                title: 'Гипотеза',
+                items: [{ label: hypothesis.statement, href: `/hypotheses/${hypothesis.id}` }],
+                emptyLabel: '',
+                current: true,
+              },
+              {
+                title: 'Фича',
+                items: chainFeatures.map((f) => ({ label: f.name, href: `/features/${f.id}` })),
+                emptyLabel: 'ни одной',
+                addHref: `/features/new?productId=${hypothesis.product.id}`,
+              },
+              {
+                title: 'Маркетинг',
+                items: chainRtbs.map((r) => ({ label: r.statement, href: `/marketing/${r.id}` })),
+                emptyLabel: 'нет обещаний',
+                addHref: `/marketing/new?productId=${hypothesis.product.id}`,
+              },
+            ]}
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <SignalBadge tone={hypothesisStatusTone[hypothesis.status]}>

@@ -9,6 +9,7 @@ import { RecentlyViewedWidget } from '@/components/shared/recently-viewed-widget
 import { DashboardWidgetGrid } from '@/components/shared/dashboard-widget-grid'
 import { DashboardGapsSummary } from '@/components/shared/dashboard-gaps-summary'
 import { DashboardJtbdCoverage } from '@/components/shared/dashboard-jtbd-coverage'
+import { DashboardDiscoveryChain } from '@/components/shared/dashboard-discovery-chain'
 import { DashboardHypothesisFunnel } from '@/components/shared/dashboard-hypothesis-funnel'
 import { DashboardResearchCadence } from '@/components/shared/dashboard-research-cadence'
 import { productModule, moduleByHref } from '@/lib/module-meta'
@@ -19,6 +20,7 @@ import { isBaseModule } from '@/lib/nav-disclosure'
 import {
   getGapsCounts,
   getHypothesisStatusCounts,
+  getDiscoveryChain,
   getJtbdCoverage,
   getResearchCadence,
 } from '@/lib/dashboard-metrics'
@@ -40,6 +42,7 @@ export default async function Home() {
   const dashboardMetrics = Promise.all([
     getGapsCounts(userId),
     getJtbdCoverage(userId),
+    getDiscoveryChain(userId),
     getHypothesisStatusCounts(userId),
     getResearchCadence(userId),
   ])
@@ -112,7 +115,8 @@ export default async function Home() {
     prisma.insight.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
   ])
 
-  const [gapsCounts, jtbdCoverage, hypothesisStatusCounts, researchCadence] = await dashboardMetrics
+  const [gapsCounts, jtbdCoverage, discoveryChain, hypothesisStatusCounts, researchCadence] =
+    await dashboardMetrics
 
   const pinnedItems: FeedItem[] = [
     ...pinnedResearch.map((r) => ({
@@ -359,6 +363,7 @@ export default async function Home() {
         widgets={{
           'gaps-summary': <DashboardGapsSummary counts={gapsCounts} />,
           'jtbd-coverage': <DashboardJtbdCoverage coverage={jtbdCoverage} />,
+          'discovery-chain': <DashboardDiscoveryChain counts={discoveryChain} />,
           'hypothesis-funnel': <DashboardHypothesisFunnel counts={hypothesisStatusCounts} />,
           'research-cadence': <DashboardResearchCadence data={researchCadence} />,
           'recently-viewed': <RecentlyViewedWidget />,

@@ -11,6 +11,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { ChainRibbon } from '@/components/shared/chain-ribbon'
 import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 import { isStale } from '@/lib/utils'
 
@@ -25,10 +26,23 @@ export default async function JtbdDetailPage({
 }) {
   const jtbd = await prisma.jTBD.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true, segments: true, research: true, hypotheses: true, features: true },
+    include: {
+      product: true,
+      segments: true,
+      research: true,
+      hypotheses: true,
+      // rtbs comes along for the chain ribbon's last slot — the RTBs that
+      // ultimately rest on this job, one join further than the page itself
+      // needs.
+      features: { include: { rtbs: true } },
+    },
   })
 
   if (!jtbd) notFound()
+
+  const chainRtbs = Array.from(
+    new Map(jtbd.features.flatMap((f) => f.rtbs).map((rtb) => [rtb.id, rtb])).values()
+  )
 
   const deleteJtbdWithId = deleteJtbd.bind(null, jtbd.id)
   const toggleJtbdPinnedWithId = toggleJtbdPinned.bind(null, jtbd.id, !jtbd.pinned)
@@ -75,6 +89,45 @@ export default async function JtbdDetailPage({
               name={jtbd.title}
             />
           </div>
+        </div>
+        <div className="mb-4">
+          <ChainRibbon
+            stages={[
+              {
+                title: 'Сегмент',
+                items: jtbd.segments.map((s) => ({ label: s.name, href: `/segments/${s.id}` })),
+                emptyLabel: 'не привязан',
+                addHref: `/jtbd/${jtbd.id}/edit`,
+              },
+              {
+                title: 'JTBD',
+                items: [{ label: jtbd.title, href: `/jtbd/${jtbd.id}` }],
+                emptyLabel: '',
+                current: true,
+              },
+              {
+                title: 'Гипотеза',
+                items: jtbd.hypotheses.map((h) => ({
+                  label: h.statement,
+                  href: `/hypotheses/${h.id}`,
+                })),
+                emptyLabel: 'ни одной',
+                addHref: `/hypotheses/new?productId=${jtbd.product.id}&jtbdId=${jtbd.id}`,
+              },
+              {
+                title: 'Фича',
+                items: jtbd.features.map((f) => ({ label: f.name, href: `/features/${f.id}` })),
+                emptyLabel: 'ни одной',
+                addHref: `/features/new?productId=${jtbd.product.id}`,
+              },
+              {
+                title: 'Маркетинг',
+                items: chainRtbs.map((r) => ({ label: r.statement, href: `/marketing/${r.id}` })),
+                emptyLabel: 'нет обещаний',
+                addHref: `/marketing/new?productId=${jtbd.product.id}`,
+              },
+            ]}
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <InlineEditableField

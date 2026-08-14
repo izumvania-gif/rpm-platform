@@ -11,16 +11,22 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { JobTypeDot } from '@/components/shared/job-type-dot'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { ChainRibbon } from '@/components/shared/chain-ribbon'
 
 export const dynamic = 'force-dynamic'
 
 export default async function FeatureDetailPage({ params }: { params: { id: string } }) {
   const feature = await prisma.feature.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true, jtbds: true, rtbs: true },
+    // Segments come one join past the jobs, for the chain ribbon's first slot.
+    include: { product: true, jtbds: { include: { segments: true } }, rtbs: true },
   })
 
   if (!feature) notFound()
+
+  const chainSegments = Array.from(
+    new Map(feature.jtbds.flatMap((j) => j.segments).map((s) => [s.id, s])).values()
+  )
 
   const deleteFeatureWithId = deleteFeature.bind(null, feature.id)
   const toggleFeaturePinnedWithId = toggleFeaturePinned.bind(null, feature.id, !feature.pinned)
@@ -57,6 +63,39 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
               name={feature.name}
             />
           </div>
+        </div>
+        <div className="mb-4">
+          <ChainRibbon
+            stages={[
+              {
+                title: 'Сегмент',
+                items: chainSegments.map((s) => ({ label: s.name, href: `/segments/${s.id}` })),
+                emptyLabel: 'через JTBD не виден',
+                addHref: `/features/${feature.id}/edit`,
+              },
+              {
+                title: 'JTBD',
+                items: feature.jtbds.map((j) => ({ label: j.title, href: `/jtbd/${j.id}` })),
+                emptyLabel: 'ни одного',
+                addHref: `/features/${feature.id}/edit`,
+              },
+              {
+                title: 'Фича',
+                items: [{ label: feature.name, href: `/features/${feature.id}` }],
+                emptyLabel: '',
+                current: true,
+              },
+              {
+                title: 'Маркетинг',
+                items: feature.rtbs.map((r) => ({
+                  label: r.statement,
+                  href: `/marketing/${r.id}`,
+                })),
+                emptyLabel: 'нет обещаний',
+                addHref: `/marketing/new?productId=${feature.product.id}&featureId=${feature.id}`,
+              },
+            ]}
+          />
         </div>
         <Link
           href={`/products/${feature.product.id}`}

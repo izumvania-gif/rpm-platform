@@ -7,6 +7,7 @@ import { ru } from 'date-fns/locale'
 import { prisma } from '@/lib/prisma'
 import { isStale } from '@/lib/utils'
 import { hypothesisStatusOrder } from '@/lib/labels'
+import type { ChainCounts } from '@/lib/discovery-chain'
 
 // Hypotheses move through the pipeline faster than research/content gets
 // written, so a shorter stuck-threshold than isStale()'s 90 days.
@@ -152,5 +153,49 @@ export async function getGapsCounts(userId: string): Promise<GapsCounts> {
     segmentsWithoutJtbd: segmentsWithoutJtbd.length,
     stuckHypotheses: stuckHypotheses.length,
     productsWithoutRecentResearch: productsWithoutRecentResearch.length,
+  }
+}
+
+/**
+ * How much of each stage is wired into the discovery chain.
+ *
+ * Ten counts in one round trip rather than fetching rows and counting in
+ * memory — the widget needs two numbers per stage and nothing else. "Attached"
+ * is defined toward the root of the chain (a JTBD needs a segment, a feature
+ * needs a JTBD), except for segments, which are the root: a segment is
+ * attached when something hangs off it, which is exactly the
+ * "segments without JTBD" gap /reports/gaps already ranks first.
+ */
+export async function getDiscoveryChain(userId: string): Promise<ChainCounts> {
+  const [
+    segments,
+    segmentsAttached,
+    jtbds,
+    jtbdsAttached,
+    hypotheses,
+    hypothesesAttached,
+    features,
+    featuresAttached,
+    rtbs,
+    rtbsAttached,
+  ] = await Promise.all([
+    prisma.segment.count({ where: { userId } }),
+    prisma.segment.count({ where: { userId, jtbds: { some: {} } } }),
+    prisma.jTBD.count({ where: { userId } }),
+    prisma.jTBD.count({ where: { userId, segments: { some: {} } } }),
+    prisma.hypothesis.count({ where: { userId } }),
+    prisma.hypothesis.count({ where: { userId, jtbdId: { not: null } } }),
+    prisma.feature.count({ where: { userId } }),
+    prisma.feature.count({ where: { userId, jtbds: { some: {} } } }),
+    prisma.rTB.count({ where: { userId } }),
+    prisma.rTB.count({ where: { userId, features: { some: {} } } }),
+  ])
+
+  return {
+    segment: { total: segments, attached: segmentsAttached },
+    jtbd: { total: jtbds, attached: jtbdsAttached },
+    hypothesis: { total: hypotheses, attached: hypothesesAttached },
+    feature: { total: features, attached: featuresAttached },
+    rtb: { total: rtbs, attached: rtbsAttached },
   }
 }

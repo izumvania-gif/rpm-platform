@@ -21,7 +21,9 @@ test('a feature links to a JTBD, and an RTB links to that feature', async ({ pag
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/features\/[^/]+$/)
   await expect(page.getByRole('heading', { name: featureName })).toBeVisible()
-  await expect(page.getByText(jtbdTitle)).toBeVisible()
+  // Scoped to the JTBD card: the chain ribbon at the top of the page names the
+  // same job, so an unscoped getByText now matches twice.
+  await expect(page.getByRole('link', { name: jtbdTitle }).last()).toBeVisible()
 
   const rtbStatement = uniqueName('Integrates in under 5 minutes')
   await page.goto('/marketing/new')

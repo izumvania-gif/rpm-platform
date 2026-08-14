@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { CircleAlert } from 'lucide-react'
-import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ModuleRows } from '@/lib/product-overview'
 import { attentionSummary } from '@/lib/product-overview'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
+import type { CaptureType } from '@/lib/quick-capture'
 
 // One module of a product, as a glance rather than as a list.
 //
@@ -20,6 +21,8 @@ export function ProductModuleCard({
   data,
   addHref,
   addLabel,
+  addType,
+  productId,
   allHref,
   emptyLabel,
   attentionLabel,
@@ -29,6 +32,9 @@ export function ProductModuleCard({
   addHref: string
   /** Full label for screen readers; the button itself shows a bare «+». */
   addLabel: string
+  /** When set, «+» captures in place instead of navigating to `addHref`. */
+  addType?: CaptureType
+  productId: string
   allHref: string
   emptyLabel: string
   /** Completes the header verdict: «3 <без задач>». */
@@ -50,16 +56,7 @@ export function ProductModuleCard({
             </span>
           )}
         </CardTitle>
-        <Link
-          href={addHref}
-          aria-label={addLabel}
-          title={addLabel}
-          className={
-            buttonVariants({ variant: 'outline', size: 'sm' }) + ' shrink-0 px-2.5 print:hidden'
-          }
-        >
-          +
-        </Link>
+        <QuickAddButton type={addType} productId={productId} href={addHref} label={addLabel} />
       </CardHeader>
       <CardContent className="pt-0">
         {data.total === 0 ? (

@@ -15,6 +15,7 @@ export default async function NewRTBPage({
     // Set by the "this feature has no marketing claim" callout (C4) so the
     // form opens with that feature already ticked.
     featureId?: string
+    statement?: string
   }
 }) {
   const userId = getCurrentUserId()
@@ -46,10 +47,12 @@ export default async function NewRTBPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  statement: searchParams.statement ?? duplicateSource.statement,
                   featureIds: duplicateSource.features.map((f) => f.id),
                 }
               : {
                   productId: searchParams.productId,
+                  statement: searchParams.statement,
                   featureIds: searchParams.featureId ? [searchParams.featureId] : undefined,
                 }
           }

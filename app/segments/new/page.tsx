@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function NewSegmentPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string; name?: string }
 }) {
   const userId = getCurrentUserId()
   const [products, duplicateSource] = await Promise.all([
@@ -35,8 +35,12 @@ export default async function NewSegmentPage({
                   ...duplicateSource,
                   slug: `${duplicateSource.slug}-copy`,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  // Text handed over from quick capture wins: it is what the
+                  // person just typed, and losing it is the whole failure the
+                  // hand-off exists to avoid.
+                  name: searchParams.name ?? duplicateSource.name,
                 }
-              : { productId: searchParams.productId }
+              : { productId: searchParams.productId, name: searchParams.name }
           }
           error={searchParams.error}
           submitLabel="Создать"

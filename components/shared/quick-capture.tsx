@@ -13,6 +13,18 @@ import { listProductsForCapture } from '@/lib/actions/products'
 import { createInsightQuick } from '@/lib/actions/insights'
 import { createHypothesisQuick } from '@/lib/actions/hypotheses'
 import { createSegmentQuick } from '@/lib/actions/segments'
+import { createJtbdQuick } from '@/lib/actions/jtbd-graph'
+import { createFeatureQuick } from '@/lib/actions/features'
+import { createRTBQuick } from '@/lib/actions/rtbs'
+import { createCompetitorQuick } from '@/lib/actions/competitors'
+import { Input } from '@/components/ui/input'
+import {
+  CAPTURE_TYPES,
+  captureTypeByValue,
+  fullFormHref,
+  type CaptureType,
+  type QuickCaptureDetail,
+} from '@/lib/quick-capture'
 
 // Global quick capture (plans/2.0-product-leap-plan.md, A3).
 //
@@ -21,47 +33,45 @@ import { createSegmentQuick } from '@/lib/actions/segments'
 // /insights/new — two page loads and a lost train of thought. This captures
 // from anywhere without leaving the current page.
 //
-// Deliberately limited to the three types that need nothing but text plus a
-// product. JTBD is not offered even though createJtbdQuick exists: it
-// additionally requires a category and a job type, and a JTBD captured with a
-// junk placeholder category is worse than no JTBD — it pollutes the very
-// gaps/coverage reports the model exists to feed. The footer links to the
-// full form for those cases instead.
-type CaptureType = 'insight' | 'hypothesis' | 'segment'
+// The type table lives in lib/quick-capture.ts, not here: the product page is
+// a Server Component and reads the same list to decide whether its «+» opens
+// this modal or navigates.
+//
+// Every type offered asks only for what the model genuinely requires. JTBD is
+// the one with a second field, and that is precisely why it can be offered:
+// its category is required, and a JTBD saved with a placeholder category would
+// pollute the coverage and gaps reports the model exists to feed. Разговор,
+// Исследование and Продукт are still not here — a transcript, a study's
+// type/status/date and a product's whole identity are not one-field records,
+// and a modal that pretended otherwise would quietly drop them.
 
-// `saved` is spelled out per type rather than derived from the label —
-// Russian agreement is gendered (инсайт/сегмент masculine, гипотеза
-// feminine) and deriving it by appending a suffix produced "Сегмент
-// сохранёна", wrong on both the gender and the vowel.
-const TYPES: {
-  value: CaptureType
-  label: string
-  placeholder: string
-  href: string
-  saved: string
-}[] = [
-  {
-    value: 'insight',
-    label: 'Инсайт',
-    placeholder: 'Цитата клиента или ключевой вывод',
-    href: '/insights/new',
-    saved: 'Инсайт сохранён',
-  },
-  {
-    value: 'hypothesis',
-    label: 'Гипотеза',
-    placeholder: 'Если …, то …',
-    href: '/hypotheses/new',
-    saved: 'Гипотеза сохранена',
-  },
-  {
-    value: 'segment',
-    label: 'Сегмент',
-    placeholder: 'Название сегмента',
-    href: '/segments/new',
-    saved: 'Сегмент сохранён',
-  },
-]
+/**
+ * One call per type — deliberately a switch rather than a lookup table of
+ * actions: each createXQuick has its own signature, and a table would have to
+ * erase them to a common shape, losing exactly the argument checking that
+ * makes the JTBD category impossible to forget.
+ */
+function createByType(type: CaptureType, productId: string, value: string, extra: string) {
+  switch (type) {
+    case 'insight':
+      return createInsightQuick(productId, value)
+    case 'hypothesis':
+      return createHypothesisQuick(productId, value)
+    case 'segment':
+      return createSegmentQuick(productId, value)
+    case 'jtbd':
+      // SMALL_JOB is the schema's own default for jobType — the modal does not
+      // invent a classification, it leaves the field at what a record created
+      // anywhere else without an explicit choice would get.
+      return createJtbdQuick(productId, value, extra, 'SMALL_JOB')
+    case 'feature':
+      return createFeatureQuick(productId, value)
+    case 'rtb':
+      return createRTBQuick(productId, value)
+    case 'competitor':
+      return createCompetitorQuick(productId, value)
+  }
+}
 
 export function QuickCapture() {
   const router = useRouter()
@@ -70,23 +80,26 @@ export function QuickCapture() {
   const [productId, setProductId] = useState('')
   const [type, setType] = useState<CaptureType>('insight')
   const [text, setText] = useState('')
+  const [extra, setExtra] = useState('')
+  /** Set when opened from a «+» that already knows the product. */
+  const [presetProductId, setPresetProductId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const activeType = TYPES.find((t) => t.value === type)!
+  const activeType = captureTypeByValue(type)
 
   // Products are fetched on first open only (see listProductsForCapture).
   useEffect(() => {
     if (!open || products !== null) return
     listProductsForCapture().then((list) => {
       setProducts(list)
-      const remembered = getDefaultProductId()
+      const remembered = presetProductId ?? getDefaultProductId()
       const initial = list.find((p) => p.id === remembered)?.id ?? list[0]?.id ?? ''
       setProductId(initial)
     })
-  }, [open, products])
+  }, [open, products, presetProductId])
 
   useEffect(() => {
     if (open) textareaRef.current?.focus()
@@ -95,8 +108,22 @@ export function QuickCapture() {
   // The open shortcut lives in KeyboardShortcuts (it owns the "g …" sequence
   // state that "c" would otherwise collide with) and reaches us as an event.
   useEffect(() => {
-    function onOpen() {
-      setOpen((v) => !v)
+    function onOpen(event: Event) {
+      // A bare hotkey toggles; a «+» that names a type and a product opens
+      // straight into it, so the modal is never a step backwards from the
+      // button it replaced.
+      const detail = (event as CustomEvent<QuickCaptureDetail | undefined>).detail
+      if (!detail) {
+        setOpen((v) => !v)
+        return
+      }
+      if (detail.type) setType(detail.type)
+      if (detail.productId) {
+        setPresetProductId(detail.productId)
+        setProductId(detail.productId)
+      }
+      setError(null)
+      setOpen(true)
     }
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
@@ -111,14 +138,14 @@ export function QuickCapture() {
 
   const submit = useCallback(() => {
     const value = text.trim()
+    const extraValue = extra.trim()
     if (!value || !productId) return
+    // JTBD is the only type with a second required field; refusing here is
+    // what keeps a placeholder category out of the coverage reports.
+    if (activeType.extraField && !extraValue) return
+
     startTransition(async () => {
-      const result =
-        type === 'insight'
-          ? await createInsightQuick(productId, value)
-          : type === 'hypothesis'
-            ? await createHypothesisQuick(productId, value)
-            : await createSegmentQuick(productId, value)
+      const result = await createByType(type, productId, value, extraValue)
 
       if (!result.ok) {
         setError(result.error)
@@ -129,12 +156,13 @@ export function QuickCapture() {
       // thoughts from one call go in back to back, and reopening the overlay
       // between them would defeat the point.
       setText('')
+      setExtra('')
       setError(null)
       setSaved(activeType.saved)
       textareaRef.current?.focus()
       router.refresh()
     })
-  }, [text, productId, type, activeType.saved, router])
+  }, [text, extra, productId, type, activeType.extraField, activeType.saved, router])
 
   useEffect(() => {
     if (!saved) return
@@ -156,7 +184,7 @@ export function QuickCapture() {
     >
       <div className="w-full max-w-xl space-y-3 rounded-lg border bg-background p-4 shadow-lg">
         <div className="flex flex-wrap items-center gap-1.5">
-          {TYPES.map((t) => (
+          {CAPTURE_TYPES.map((t) => (
             <button
               key={t.value}
               type="button"
@@ -190,6 +218,15 @@ export function QuickCapture() {
           }}
         />
 
+        {activeType.extraField && (
+          <Input
+            aria-label={activeType.extraField.label}
+            placeholder={activeType.extraField.placeholder}
+            value={extra}
+            onChange={(e) => setExtra(e.target.value)}
+          />
+        )}
+
         {products !== null && products.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Сначала создайте продукт —{' '}
@@ -215,12 +252,21 @@ export function QuickCapture() {
         {error && <p className="text-xs text-destructive">{error}</p>}
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="button" disabled={isPending || !text.trim() || !productId} onClick={submit}>
+          <Button
+            type="button"
+            disabled={
+              isPending ||
+              !text.trim() ||
+              !productId ||
+              Boolean(activeType.extraField && !extra.trim())
+            }
+            onClick={submit}
+          >
             Сохранить
           </Button>
           <span className="font-mono text-[11px] text-muted-foreground">⌘↵</span>
           <Link
-            href={activeType.href}
+            href={fullFormHref(type, { productId, text, extra })}
             onClick={() => setOpen(false)}
             className="text-xs text-muted-foreground hover:underline"
           >

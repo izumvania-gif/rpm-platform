@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function NewInsightPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string; text?: string }
 }) {
   const userId = getCurrentUserId()
   const [products, segments, jtbds, researches, conversations, duplicateSource] = await Promise.all(
@@ -44,8 +44,12 @@ export default async function NewInsightPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  // Text handed over from quick capture wins: it is what the
+                  // person just typed, and losing it is the whole failure the
+                  // hand-off exists to avoid.
+                  text: searchParams.text ?? duplicateSource.text,
                 }
-              : { productId: searchParams.productId }
+              : { productId: searchParams.productId, text: searchParams.text }
           }
           error={searchParams.error}
           submitLabel="Создать"

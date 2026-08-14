@@ -8,7 +8,13 @@ export const dynamic = 'force-dynamic'
 export default async function NewHypothesisPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; jtbdId?: string; duplicateFrom?: string }
+  searchParams: {
+    error?: string
+    productId?: string
+    jtbdId?: string
+    duplicateFrom?: string
+    statement?: string
+  }
 }) {
   const userId = getCurrentUserId()
   const [products, jtbds, segments, researches, duplicateSource] = await Promise.all([
@@ -40,6 +46,10 @@ export default async function NewHypothesisPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  // Text handed over from quick capture wins: it is what the
+                  // person just typed, and losing it is the whole failure the
+                  // hand-off exists to avoid.
+                  statement: searchParams.statement ?? duplicateSource.statement,
                 }
               : { productId: searchParams.productId, jtbdId: searchParams.jtbdId }
           }

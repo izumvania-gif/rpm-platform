@@ -310,6 +310,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(researchRows)}
             addHref={`/research/new?productId=${product.id}`}
             addLabel="Добавить исследование"
+            productId={product.id}
             allHref="/research"
             emptyLabel="Пока нет исследований."
             attentionLabel="давно не обновлялись"
@@ -319,6 +320,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(segmentRows)}
             addHref={`/segments/new?productId=${product.id}`}
             addLabel="Добавить сегмент"
+            addType="segment"
+            productId={product.id}
             allHref="/segments"
             emptyLabel="Пока нет сегментов."
             attentionLabel="без задач"
@@ -328,6 +331,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(jtbdRows)}
             addHref={`/jtbd/new?productId=${product.id}`}
             addLabel="Добавить JTBD"
+            addType="jtbd"
+            productId={product.id}
             allHref="/jtbd"
             emptyLabel="Пока нет JTBD."
             attentionLabel="не подтверждены"
@@ -337,6 +342,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(hypothesisRows)}
             addHref={`/hypotheses/new?productId=${product.id}`}
             addLabel="Добавить гипотезу"
+            addType="hypothesis"
+            productId={product.id}
             allHref="/hypotheses"
             emptyLabel="Пока нет гипотез."
             attentionLabel="зависли в черновике"
@@ -346,6 +353,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(conversationRows)}
             addHref={`/conversations/new?productId=${product.id}`}
             addLabel="Добавить разговор"
+            productId={product.id}
             allHref="/conversations"
             emptyLabel="Пока нет разговоров."
             attentionLabel="без инсайтов"
@@ -355,6 +363,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(insightRows)}
             addHref={`/insights/new?productId=${product.id}`}
             addLabel="Добавить инсайт"
+            addType="insight"
+            productId={product.id}
             allHref="/insights"
             emptyLabel="Пока нет инсайтов."
             attentionLabel="ни с чем не связаны"
@@ -373,6 +383,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(competitorRows)}
             addHref={`/competitors/new?productId=${product.id}`}
             addLabel="Добавить конкурента"
+            addType="competitor"
+            productId={product.id}
             allHref="/competitors"
             emptyLabel="Пока нет конкурентов."
             attentionLabel="давно не проверяли"
@@ -382,6 +394,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(featureRows)}
             addHref={`/features/new?productId=${product.id}`}
             addLabel="Добавить фичу"
+            addType="feature"
+            productId={product.id}
             allHref="/features"
             emptyLabel="Пока нет фич."
             attentionLabel="без обещаний"
@@ -391,6 +405,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             data={buildModuleRows(rtbRows)}
             addHref={`/marketing/new?productId=${product.id}`}
             addLabel="Добавить RTB"
+            addType="rtb"
+            productId={product.id}
             allHref="/marketing"
             emptyLabel="Пока нет RTB."
             attentionLabel="без опоры на фичу"

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function NewFeaturePage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: { error?: string; productId?: string; duplicateFrom?: string; name?: string }
 }) {
   const userId = getCurrentUserId()
   const [products, jtbds, rtbs, duplicateSource] = await Promise.all([
@@ -41,10 +41,14 @@ export default async function NewFeaturePage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  // Text handed over from quick capture wins: it is what the
+                  // person just typed, and losing it is the whole failure the
+                  // hand-off exists to avoid.
+                  name: searchParams.name ?? duplicateSource.name,
                   jtbdIds: duplicateSource.jtbds.map((j) => j.id),
                   rtbIds: duplicateSource.rtbs.map((r) => r.id),
                 }
-              : { productId: searchParams.productId }
+              : { productId: searchParams.productId, name: searchParams.name }
           }
           error={searchParams.error}
           submitLabel="Создать"

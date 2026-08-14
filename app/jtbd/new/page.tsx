@@ -15,6 +15,8 @@ export default async function NewJtbdPage({
     // Set by the gaps queue (C3), which knows the segment whose missing JTBD
     // is the gap — arriving with it pre-ticked is the whole point of the link.
     segmentId?: string
+    title?: string
+    category?: string
   }
 }) {
   const userId = getCurrentUserId()
@@ -55,10 +57,16 @@ export default async function NewJtbdPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  // What quick capture handed over wins over the duplicated
+                  // record: it is what the person just typed.
+                  title: searchParams.title ?? duplicateSource.title,
+                  category: searchParams.category ?? duplicateSource.category,
                   segmentIds: duplicateSource.segments.map((s) => s.id),
                 }
               : {
                   productId: searchParams.productId,
+                  title: searchParams.title,
+                  category: searchParams.category,
                   segmentIds: searchParams.segmentId ? [searchParams.segmentId] : undefined,
                 }
           }

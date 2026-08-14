@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { byFullText, createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
 
 test('reports index links to both report pages', async ({ page }) => {
   await page.goto('/reports')
@@ -64,5 +64,8 @@ test('gaps dashboard lists an unconfirmed JTBD', async ({ page }) => {
   await page.goto('/reports/gaps')
   // Since C3 the row's title is plain text and the link is the action that
   // resolves the gap, so this asserts the text rather than a link by name.
-  await expect(page.getByText(jtbdTitle)).toBeVisible()
+  // The row now leads with the key phrase («Его увидеть»), and uniqueName()
+  // put the unique suffix in the dropped «, чтобы …» tail — so anchor on the
+  // untouched text the row carries in its title.
+  await expect(byFullText(page, jtbdTitle)).toBeVisible()
 })

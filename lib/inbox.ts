@@ -19,11 +19,32 @@
 
 import { parseBulkLines, type BulkEntity } from '@/lib/bulk-entry'
 
+/**
+ * The types the Inbox can produce.
+ *
+ * A subset of BulkEntity, not the whole of it: JTBD needs a category, which
+ * the classifier has no honest way to guess from one line of call notes, and
+ * a batch-wide answer (what BulkAddPanel asks for) makes no sense here — the
+ * whole point of the Inbox is that the lines are of mixed kinds. So a JTBD
+ * still gets written through its own form or the batch panel.
+ */
+export type InboxEntity = Exclude<BulkEntity, 'jtbd'>
+
+/** Display order for the summary line. */
+export const INBOX_ENTITIES: InboxEntity[] = [
+  'segment',
+  'insight',
+  'hypothesis',
+  'feature',
+  'rtb',
+  'competitor',
+]
+
 export interface InboxItem {
   /** Stable within one parse, so React keys and edits survive re-render. */
   id: string
   text: string
-  type: BulkEntity
+  type: InboxEntity
   /** Why this type was guessed — shown as a hint so the guess is not magic. */
   reason: string
   include: boolean
@@ -43,7 +64,7 @@ function word(pattern: string): RegExp {
 }
 
 /** Ordered; first match wins. */
-const RULES: { type: BulkEntity; reason: string; test: (line: string) => boolean }[] = [
+const RULES: { type: InboxEntity; reason: string; test: (line: string) => boolean }[] = [
   {
     type: 'insight',
     reason: 'прямая речь',
@@ -86,14 +107,14 @@ const RULES: { type: BulkEntity; reason: string; test: (line: string) => boolean
 ]
 
 /** Fallback: Insight is the model's own catch-all for "one atomic thought". */
-const DEFAULT_TYPE: BulkEntity = 'insight'
+const DEFAULT_TYPE: InboxEntity = 'insight'
 const DEFAULT_REASON = 'по умолчанию'
 
 function wordCount(line: string): number {
   return line.trim().split(/\s+/).filter(Boolean).length
 }
 
-export function classifyLine(line: string): { type: BulkEntity; reason: string } {
+export function classifyLine(line: string): { type: InboxEntity; reason: string } {
   for (const rule of RULES) {
     if (rule.test(line)) return { type: rule.type, reason: rule.reason }
   }
@@ -113,9 +134,9 @@ export function parseInbox(raw: string): InboxItem[] {
 }
 
 /** Counts per type for the confirm button, in a stable display order. */
-export function summarize(items: InboxItem[]): { type: BulkEntity; count: number }[] {
-  const order: BulkEntity[] = ['segment', 'insight', 'hypothesis', 'feature', 'competitor']
-  const counts = new Map<BulkEntity, number>()
+export function summarize(items: InboxItem[]): { type: InboxEntity; count: number }[] {
+  const order = INBOX_ENTITIES
+  const counts = new Map<InboxEntity, number>()
   for (const item of items) {
     if (!item.include || !item.text.trim()) continue
     counts.set(item.type, (counts.get(item.type) ?? 0) + 1)

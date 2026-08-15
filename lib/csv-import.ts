@@ -91,6 +91,14 @@ export const importFields: Record<BulkEntity, ImportField[]> = {
     { key: 'audienceShare', label: 'Доля аудитории, %', numeric: true },
     { key: 'tags', label: 'Теги', list: true },
   ],
+  jtbd: [
+    { key: 'title', label: 'Формулировка JTBD', required: true },
+    // Required on the model, and a CSV is the one place where it is naturally
+    // per-row rather than per-batch — a spreadsheet already has the column.
+    { key: 'category', label: 'Категория', required: true },
+    { key: 'description', label: 'Описание' },
+    { key: 'tags', label: 'Теги', list: true },
+  ],
   insight: [
     { key: 'text', label: 'Текст', required: true },
     { key: 'tags', label: 'Теги', list: true },
@@ -104,6 +112,7 @@ export const importFields: Record<BulkEntity, ImportField[]> = {
     { key: 'name', label: 'Название', required: true },
     { key: 'description', label: 'Описание' },
   ],
+  rtb: [{ key: 'statement', label: 'Формулировка', required: true }],
   competitor: [
     { key: 'name', label: 'Название', required: true },
     { key: 'url', label: 'Сайт' },
@@ -123,6 +132,12 @@ const HEADER_ALIASES: Record<string, string> = {
   цитата: 'text',
   statement: 'statement',
   формулировка: 'statement',
+  title: 'title',
+  заголовок: 'title',
+  задача: 'title',
+  jtbd: 'title',
+  category: 'category',
+  категория: 'category',
   гипотеза: 'statement',
   description: 'description',
   описание: 'description',

@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { createManyQuick } from '@/lib/actions/bulk'
+import { Input } from '@/components/ui/input'
 import {
+  BULK_ENTITIES,
   MAX_BULK_LINES,
+  bulkEntityExtra,
   bulkEntityLabels,
   bulkEntityPlaceholders,
   parseBulkLines,
@@ -21,13 +24,13 @@ import {
 // user sees exactly how many records will be created (after blank/duplicate
 // removal) before committing, so a stray trailing newline or a repeated line
 // in the pasted list is visible rather than surprising.
-const ENTITIES: BulkEntity[] = ['segment', 'insight', 'hypothesis', 'feature', 'competitor']
-
 export function BulkAddPanel({ productId }: { productId: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [entity, setEntity] = useState<BulkEntity>('segment')
   const [text, setText] = useState('')
+  // One value for the whole paste, for the entity that needs a second field.
+  const [extra, setExtra] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -35,17 +38,20 @@ export function BulkAddPanel({ productId }: { productId: string }) {
   // Same parser the server uses, so the count shown is the count created.
   const lines = useMemo(() => parseBulkLines(text), [text])
   const tooMany = lines.length > MAX_BULK_LINES
+  const extraField = bulkEntityExtra[entity]
+  const extraMissing = Boolean(extraField) && extra.trim() === ''
 
   function reset() {
     setOpen(false)
     setText('')
+    setExtra('')
     setError(null)
     setResult(null)
   }
 
   function submit() {
     startTransition(async () => {
-      const response = await createManyQuick(entity, productId, text)
+      const response = await createManyQuick(entity, productId, text, extra)
       if (!response.ok) {
         setError(response.error)
         return
@@ -71,10 +77,13 @@ export function BulkAddPanel({ productId }: { productId: string }) {
         <Select
           aria-label="Что добавляем"
           value={entity}
-          onChange={(e) => setEntity(e.target.value as BulkEntity)}
+          onChange={(e) => {
+            setEntity(e.target.value as BulkEntity)
+            setExtra('')
+          }}
           className="w-auto"
         >
-          {ENTITIES.map((value) => (
+          {BULK_ENTITIES.map((value) => (
             <option key={value} value={value}>
               {bulkEntityLabels[value]}
             </option>
@@ -82,6 +91,18 @@ export function BulkAddPanel({ productId }: { productId: string }) {
         </Select>
         <span className="text-xs text-muted-foreground">по одной записи на строку</span>
       </div>
+
+      {/* The whole batch shares this value. Asking once beats asking N times,
+          and beats the alternative of inventing it. */}
+      {extraField && (
+        <Input
+          aria-label={extraField.label}
+          placeholder={extraField.placeholder}
+          value={extra}
+          onChange={(e) => setExtra(e.target.value)}
+          className="max-w-sm"
+        />
+      )}
 
       <Textarea
         autoFocus
@@ -95,7 +116,7 @@ export function BulkAddPanel({ productId }: { productId: string }) {
         <Button
           type="button"
           size="sm"
-          disabled={isPending || lines.length === 0 || tooMany}
+          disabled={isPending || lines.length === 0 || tooMany || extraMissing}
           onClick={submit}
         >
           {lines.length > 0 ? `Добавить (${lines.length})` : 'Добавить'}
@@ -106,6 +127,10 @@ export function BulkAddPanel({ productId }: { productId: string }) {
         {tooMany ? (
           <span className="text-xs text-destructive">
             Не больше {MAX_BULK_LINES} строк за раз — сейчас {lines.length}
+          </span>
+        ) : extraMissing ? (
+          <span className="text-xs text-muted-foreground">
+            Заполните «{extraField?.label}» — она одна на весь список
           </span>
         ) : (
           lines.length > 0 && (

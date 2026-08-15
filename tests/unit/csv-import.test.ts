@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { applyMapping, autoMapColumns, detectSeparator, parseCsv } from '@/lib/csv-import'
+import {
+  applyMapping,
+  autoMapColumns,
+  detectSeparator,
+  importFields,
+  parseCsv,
+} from '@/lib/csv-import'
 
 describe('parseCsv', () => {
   it('parses a simple comma file', () => {
@@ -111,5 +117,39 @@ describe('applyMapping', () => {
   it('ignores columns mapped to skip', () => {
     const { rows } = applyMapping([['Банки', 'мусор']], ['name', ''], 'segment')
     expect(rows[0].values).toEqual({ name: 'Банки' })
+  })
+})
+
+describe('importFields for the entities added alongside bulk paste', () => {
+  it('requires both of a JTBD’s mandatory columns', () => {
+    // Unlike the paste panel, a CSV has room for a per-row category — a
+    // spreadsheet of jobs already has that column.
+    const required = importFields.jtbd.filter((f) => f.required).map((f) => f.key)
+    expect(required).toEqual(['title', 'category'])
+  })
+
+  it('maps the headers this app’s own JTBD export writes', () => {
+    // jtbd.csv exports category,jobType,title,product,confirmed,tags — the
+    // round trip has to work without touching a single select.
+    const headers = ['category', 'jobType', 'title', 'product', 'confirmed', 'tags']
+    expect(autoMapColumns(headers, 'jtbd')).toEqual(['category', '', 'title', '', '', 'tags'])
+  })
+
+  it('drops a JTBD row that has a title but no category', () => {
+    const { rows, skipped } = applyMapping(
+      [['Продлить сертификат', '']],
+      ['title', 'category'],
+      'jtbd'
+    )
+    expect(rows).toHaveLength(0)
+    expect(skipped).toBe(1)
+  })
+
+  it('maps an RTB export, whose only required column is the statement', () => {
+    expect(autoMapColumns(['statement', 'product', 'features'], 'rtb')).toEqual([
+      'statement',
+      '',
+      '',
+    ])
   })
 })

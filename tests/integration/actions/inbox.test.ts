@@ -23,6 +23,7 @@ describe('createFromInbox', () => {
     expect(result.created).toEqual({
       segment: 2,
       insight: 1,
+      rtb: 0,
       hypothesis: 1,
       feature: 1,
       competitor: 1,
@@ -72,6 +73,7 @@ describe('createFromInbox', () => {
     expect(result.created).toEqual({
       segment: 0,
       insight: 1,
+      rtb: 0,
       hypothesis: 0,
       feature: 0,
       competitor: 0,

@@ -5,7 +5,7 @@ import { HypothesisStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { slugify } from '@/lib/utils'
-import type { BulkEntity } from '@/lib/bulk-entry'
+import { INBOX_ENTITIES, type InboxEntity } from '@/lib/inbox'
 
 // Inbox writer (plans/2.0-product-leap-plan.md, B1).
 //
@@ -21,10 +21,10 @@ const MAX_INBOX_ITEMS = 200
 
 export interface InboxDraft {
   text: string
-  type: BulkEntity
+  type: InboxEntity
 }
 
-export type InboxResult = Record<BulkEntity, number>
+export type InboxResult = Record<InboxEntity, number>
 
 export async function createFromInbox(
   productId: string,
@@ -44,14 +44,8 @@ export async function createFromInbox(
   const product = await prisma.product.findFirst({ where: { id: productId, userId } })
   if (!product) return { ok: false, error: 'Продукт не найден' }
 
-  const by = (type: BulkEntity) => clean.filter((d) => d.type === type).map((d) => d.text)
-  const created: InboxResult = {
-    segment: 0,
-    insight: 0,
-    hypothesis: 0,
-    feature: 0,
-    competitor: 0,
-  }
+  const by = (type: InboxEntity) => clean.filter((d) => d.type === type).map((d) => d.text)
+  const created = Object.fromEntries(INBOX_ENTITIES.map((t) => [t, 0])) as InboxResult
 
   const segmentNames = by('segment')
   if (segmentNames.length) {
@@ -106,6 +100,15 @@ export async function createFromInbox(
     ).count
   }
 
+  const rtbStatements = by('rtb')
+  if (rtbStatements.length) {
+    created.rtb = (
+      await prisma.rTB.createMany({
+        data: rtbStatements.map((statement) => ({ statement, productId, userId })),
+      })
+    ).count
+  }
+
   const competitorNames = by('competitor')
   if (competitorNames.length) {
     created.competitor = (
@@ -119,6 +122,7 @@ export async function createFromInbox(
   revalidatePath('/insights')
   revalidatePath('/hypotheses')
   revalidatePath('/features')
+  revalidatePath('/marketing')
   revalidatePath('/competitors')
   revalidatePath(`/products/${productId}`)
 

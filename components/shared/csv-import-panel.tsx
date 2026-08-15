@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
-import { bulkEntityLabels, type BulkEntity } from '@/lib/bulk-entry'
+import { BULK_ENTITIES, bulkEntityLabels, type BulkEntity } from '@/lib/bulk-entry'
 import {
   applyMapping,
   autoMapColumns,
@@ -20,7 +20,6 @@ import { importRowsQuick } from '@/lib/actions/import'
 // out of a spreadsheet, auto-maps the header row onto fields (so a file this
 // app exported re-imports with no mapping at all), and previews before
 // writing.
-const ENTITIES: BulkEntity[] = ['segment', 'insight', 'hypothesis', 'feature', 'competitor']
 const PREVIEW_ROWS = 5
 
 export function CsvImportPanel({ productId }: { productId: string }) {
@@ -117,7 +116,7 @@ export function CsvImportPanel({ productId }: { productId: string }) {
           }}
           className="w-auto"
         >
-          {ENTITIES.map((value) => (
+          {BULK_ENTITIES.map((value) => (
             <option key={value} value={value}>
               {bulkEntityLabels[value]}
             </option>

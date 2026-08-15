@@ -105,3 +105,44 @@ describe('createManyQuick', () => {
     expect(DEFAULT_USER_ID).toBeTruthy()
   })
 })
+
+describe('createManyQuick, the entities with a required second field', () => {
+  it('creates one JTBD per line, all under the category given once', async () => {
+    const product = await createTestProduct()
+    const result = await createManyQuick(
+      'jtbd',
+      product.id,
+      'Продлить сертификат самому\nВыдать доступ новому сотруднику',
+      'Выпуск и продление'
+    )
+    expect(result).toEqual({ ok: true, created: 2 })
+
+    const jtbds = await prisma.jTBD.findMany({ where: { productId: product.id } })
+    expect(jtbds.map((j) => j.category)).toEqual(['Выпуск и продление', 'Выпуск и продление'])
+    // jobType is left at the schema's own default rather than guessed — the
+    // graph is where that gets corrected, by dragging.
+    expect(new Set(jtbds.map((j) => j.jobType))).toEqual(new Set(['SMALL_JOB']))
+  })
+
+  it('refuses a JTBD batch with no category rather than inventing one', async () => {
+    const product = await createTestProduct()
+    // A placeholder category here would show up in the coverage matrix and
+    // the gaps report as if a human had chosen it.
+    const result = await createManyQuick('jtbd', product.id, 'Продлить сертификат', '   ')
+    expect(result).toEqual({ ok: false, error: 'Укажите «Категория»' })
+    expect(await prisma.jTBD.count({ where: { productId: product.id } })).toBe(0)
+  })
+
+  it('creates RTBs, which need nothing beyond the statement', async () => {
+    const product = await createTestProduct()
+    const result = await createManyQuick('rtb', product.id, 'Выпуск за 15 минут\nБез визита в офис')
+    expect(result).toEqual({ ok: true, created: 2 })
+    expect(await prisma.rTB.count({ where: { productId: product.id } })).toBe(2)
+  })
+
+  it('ignores an extra value for an entity that has no second field', async () => {
+    const product = await createTestProduct()
+    const result = await createManyQuick('feature', product.id, 'Массовый отзыв', 'мусор')
+    expect(result).toEqual({ ok: true, created: 1 })
+  })
+})

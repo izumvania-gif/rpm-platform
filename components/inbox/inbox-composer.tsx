@@ -8,8 +8,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { setDefaultProductId } from '@/lib/client-storage'
-import { bulkEntityLabels, type BulkEntity } from '@/lib/bulk-entry'
-import { parseInbox, summarize, type InboxItem } from '@/lib/inbox'
+import { bulkEntityLabels } from '@/lib/bulk-entry'
+import {
+  INBOX_ENTITIES,
+  parseInbox,
+  summarize,
+  type InboxEntity,
+  type InboxItem,
+} from '@/lib/inbox'
 import { createFromInbox } from '@/lib/actions/inbox'
 
 // Inbox review queue (plans/2.0-product-leap-plan.md, B1).
@@ -18,7 +24,6 @@ import { createFromInbox } from '@/lib/actions/inbox'
 // point — each line carries its own guessed type with the reason for the
 // guess, and changing it is one select away. Nothing is written until
 // "Добавить" is pressed, which is also the contract B2's AI version inherits.
-const TYPES: BulkEntity[] = ['segment', 'insight', 'hypothesis', 'feature', 'competitor']
 
 const SAMPLE = [
   'Банки топ-30',
@@ -71,7 +76,7 @@ export function InboxComposer({
         return
       }
       setDefaultProductId(productId)
-      const parts = TYPES.filter((t) => response.created[t] > 0).map(
+      const parts = INBOX_ENTITIES.filter((t) => response.created[t] > 0).map(
         (t) => `${bulkEntityLabels[t].toLowerCase()}: ${response.created[t]}`
       )
       setResult(`Добавлено ${response.total} — ${parts.join(', ')}`)
@@ -171,10 +176,10 @@ export function InboxComposer({
                     value={item.type}
                     onChange={(e) =>
                       // A manual choice stops claiming to be a guess.
-                      update(item.id, { type: e.target.value as BulkEntity, reason: 'вручную' })
+                      update(item.id, { type: e.target.value as InboxEntity, reason: 'вручную' })
                     }
                   >
-                    {TYPES.map((t) => (
+                    {INBOX_ENTITIES.map((t) => (
                       <option key={t} value={t}>
                         {bulkEntityLabels[t]}
                       </option>

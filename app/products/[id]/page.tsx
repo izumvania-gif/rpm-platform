@@ -283,6 +283,14 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
         <Link href={`/products/${product.id}/canvas`} className={buttonVariants({ size: 'sm' })}>
           Холст продукта
         </Link>
+        {/* Next to the canvas because it is the other half of the same job:
+            the canvas draws the chain, this one fills it in in bulk. */}
+        <Link
+          href={`/products/${product.id}/links`}
+          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+        >
+          Связи
+        </Link>
         <Link
           href={`/inbox?productId=${product.id}`}
           className={buttonVariants({ variant: 'outline', size: 'sm' })}

@@ -81,6 +81,21 @@ export async function importRowsQuick(
       created = (await prisma.segment.createMany({ data, skipDuplicates: true })).count
       break
     }
+    case 'jtbd': {
+      created = (
+        await prisma.jTBD.createMany({
+          data: valid.map((r) => ({
+            title: r.title.trim(),
+            category: r.category.trim(),
+            description: r.description?.trim() || null,
+            tags: toList(r.tags),
+            productId,
+            userId,
+          })),
+        })
+      ).count
+      break
+    }
     case 'insight': {
       created = (
         await prisma.insight.createMany({
@@ -126,6 +141,14 @@ export async function importRowsQuick(
       ).count
       break
     }
+    case 'rtb': {
+      created = (
+        await prisma.rTB.createMany({
+          data: valid.map((r) => ({ statement: r.statement.trim(), productId, userId })),
+        })
+      ).count
+      break
+    }
     case 'competitor': {
       created = (
         await prisma.competitor.createMany({
@@ -147,8 +170,10 @@ export async function importRowsQuick(
 
   revalidatePath('/segments')
   revalidatePath('/insights')
+  revalidatePath('/jtbd')
   revalidatePath('/hypotheses')
   revalidatePath('/features')
+  revalidatePath('/marketing')
   revalidatePath('/competitors')
   revalidatePath(`/products/${productId}`)
   return { ok: true, created }

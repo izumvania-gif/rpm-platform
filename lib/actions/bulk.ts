@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { slugify } from '@/lib/utils'
 import { HypothesisStatus } from '@prisma/client'
-import { MAX_BULK_LINES, parseBulkLines, type BulkEntity } from '@/lib/bulk-entry'
+import { MAX_BULK_LINES, bulkEntityExtra, parseBulkLines, type BulkEntity } from '@/lib/bulk-entry'
 
 // Bulk paste-many entry (plans/2.0-product-leap-plan.md, A1).
 //
@@ -15,18 +15,27 @@ import { MAX_BULK_LINES, parseBulkLines, type BulkEntity } from '@/lib/bulk-entr
 // This takes the whole list at once: one action call, one transaction, one
 // revalidate.
 //
-// Deliberately limited to entities whose *required* shape is a single string
-// plus a product. JTBD is excluded: it additionally requires a category and a
-// job type, and inventing placeholders for those would poison the coverage
-// and gaps reports that JTBD exists to feed (same reasoning as the
-// quick-capture overlay).
+// Limited to entities whose *required* shape is a single string plus a
+// product — with one exception. JTBD additionally requires a category, and
+// inventing one would poison the coverage and gaps reports that JTBD exists
+// to feed; so the panel asks for it once and applies it to the whole paste,
+// exactly as the quick-capture overlay asks per record. Nothing here is ever
+// filled in on the user's behalf.
+//
+// Still excluded: Разговор (a transcript), Исследование (type/status/date),
+// Продукт (its own identity) — a list of names is not those records.
 
 export async function createManyQuick(
   entity: BulkEntity,
   productId: string,
-  rawText: string
+  rawText: string,
+  extra?: string
 ): Promise<{ ok: true; created: number } | { ok: false; error: string }> {
   if (!productId) return { ok: false, error: 'Укажите продукт' }
+
+  const required = bulkEntityExtra[entity]
+  const extraValue = extra?.trim() ?? ''
+  if (required && !extraValue) return { ok: false, error: `Укажите «${required.label}»` }
 
   const lines = parseBulkLines(rawText)
   if (lines.length === 0) return { ok: false, error: 'Нет ни одной непустой строки' }
@@ -65,6 +74,13 @@ export async function createManyQuick(
       created = result.count
       break
     }
+    case 'jtbd': {
+      const result = await prisma.jTBD.createMany({
+        data: lines.map((title) => ({ title, category: extraValue, productId, userId })),
+      })
+      created = result.count
+      break
+    }
     case 'insight': {
       const result = await prisma.insight.createMany({
         data: lines.map((text) => ({ text, productId, userId })),
@@ -91,6 +107,13 @@ export async function createManyQuick(
       created = result.count
       break
     }
+    case 'rtb': {
+      const result = await prisma.rTB.createMany({
+        data: lines.map((statement) => ({ statement, productId, userId })),
+      })
+      created = result.count
+      break
+    }
     case 'competitor': {
       const result = await prisma.competitor.createMany({
         data: lines.map((name) => ({ name, productId, userId })),
@@ -102,8 +125,10 @@ export async function createManyQuick(
 
   revalidatePath('/segments')
   revalidatePath('/insights')
+  revalidatePath('/jtbd')
   revalidatePath('/hypotheses')
   revalidatePath('/features')
+  revalidatePath('/marketing')
   revalidatePath('/competitors')
   revalidatePath(`/products/${productId}`)
   return { ok: true, created }

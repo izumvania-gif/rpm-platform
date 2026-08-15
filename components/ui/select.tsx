@@ -133,6 +133,16 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
 
     const hiddenSelectRef = React.useRef<HTMLSelectElement>(null)
 
+    // The browser's own "Please select an item in the list." follows the
+    // browser's locale, not the app's, so a Russian UI could report in
+    // English. Cleared as soon as a value is picked — a non-empty custom
+    // message keeps a control invalid forever otherwise.
+    React.useEffect(() => {
+      hiddenSelectRef.current?.setCustomValidity(
+        required && currentValue === '' ? 'Выберите значение из списка' : ''
+      )
+    }, [required, currentValue])
+
     function handleValueChange(nextRadixValue: string) {
       const next = nextRadixValue === EMPTY_VALUE_SENTINEL ? '' : nextRadixValue
       if (!isControlled) setUncontrolledValue(next)
@@ -162,8 +172,15 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           required={required}
           aria-hidden="true"
           tabIndex={-1}
-          hidden
-          className="hidden"
+          // Rendered rather than `hidden`. A `hidden` control that is also
+          // `required` blocks form submission, but the browser cannot show
+          // its validation bubble on an unfocusable element — it logs "An
+          // invalid form control with name='…' is not focusable" and stops.
+          // The visible effect was a «Создать» button that did nothing at
+          // all, with no message anywhere, on every form whose product had
+          // not been chosen. Kept out of the layout and out of the
+          // accessibility tree, but focusable enough for the bubble.
+          className="pointer-events-none absolute h-px w-px border-0 p-0 opacity-0"
           onChange={() => {}}
         >
           {/* Only `value` matters here — FormData never reads an <option>'s text.

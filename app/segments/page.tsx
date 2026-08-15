@@ -10,6 +10,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleSegmentPinned } from '@/lib/actions/segments'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,11 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
           <Link href="/reports/segments-jtbd" className={buttonVariants({ variant: 'outline' })}>
             Матрица Сегменты × JTBD
           </Link>
+          <QuickAddButton
+            type="segment"
+            href="/segments/new"
+            label="Быстро добавить сегмент, не уходя со страницы"
+          />
           <Link href="/segments/new" className={buttonVariants()}>
             Новый сегмент
           </Link>

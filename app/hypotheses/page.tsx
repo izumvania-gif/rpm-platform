@@ -8,6 +8,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { hypothesisStatusLabels } from '@/lib/labels'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +26,11 @@ export default async function HypothesesPage() {
           level={1}
           title="Гипотезы"
           description={moduleByHref['/hypotheses'].description}
+        />
+        <QuickAddButton
+          type="hypothesis"
+          href="/hypotheses/new"
+          label="Быстро добавить гипотезу, не уходя со страницы"
         />
         <Link href="/hypotheses/new" className={buttonVariants()}>
           Новая гипотеза

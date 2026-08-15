@@ -7,7 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
-import { InlineCreateSegment } from '@/components/shared/inline-create-segment'
+import {
+  InlineCreateJtbd,
+  InlineCreateResearch,
+  InlineCreateSegment,
+} from '@/components/shared/inline-create'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface InsightFormValues {
@@ -62,13 +66,17 @@ export function InsightForm({
     () => localSegments.filter((s) => s.productId === productId),
     [localSegments, productId]
   )
+  const [localJtbds, setLocalJtbds] = useState(jtbds)
+  const [jtbdId, setJtbdId] = useState(defaultValues?.jtbdId ?? '')
   const productJtbds = useMemo(
-    () => jtbds.filter((j) => j.productId === productId),
-    [jtbds, productId]
+    () => localJtbds.filter((j) => j.productId === productId),
+    [localJtbds, productId]
   )
+  const [localResearches, setLocalResearches] = useState(researches)
+  const [researchId, setResearchId] = useState(defaultValues?.researchId ?? '')
   const productResearches = useMemo(
-    () => researches.filter((r) => r.productId === productId),
-    [researches, productId]
+    () => localResearches.filter((r) => r.productId === productId),
+    [localResearches, productId]
   )
   const productConversations = useMemo(
     () => conversations.filter((c) => c.productId === productId),
@@ -129,7 +137,12 @@ export function InsightForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="jtbdId">JTBD</Label>
-          <Select id="jtbdId" name="jtbdId" defaultValue={defaultValues?.jtbdId ?? ''}>
+          <Select
+            id="jtbdId"
+            name="jtbdId"
+            value={jtbdId}
+            onChange={(e) => setJtbdId(e.target.value)}
+          >
             <option value="">Не указан</option>
             {productJtbds.map((j) => (
               <option key={j.id} value={j.id}>
@@ -137,10 +150,22 @@ export function InsightForm({
               </option>
             ))}
           </Select>
+          <InlineCreateJtbd
+            productId={productId}
+            onCreated={(jtbd) => {
+              setLocalJtbds((prev) => [...prev, jtbd])
+              setJtbdId(jtbd.id)
+            }}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="researchId">Исследование</Label>
-          <Select id="researchId" name="researchId" defaultValue={defaultValues?.researchId ?? ''}>
+          <Select
+            id="researchId"
+            name="researchId"
+            value={researchId}
+            onChange={(e) => setResearchId(e.target.value)}
+          >
             <option value="">Не указано</option>
             {productResearches.map((r) => (
               <option key={r.id} value={r.id}>
@@ -148,6 +173,13 @@ export function InsightForm({
               </option>
             ))}
           </Select>
+          <InlineCreateResearch
+            productId={productId}
+            onCreated={(research) => {
+              setLocalResearches((prev) => [...prev, research])
+              setResearchId(research.id)
+            }}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="conversationId">Разговор</Label>

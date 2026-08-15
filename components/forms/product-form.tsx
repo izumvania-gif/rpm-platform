@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { slugify } from '@/lib/utils'
 import { stageLabels } from '@/lib/labels'
+import { InlineCreatePerson } from '@/components/shared/inline-create'
 
 export interface ProductFormValues {
   name?: string
@@ -39,6 +40,9 @@ export function ProductForm({
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [slug, setSlug] = useState(defaultValues?.slug ?? '')
+
+  const [localPeople, setLocalPeople] = useState(people)
+  const [ownerId, setOwnerId] = useState(defaultValues?.ownerId ?? '')
 
   return (
     <form action={action} className="max-w-2xl space-y-4">
@@ -91,14 +95,25 @@ export function ProductForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="ownerId">Ответственный PM</Label>
-          <Select id="ownerId" name="ownerId" defaultValue={defaultValues?.ownerId ?? ''}>
+          <Select
+            id="ownerId"
+            name="ownerId"
+            value={ownerId}
+            onChange={(e) => setOwnerId(e.target.value)}
+          >
             <option value="">Не указан</option>
-            {people.map((person) => (
+            {localPeople.map((person) => (
               <option key={person.id} value={person.id}>
                 {person.name}
               </option>
             ))}
           </Select>
+          <InlineCreatePerson
+            onCreated={(person) => {
+              setLocalPeople((prev) => [...prev, person])
+              setOwnerId(person.id)
+            }}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="departmentId">Департамент</Label>

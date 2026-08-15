@@ -11,6 +11,7 @@ import { toggleInsightPinned } from '@/lib/actions/insights'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { insightKeyPhrase } from '@/lib/key-phrase'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,11 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
           level={1}
           title="Инсайты"
           description={moduleByHref['/insights'].description}
+        />
+        <QuickAddButton
+          type="insight"
+          href="/insights/new"
+          label="Быстро добавить инсайт, не уходя со страницы"
         />
         <Link href="/insights/new" className={buttonVariants()}>
           Новый инсайт

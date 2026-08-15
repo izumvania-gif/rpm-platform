@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import type { Person, ProcessStep } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
+import { InlineCreatePerson } from '@/components/shared/inline-create'
 
 export interface ActionPlanFormValues {
   scenario?: string
@@ -39,6 +41,9 @@ export function ActionPlanForm({
   submitLabel: string
   cancelHref: string
 }) {
+  const [localPeople, setLocalPeople] = useState(people)
+  const [ownerId, setOwnerId] = useState(defaultValues?.ownerId ?? '')
+
   return (
     <form action={action} className="max-w-2xl space-y-4">
       <input type="hidden" name="productId" value={productId} />
@@ -75,14 +80,25 @@ export function ActionPlanForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="ownerId">Кто координирует реакцию</Label>
-          <Select id="ownerId" name="ownerId" defaultValue={defaultValues?.ownerId ?? ''}>
+          <Select
+            id="ownerId"
+            name="ownerId"
+            value={ownerId}
+            onChange={(e) => setOwnerId(e.target.value)}
+          >
             <option value="">Не указан</option>
-            {people.map((person) => (
+            {localPeople.map((person) => (
               <option key={person.id} value={person.id}>
                 {person.name}
               </option>
             ))}
           </Select>
+          <InlineCreatePerson
+            onCreated={(person) => {
+              setLocalPeople((prev) => [...prev, person])
+              setOwnerId(person.id)
+            }}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="processStepId">Относится к шагу процесса</Label>

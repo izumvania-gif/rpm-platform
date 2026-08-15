@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
-import { InlineCreateSegment } from '@/components/shared/inline-create-segment'
+import { InlineCreateResearch, InlineCreateSegment } from '@/components/shared/inline-create'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface ConversationFormValues {
@@ -63,9 +63,11 @@ export function ConversationForm({
     () => localSegments.filter((s) => s.productId === productId),
     [localSegments, productId]
   )
+  const [localResearches, setLocalResearches] = useState(researches)
+  const [researchId, setResearchId] = useState(defaultValues?.researchId ?? '')
   const productResearches = useMemo(
-    () => researches.filter((r) => r.productId === productId),
-    [researches, productId]
+    () => localResearches.filter((r) => r.productId === productId),
+    [localResearches, productId]
   )
 
   return (
@@ -131,7 +133,12 @@ export function ConversationForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="researchId">Исследование</Label>
-          <Select id="researchId" name="researchId" defaultValue={defaultValues?.researchId ?? ''}>
+          <Select
+            id="researchId"
+            name="researchId"
+            value={researchId}
+            onChange={(e) => setResearchId(e.target.value)}
+          >
             <option value="">Не указано</option>
             {productResearches.map((r) => (
               <option key={r.id} value={r.id}>
@@ -139,6 +146,13 @@ export function ConversationForm({
               </option>
             ))}
           </Select>
+          <InlineCreateResearch
+            productId={productId}
+            onCreated={(research) => {
+              setLocalResearches((prev) => [...prev, research])
+              setResearchId(research.id)
+            }}
+          />
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="tags">Теги (через запятую)</Label>

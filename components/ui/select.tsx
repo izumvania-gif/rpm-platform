@@ -132,6 +132,8 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     const radixValue = currentValue === '' ? EMPTY_VALUE_SENTINEL : currentValue
 
     const hiddenSelectRef = React.useRef<HTMLSelectElement>(null)
+    /** True while the listbox is open, i.e. while a real pick can happen. */
+    const pickingRef = React.useRef(false)
 
     // The browser's own "Please select an item in the list." follows the
     // browser's locale, not the app's, so a Russian UI could report in
@@ -144,6 +146,15 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     }, [required, currentValue])
 
     function handleValueChange(nextRadixValue: string) {
+      // Radix mirrors the value into a native <select> of its own and
+      // forwards that element's `change` events as `onValueChange`. When the
+      // option list grows while the value is being set programmatically — an
+      // inline "+ Новый …" selecting the record it just created — the browser
+      // finds no matching <option> in that mirror for one commit, resets it to
+      // "" and fires change, which arrived here as a selection the user never
+      // made and wiped the new value. A real selection can only happen while
+      // the listbox is open, so that is the discriminator.
+      if (!pickingRef.current) return
       const next = nextRadixValue === EMPTY_VALUE_SENTINEL ? '' : nextRadixValue
       if (!isControlled) setUncontrolledValue(next)
       // Write the hidden <select>'s DOM value imperatively, ahead of the
@@ -194,6 +205,13 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         <SelectPrimitive.Root
           value={radixValue}
           onValueChange={handleValueChange}
+          onOpenChange={(isOpen) => {
+            // Cleared a tick late, not synchronously: Radix commits the
+            // selection and closes in the same turn, so clearing on close
+            // would drop the very change the user just made.
+            if (isOpen) pickingRef.current = true
+            else setTimeout(() => (pickingRef.current = false), 0)
+          }}
           disabled={disabled}
         >
           <SelectPrimitive.Trigger
@@ -209,7 +227,16 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
               className
             )}
           >
-            <SelectPrimitive.Value />
+            {/* The label is rendered from `options`, not left to Radix.
+                Radix's own <Value /> shows the text of the selected <Item>,
+                and items only mount while the dropdown is open — so a value
+                set programmatically on a picker the user never opened (every
+                inline "+ Новый …", which selects what it just created) left
+                the trigger showing the previous label while the form
+                submitted the new id. */}
+            <SelectPrimitive.Value>
+              {options.find((option) => option.value === currentValue)?.label ?? ''}
+            </SelectPrimitive.Value>
             <SelectPrimitive.Icon asChild>
               <ChevronDown size={16} className="shrink-0 opacity-50" />
             </SelectPrimitive.Icon>

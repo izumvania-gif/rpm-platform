@@ -9,6 +9,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleCompetitorPinned } from '@/lib/actions/competitors'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,6 +49,11 @@ export default async function CompetitorsPage({
           level={1}
           title="Конкуренты"
           description={moduleByHref['/competitors'].description}
+        />
+        <QuickAddButton
+          type="competitor"
+          href="/competitors/new"
+          label="Быстро добавить конкурента, не уходя со страницы"
         />
         <Link href="/competitors/new" className={buttonVariants()}>
           Новый конкурент

@@ -9,6 +9,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleRTBPinned } from '@/lib/actions/rtbs'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,6 +41,11 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
           level={1}
           title="Маркетинг"
           description={moduleByHref['/marketing'].description}
+        />
+        <QuickAddButton
+          type="rtb"
+          href="/marketing/new"
+          label="Быстро добавить RTB, не уходя со страницы"
         />
         <Link href="/marketing/new" className={buttonVariants()}>
           Новый RTB

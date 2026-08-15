@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   createPerson,
+  createPersonQuick,
   deletePerson,
   togglePersonPinned,
   updatePerson,
@@ -110,5 +111,34 @@ describe('updatePersonField', () => {
     })
     const result = await updatePersonField(person.id, 'email', 'not-an-email')
     expect(result.ok).toBe(false)
+  })
+})
+
+describe('createPersonQuick', () => {
+  it('creates a person without touching any product team', async () => {
+    await ensureTestUser()
+    const result = await createPersonQuick('Анна Петрова', 'Продакт')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    expect(result.person.name).toBe('Анна Петрова')
+    expect(result.person.role).toBe('Продакт')
+    // Deliberately not createPersonAndAddToTeamQuick: an owner picker answers
+    // "who exists", not "who is on this product's team".
+    expect(await prisma.productTeamMember.count()).toBe(0)
+  })
+
+  it('leaves an omitted role null rather than storing an empty string', async () => {
+    await ensureTestUser()
+    const result = await createPersonQuick('Без роли', '   ')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.person.role).toBeNull()
+  })
+
+  it('refuses an empty name', async () => {
+    await ensureTestUser()
+    expect(await createPersonQuick('   ', 'Продакт')).toEqual({ ok: false, error: 'Укажите имя' })
+    expect(await prisma.person.count()).toBe(0)
   })
 })

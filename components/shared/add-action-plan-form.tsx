@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { createActionPlanQuick } from '@/lib/actions/action-plans'
+import { InlineCreatePerson } from '@/components/shared/inline-create'
 
 // Inline "Добавить план" (plans/2.0-ux-improvement-plan.md, Фаза 5) — same
 // toggle-button-then-form shape as AddRoadmapItemForm. Keeps steps (the
@@ -21,6 +22,7 @@ export function AddActionPlanForm({ productId, people }: { productId: string; pe
   const [trigger, setTrigger] = useState('')
   const [steps, setSteps] = useState('')
   const [ownerId, setOwnerId] = useState('')
+  const [localPeople, setLocalPeople] = useState(people)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -78,12 +80,18 @@ export function AddActionPlanForm({ productId, people }: { productId: string; pe
         onChange={(e) => setOwnerId(e.target.value)}
       >
         <option value="">Без ответственного</option>
-        {people.map((p) => (
+        {localPeople.map((p) => (
           <option key={p.id} value={p.id}>
             {p.name}
           </option>
         ))}
       </Select>
+      <InlineCreatePerson
+        onCreated={(person) => {
+          setLocalPeople((prev) => [...prev, person])
+          setOwnerId(person.id)
+        }}
+      />
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 

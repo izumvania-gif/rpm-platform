@@ -24,7 +24,12 @@ export function QuickAddButton({
 }: {
   /** Omit for a record the modal deliberately cannot create in one field. */
   type?: CaptureType
-  productId: string
+  /**
+   * Omitted on the module list pages, which are not scoped to one product —
+   * the modal then falls back to the last product used, exactly as the `c`
+   * hotkey does, and its own product select stays there to change it.
+   */
+  productId?: string
   /** Always present: the fallback, and where «Больше полей» would land. */
   href: string
   label: string

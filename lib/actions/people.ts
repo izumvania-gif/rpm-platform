@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import type { Person } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -40,6 +41,35 @@ export async function createPerson(formData: FormData) {
   })
   revalidatePath('/people')
   redirect(`/people/${person.id}`)
+}
+
+/**
+ * Non-redirecting create, for the inline "+ Новый человек" inside an owner
+ * picker (`plans/2.0-round-trip-audit.md`).
+ *
+ * Deliberately not `createPersonAndAddToTeamQuick` (lib/actions/product-team.ts),
+ * which also writes a `ProductTeamMember` row: that one answers "who is on
+ * this product's team", this one answers "who exists". They are different
+ * questions, and one of the three forms that needs this — ProductForm in
+ * create mode — has no product id yet to put anybody on a team of.
+ */
+export async function createPersonQuick(
+  name: string,
+  role: string
+): Promise<{ ok: true; person: Person } | { ok: false; error: string }> {
+  const trimmed = name.trim()
+  if (!trimmed) return { ok: false, error: 'Укажите имя' }
+
+  const person = await prisma.person.create({
+    data: {
+      name: trimmed,
+      role: role.trim() || null,
+      skills: [],
+      userId: getCurrentUserId(),
+    },
+  })
+  revalidatePath('/people')
+  return { ok: true, person }
 }
 
 export async function updatePerson(id: string, formData: FormData) {

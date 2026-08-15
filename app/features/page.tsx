@@ -8,6 +8,7 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { FeatureFilterForm } from '@/components/forms/feature-filter-form'
 import { toggleFeaturePinned } from '@/lib/actions/features'
 import { moduleByHref } from '@/lib/module-meta'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,6 +71,11 @@ export default async function FeaturesPage({
           level={1}
           title="Фичи"
           description={moduleByHref['/features'].description}
+        />
+        <QuickAddButton
+          type="feature"
+          href="/features/new"
+          label="Быстро добавить фичу, не уходя со страницы"
         />
         <Link href="/features/new" className={buttonVariants()}>
           Новая фича

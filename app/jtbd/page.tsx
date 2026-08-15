@@ -15,6 +15,7 @@ import { moduleByHref } from '@/lib/module-meta'
 import { coveragePercent } from '@/lib/dashboard-metrics'
 import { EmptyState } from '@/components/shared/empty-state'
 import { jtbdKeyPhrase } from '@/lib/key-phrase'
+import { QuickAddButton } from '@/components/shared/quick-add-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,11 @@ export default async function JtbdPage() {
         <SectionHeading level={1} title="JTBD" description={moduleByHref['/jtbd'].description} />
         <div className="flex flex-wrap items-center gap-2">
           <JtbdViewTabs active="list" />
+          <QuickAddButton
+            type="jtbd"
+            href="/jtbd/new"
+            label="Быстро добавить JTBD, не уходя со страницы"
+          />
           <Link href="/jtbd/new" className={buttonVariants()}>
             Новый JTBD
           </Link>

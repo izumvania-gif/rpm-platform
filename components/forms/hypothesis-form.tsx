@@ -41,6 +41,7 @@ export function HypothesisForm({
   researches,
   error,
   submitLabel,
+  redirectTo,
 }: {
   action: (formData: FormData) => void
   defaultValues?: HypothesisFormValues
@@ -50,6 +51,8 @@ export function HypothesisForm({
   researches: Research[]
   error?: string
   submitLabel: string
+  /** Where to land after saving; the action falls back to its own page. */
+  redirectTo?: string
 }) {
   const [productId, setProductId] = useState(defaultValues?.productId ?? '')
 
@@ -87,6 +90,7 @@ export function HypothesisForm({
 
   return (
     <form action={action} className="max-w-2xl space-y-4">
+      {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}

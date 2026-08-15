@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function NewConversationPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: { from?: string; error?: string; productId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
   const [products, segments, researches, duplicateSource] = await Promise.all([
@@ -29,6 +29,7 @@ export default async function NewConversationPage({
         </p>
       ) : (
         <ConversationForm
+          redirectTo={searchParams.from}
           action={createConversation}
           products={products}
           segments={segments}

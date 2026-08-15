@@ -55,7 +55,7 @@ export default async function CompetitorsPage({
           href="/competitors/new"
           label="Быстро добавить конкурента, не уходя со страницы"
         />
-        <Link href="/competitors/new" className={buttonVariants()}>
+        <Link href="/competitors/new?from=/competitors" className={buttonVariants()}>
           Новый конкурент
         </Link>
       </div>

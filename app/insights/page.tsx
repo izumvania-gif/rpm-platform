@@ -50,7 +50,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
           href="/insights/new"
           label="Быстро добавить инсайт, не уходя со страницы"
         />
-        <Link href="/insights/new" className={buttonVariants()}>
+        <Link href="/insights/new?from=/insights" className={buttonVariants()}>
           Новый инсайт
         </Link>
       </div>

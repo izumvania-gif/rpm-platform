@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function NewResearchPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: { from?: string; error?: string; productId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
   const [products, duplicateSource] = await Promise.all([
@@ -27,6 +27,7 @@ export default async function NewResearchPage({
         </p>
       ) : (
         <ResearchForm
+          redirectTo={searchParams.from}
           action={createResearch}
           products={products}
           defaultValues={

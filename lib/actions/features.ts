@@ -5,6 +5,7 @@ import type { Feature } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, type InlineFieldResult } from '@/lib/validation'
@@ -47,7 +48,7 @@ export async function createFeature(formData: FormData) {
     },
   })
   revalidatePath('/features')
-  redirect(`/features/${feature.id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/features/${feature.id}`))
 }
 
 export async function updateFeature(id: string, formData: FormData) {

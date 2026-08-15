@@ -5,6 +5,7 @@ import type { Competitor } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalDate, optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
@@ -48,7 +49,7 @@ export async function createCompetitor(formData: FormData) {
     data: { ...data, features: toTagsArray(features), userId: getCurrentUserId() },
   })
   revalidatePath('/competitors')
-  redirect(`/competitors/${competitor.id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/competitors/${competitor.id}`))
 }
 
 export async function updateCompetitor(id: string, formData: FormData) {

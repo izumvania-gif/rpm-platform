@@ -244,3 +244,41 @@ describe('jtbd-graph actions', () => {
     expect(layout).toMatchObject({ x: 30, y: 40 })
   })
 })
+
+describe('createJtbd, where it lands afterwards', () => {
+  it('returns to the page that sent you, when one was given', async () => {
+    // «Новый JTBD» on the list page carries ?from=/jtbd, so adding five jobs
+    // does not mean walking back from five detail pages.
+    const product = await createTestProduct()
+    const formData = buildFormData({
+      title: 'Когда возврат, я хочу вернуться в список',
+      category: 'Навигация',
+      productId: product.id,
+      redirectTo: '/jtbd',
+    })
+    expect(await captureRedirect(() => createJtbd(formData))).toBe('/jtbd')
+  })
+
+  it('falls back to the new record when no origin was given', async () => {
+    const product = await createTestProduct()
+    const formData = buildFormData({
+      title: 'Когда пришли не из списка, я хочу увидеть запись',
+      category: 'Навигация',
+      productId: product.id,
+    })
+    expect(await captureRedirect(() => createJtbd(formData))).toMatch(/^\/jtbd\/c[a-z0-9]+$/)
+  })
+
+  it('ignores an off-site destination rather than bouncing the browser', async () => {
+    // The value arrives from a hidden field, so a crafted link must not be
+    // able to send someone elsewhere after a successful save.
+    const product = await createTestProduct()
+    const formData = buildFormData({
+      title: 'Когда подсунули чужой адрес, я хочу остаться здесь',
+      category: 'Навигация',
+      productId: product.id,
+      redirectTo: 'https://evil.example/steal',
+    })
+    expect(await captureRedirect(() => createJtbd(formData))).toMatch(/^\/jtbd\/c[a-z0-9]+$/)
+  })
+})

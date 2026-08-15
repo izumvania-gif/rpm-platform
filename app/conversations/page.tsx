@@ -49,7 +49,7 @@ export default async function ConversationsPage({
           title="Разговоры"
           description={moduleByHref['/conversations'].description}
         />
-        <Link href="/conversations/new" className={buttonVariants()}>
+        <Link href="/conversations/new?from=/conversations" className={buttonVariants()}>
           Новый разговор
         </Link>
       </div>

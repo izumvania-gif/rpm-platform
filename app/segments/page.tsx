@@ -47,7 +47,7 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
             href="/segments/new"
             label="Быстро добавить сегмент, не уходя со страницы"
           />
-          <Link href="/segments/new" className={buttonVariants()}>
+          <Link href="/segments/new?from=/segments" className={buttonVariants()}>
             Новый сегмент
           </Link>
         </div>

@@ -55,7 +55,7 @@ export default async function ResearchPage({
           title="Исследования"
           description={moduleByHref['/research'].description}
         />
-        <Link href="/research/new" className={buttonVariants()}>
+        <Link href="/research/new?from=/research" className={buttonVariants()}>
           Новое исследование
         </Link>
       </div>

@@ -5,6 +5,7 @@ import type { Insight } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
@@ -46,7 +47,7 @@ export async function createInsight(formData: FormData) {
     data: { ...data, tags: toTagsArray(tags), userId: getCurrentUserId() },
   })
   revalidatePath('/insights')
-  redirect(`/insights/${insight.id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/insights/${insight.id}`))
 }
 
 export async function updateInsight(id: string, formData: FormData) {

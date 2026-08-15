@@ -8,7 +8,13 @@ export const dynamic = 'force-dynamic'
 export default async function NewFeaturePage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string; name?: string }
+  searchParams: {
+    from?: string
+    error?: string
+    productId?: string
+    duplicateFrom?: string
+    name?: string
+  }
 }) {
   const userId = getCurrentUserId()
   const [products, jtbds, rtbs, duplicateSource] = await Promise.all([
@@ -32,6 +38,7 @@ export default async function NewFeaturePage({
         </p>
       ) : (
         <FeatureForm
+          redirectTo={searchParams.from}
           action={createFeature}
           products={products}
           jtbds={jtbds}

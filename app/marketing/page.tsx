@@ -47,7 +47,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
           href="/marketing/new"
           label="Быстро добавить RTB, не уходя со страницы"
         />
-        <Link href="/marketing/new" className={buttonVariants()}>
+        <Link href="/marketing/new?from=/marketing" className={buttonVariants()}>
           Новый RTB
         </Link>
       </div>

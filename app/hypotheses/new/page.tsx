@@ -9,6 +9,7 @@ export default async function NewHypothesisPage({
   searchParams,
 }: {
   searchParams: {
+    from?: string
     error?: string
     productId?: string
     jtbdId?: string
@@ -36,6 +37,7 @@ export default async function NewHypothesisPage({
         </p>
       ) : (
         <HypothesisForm
+          redirectTo={searchParams.from}
           action={createHypothesis}
           products={products}
           jtbds={jtbds}

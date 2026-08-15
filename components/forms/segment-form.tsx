@@ -26,12 +26,15 @@ export function SegmentForm({
   products,
   error,
   submitLabel,
+  redirectTo,
 }: {
   action: (formData: FormData) => void
   defaultValues?: SegmentFormValues
   products: Product[]
   error?: string
   submitLabel: string
+  /** Where to land after saving; the action falls back to its own page. */
+  redirectTo?: string
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [slug, setSlug] = useState(defaultValues?.slug ?? '')
@@ -51,6 +54,7 @@ export function SegmentForm({
 
   return (
     <form action={action} className="max-w-2xl space-y-4">
+      {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       )}

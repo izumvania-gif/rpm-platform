@@ -5,6 +5,7 @@ import { ResearchStatus, ResearchType, type Research } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { toTagsArray, type InlineFieldResult } from '@/lib/validation'
@@ -46,7 +47,7 @@ export async function createResearch(formData: FormData) {
     data: { ...data, tags: toTagsArray(tags), userId: getCurrentUserId() },
   })
   revalidatePath('/research')
-  redirect(`/research/${research.id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/research/${research.id}`))
 }
 
 export async function updateResearch(id: string, formData: FormData) {

@@ -9,13 +9,20 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { SectionHeading } from '@/components/shared/section-heading'
+import { QuickAddJtbd } from '@/components/shared/quick-add-jtbd'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SegmentDetailPage({ params }: { params: { id: string } }) {
   const segment = await prisma.segment.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
-    include: { product: true },
+    include: {
+      product: true,
+      // The segment is the root of the discovery chain, so its own page shows
+      // what hangs off it — and lets a job be added right there.
+      jtbds: { orderBy: [{ category: 'asc' }, { createdAt: 'asc' }] },
+    },
   })
 
   if (!segment) notFound()
@@ -90,6 +97,18 @@ export default async function SegmentDetailPage({ params }: { params: { id: stri
             action={updateSegmentField.bind(null, segment.id, 'description')}
           />
         </p>
+      </div>
+
+      <div className="space-y-3">
+        <SectionHeading
+          title="Задачи сегмента (JTBD)"
+          description="Что этот сегмент пытается сделать. Новая задача сразу привязывается к нему."
+        />
+        <QuickAddJtbd
+          productId={segment.productId}
+          segmentId={segment.id}
+          initialJtbds={segment.jtbds}
+        />
       </div>
     </main>
   )

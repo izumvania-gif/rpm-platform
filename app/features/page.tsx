@@ -77,7 +77,7 @@ export default async function FeaturesPage({
           href="/features/new"
           label="Быстро добавить фичу, не уходя со страницы"
         />
-        <Link href="/features/new" className={buttonVariants()}>
+        <Link href="/features/new?from=/features" className={buttonVariants()}>
           Новая фича
         </Link>
       </div>

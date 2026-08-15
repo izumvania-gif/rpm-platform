@@ -9,6 +9,7 @@ export default async function NewRTBPage({
   searchParams,
 }: {
   searchParams: {
+    from?: string
     error?: string
     productId?: string
     duplicateFrom?: string
@@ -39,6 +40,7 @@ export default async function NewRTBPage({
         </p>
       ) : (
         <RTBForm
+          redirectTo={searchParams.from}
           action={createRTB}
           products={products}
           features={features}

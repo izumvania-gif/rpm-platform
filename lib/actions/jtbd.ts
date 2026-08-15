@@ -5,6 +5,7 @@ import { JtbdJobType } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
@@ -54,7 +55,7 @@ export async function createJtbd(formData: FormData) {
     },
   })
   revalidatePath('/jtbd')
-  redirect(`/jtbd/${jtbd.id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/jtbd/${jtbd.id}`))
 }
 
 export async function updateJtbd(id: string, formData: FormData) {
@@ -76,8 +77,7 @@ export async function updateJtbd(id: string, formData: FormData) {
   })
   revalidatePath('/jtbd')
   revalidatePath(`/jtbd/${id}`)
-  const redirectTo = formData.get('redirectTo')
-  redirect(typeof redirectTo === 'string' && redirectTo ? redirectTo : `/jtbd/${id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/jtbd/${id}`))
 }
 
 export async function deleteJtbd(id: string) {

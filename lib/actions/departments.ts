@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, type InlineFieldResult } from '@/lib/validation'
@@ -32,7 +33,7 @@ export async function createDepartment(formData: FormData) {
     data: { ...parsed.data, userId: getCurrentUserId() },
   })
   revalidatePath('/departments')
-  redirect(`/departments/${department.id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/departments/${department.id}`))
 }
 
 export async function updateDepartment(id: string, formData: FormData) {

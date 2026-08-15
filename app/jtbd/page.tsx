@@ -47,7 +47,7 @@ export default async function JtbdPage() {
             href="/jtbd/new"
             label="Быстро добавить JTBD, не уходя со страницы"
           />
-          <Link href="/jtbd/new" className={buttonVariants()}>
+          <Link href="/jtbd/new?from=/jtbd" className={buttonVariants()}>
             Новый JTBD
           </Link>
         </div>

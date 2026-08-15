@@ -8,7 +8,13 @@ export const dynamic = 'force-dynamic'
 export default async function NewCompetitorPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string; name?: string }
+  searchParams: {
+    from?: string
+    error?: string
+    productId?: string
+    duplicateFrom?: string
+    name?: string
+  }
 }) {
   const userId = getCurrentUserId()
   const [products, duplicateSource] = await Promise.all([
@@ -27,6 +33,7 @@ export default async function NewCompetitorPage({
         </p>
       ) : (
         <CompetitorForm
+          redirectTo={searchParams.from}
           action={createCompetitor}
           products={products}
           defaultValues={

@@ -5,6 +5,7 @@ import { HypothesisStatus, type Hypothesis } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import {
@@ -58,7 +59,7 @@ export async function createHypothesis(formData: FormData) {
     },
   })
   revalidatePath('/hypotheses')
-  redirect('/hypotheses')
+  redirect(safeRedirectPath(formData.get('redirectTo'), '/hypotheses'))
 }
 
 export async function updateHypothesis(id: string, formData: FormData) {

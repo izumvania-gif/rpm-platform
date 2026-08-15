@@ -9,6 +9,7 @@ export default async function NewJtbdPage({
   searchParams,
 }: {
   searchParams: {
+    from?: string
     error?: string
     productId?: string
     duplicateFrom?: string
@@ -47,6 +48,7 @@ export default async function NewJtbdPage({
         </p>
       ) : (
         <JtbdForm
+          redirectTo={searchParams.from}
           action={createJtbd}
           products={products}
           segments={segments}

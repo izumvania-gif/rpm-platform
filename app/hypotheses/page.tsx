@@ -32,7 +32,7 @@ export default async function HypothesesPage() {
           href="/hypotheses/new"
           label="Быстро добавить гипотезу, не уходя со страницы"
         />
-        <Link href="/hypotheses/new" className={buttonVariants()}>
+        <Link href="/hypotheses/new?from=/hypotheses" className={buttonVariants()}>
           Новая гипотеза
         </Link>
       </div>

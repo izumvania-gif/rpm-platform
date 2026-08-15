@@ -8,7 +8,13 @@ export const dynamic = 'force-dynamic'
 export default async function NewInsightPage({
   searchParams,
 }: {
-  searchParams: { error?: string; productId?: string; duplicateFrom?: string; text?: string }
+  searchParams: {
+    from?: string
+    error?: string
+    productId?: string
+    duplicateFrom?: string
+    text?: string
+  }
 }) {
   const userId = getCurrentUserId()
   const [products, segments, jtbds, researches, conversations, duplicateSource] = await Promise.all(
@@ -33,6 +39,7 @@ export default async function NewInsightPage({
         </p>
       ) : (
         <InsightForm
+          redirectTo={searchParams.from}
           action={createInsight}
           products={products}
           segments={segments}

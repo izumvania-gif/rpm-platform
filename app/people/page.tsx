@@ -24,7 +24,7 @@ export default async function PeoplePage() {
           title="Люди"
           description="Справочник команды — кто чем занимается и за какие продукты отвечает"
         />
-        <Link href="/people/new" className={buttonVariants()}>
+        <Link href="/people/new?from=/people" className={buttonVariants()}>
           Новый человек
         </Link>
       </div>

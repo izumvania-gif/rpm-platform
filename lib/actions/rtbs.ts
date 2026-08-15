@@ -5,6 +5,7 @@ import type { RTB } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import type { InlineFieldResult } from '@/lib/validation'
@@ -43,7 +44,7 @@ export async function createRTB(formData: FormData) {
     },
   })
   revalidatePath('/marketing')
-  redirect(`/marketing/${rtb.id}`)
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/marketing/${rtb.id}`))
 }
 
 export async function updateRTB(id: string, formData: FormData) {

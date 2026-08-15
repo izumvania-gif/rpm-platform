@@ -25,7 +25,7 @@ export default async function DepartmentsPage() {
           title="Департаменты"
           description="Стратегическая группировка продуктов для CPO — например MFA-продукты, Электронная подпись, IoT-безопасность"
         />
-        <Link href="/departments/new" className={buttonVariants()}>
+        <Link href="/departments/new?from=/departments" className={buttonVariants()}>
           Новый департамент
         </Link>
       </div>

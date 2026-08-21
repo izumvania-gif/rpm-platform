@@ -14,6 +14,10 @@ export default async function NewInsightPage({
     productId?: string
     duplicateFrom?: string
     text?: string
+    // Приходит с карточки гипотезы (блок «Что можно сделать»): кнопка обязана
+    // приводить в форму, где связь уже проставлена, иначе она отправляет
+    // искать нужный пункт в списке руками.
+    hypothesisId?: string
   }
 }) {
   const userId = getCurrentUserId()
@@ -52,12 +56,17 @@ export default async function NewInsightPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  hypothesisId: searchParams.hypothesisId ?? duplicateSource.hypothesisId,
                   // Text handed over from quick capture wins: it is what the
                   // person just typed, and losing it is the whole failure the
                   // hand-off exists to avoid.
                   text: searchParams.text ?? duplicateSource.text,
                 }
-              : { productId: searchParams.productId, text: searchParams.text }
+              : {
+                  productId: searchParams.productId,
+                  text: searchParams.text,
+                  hypothesisId: searchParams.hypothesisId,
+                }
           }
           error={searchParams.error}
           submitLabel="Создать"

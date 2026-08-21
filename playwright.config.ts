@@ -20,7 +20,20 @@ if (process.env.DATABASE_URL && !/rpm_platform_test|test/i.test(process.env.DATA
 export default defineConfig({
   testDir: './e2e',
   globalSetup: require.resolve('./e2e/global-setup.ts'),
-  timeout: 30_000,
+  // 90 с, а не 30. Причина замерена, а не предположена: набор гоняется против
+  // `next dev` (см. webServer ниже), и первое обращение к маршруту включает его
+  // компиляцию. У четырёх самых тяжёлых спеков — accessibility (обходит все
+  // страницы-списки за один тест), cpo, marketing-hub, sales-hub — она
+  // стабильно не укладывалась в 30 с: на первой попытке тайм-аут, на ретрае
+  // зелено, и так каждый прогон. `cpo.spec.ts` в одиночку идёт ~2,6 минуты и с
+  // `--timeout=120000` проходит с первого раза.
+  //
+  // То есть 30 с меряли скорость компилятора, а не поведение приложения, и
+  // «5 flaky» в каждом отчёте были шумом, за которым легко пропустить
+  // настоящую регрессию. `expect.timeout` намеренно остаётся 8 с: ожидание
+  // конкретного элемента на уже открытой странице — это как раз про
+  // приложение, и растягивать его значило бы прятать медленный ответ.
+  timeout: 90_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,
   // Specs share one Postgres test DB (no per-spec namespacing yet, see

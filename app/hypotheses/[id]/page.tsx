@@ -19,13 +19,41 @@ import { SignalBadge } from '@/components/shared/signal-badge'
 import { JobTypeDot } from '@/components/shared/job-type-dot'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { ChainRibbon } from '@/components/shared/chain-ribbon'
-import { hypothesisStatusLabels, hypothesisStatusOrder, hypothesisStatusTone } from '@/lib/labels'
+import {
+  hypothesisStatusLabels,
+  hypothesisStatusOrder,
+  hypothesisStatusTone,
+  insightStanceLabels,
+  insightStanceTone,
+} from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
-import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
+import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
+import { InsightStance } from '@prisma/client'
+import { evidenceBalance, hypothesisReadiness } from '@/lib/hypothesis-readiness'
+import { EvidenceBalanceBar } from '@/components/hypotheses/evidence-balance'
+import { ReadinessChecklist } from '@/components/hypotheses/readiness-checklist'
+import { Badge } from '@/components/ui/badge'
 
 export const dynamic = 'force-dynamic'
 
-export default async function HypothesisDetailPage({ params }: { params: { id: string } }) {
+// Фильтр доказательств — GET-параметр, а не состояние клиента: страница и так
+// force-dynamic, ссылка с выбранным фильтром остаётся ссылкой (её можно
+// отправить коллеге), и фильтрация не требует ни грамма JS.
+const STANCE_FILTERS = [
+  { key: 'all', label: 'Все' },
+  { key: 'supports', label: 'За' },
+  { key: 'contradicts', label: 'Против' },
+] as const
+
+type StanceFilter = (typeof STANCE_FILTERS)[number]['key']
+
+export default async function HypothesisDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams: { stance?: string }
+}) {
   const hypothesis = await prisma.hypothesis.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
     include: {
@@ -36,10 +64,41 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
       segment: true,
       research: true,
       statusChanges: { orderBy: { changedAt: 'desc' } },
+      // Доказательства и фичи (фаза 2 схемы) — из них считается и баланс, и
+      // чек-лист готовности.
+      insights: {
+        orderBy: { createdAt: 'desc' },
+        include: { research: true, conversation: true },
+      },
+      features: true,
     },
   })
 
   if (!hypothesis) notFound()
+
+  const activeFilter: StanceFilter = STANCE_FILTERS.some((f) => f.key === searchParams.stance)
+    ? (searchParams.stance as StanceFilter)
+    : 'all'
+
+  const balance = evidenceBalance(hypothesis.insights.map((i) => i.stance))
+  const readiness = hypothesisReadiness({
+    status: hypothesis.status,
+    validationCriterion: hypothesis.validationCriterion,
+    insightCount: hypothesis.insights.length,
+    // Сегмент может быть указан напрямую или унаследован от задачи — для
+    // «понятно, чей это вопрос» годится и то, и другое.
+    hasSegment: Boolean(hypothesis.segment) || (hypothesis.jtbd?.segments.length ?? 0) > 0,
+    hasJtbd: Boolean(hypothesis.jtbd),
+    featureCount: hypothesis.features.length,
+  })
+
+  const visibleInsights = hypothesis.insights.filter((insight) =>
+    activeFilter === 'all'
+      ? true
+      : activeFilter === 'supports'
+        ? insight.stance === InsightStance.SUPPORTS
+        : insight.stance === InsightStance.CONTRADICTS
+  )
 
   // A hypothesis can name a segment directly or inherit it from its job —
   // the ribbon shows whichever is available, direct link first.
@@ -196,6 +255,142 @@ export default async function HypothesisDetailPage({ params }: { params: { id: s
           display="tags"
         />
       </div>
+
+      {/* Критерий проверки стоит выше доказательств намеренно: сначала «при
+          каком результате мы считаем это доказанным», потом сами
+          доказательства. Обратный порядок — это подгонка критерия под уже
+          собранные данные. Якорь — цель кнопки «Записать критерий». */}
+      <Card id="criterion" className="scroll-mt-4">
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">Критерий проверки</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InlineEditableField
+            value={hypothesis.validationCriterion ?? ''}
+            type="textarea"
+            placeholder="+ при каком результате считаем гипотезу подтверждённой"
+            action={updateHypothesisField.bind(null, hypothesis.id, 'validationCriterion')}
+          />
+        </CardContent>
+      </Card>
+
+      <Card id="evidence" className="scroll-mt-4">
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">
+            Доказательства{' '}
+            <span className="font-normal text-muted-foreground">{balance.total}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <EvidenceBalanceBar balance={balance} />
+
+          {balance.total > 0 && (
+            <>
+              <nav aria-label="Фильтр доказательств" className="flex flex-wrap gap-1.5">
+                {STANCE_FILTERS.map((filter) => {
+                  const count =
+                    filter.key === 'all'
+                      ? balance.total
+                      : filter.key === 'supports'
+                        ? balance.supports
+                        : balance.contradicts
+                  const isActive = filter.key === activeFilter
+                  return (
+                    <Link
+                      key={filter.key}
+                      href={
+                        filter.key === 'all'
+                          ? `/hypotheses/${hypothesis.id}`
+                          : `/hypotheses/${hypothesis.id}?stance=${filter.key}`
+                      }
+                      aria-current={isActive ? 'true' : undefined}
+                      className={buttonVariants({
+                        variant: isActive ? 'default' : 'outline',
+                        size: 'sm',
+                      })}
+                    >
+                      {filter.label}{' '}
+                      <span className="ml-1.5 font-mono tabular-nums opacity-70">{count}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
+
+              {visibleInsights.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {activeFilter === 'supports'
+                    ? 'Ни одного доказательства за.'
+                    : 'Ни одного доказательства против.'}
+                </p>
+              ) : (
+                <ul className="divide-y">
+                  {visibleInsights.map((insight) => (
+                    <li key={insight.id} className="space-y-1 py-2.5 first:pt-0 last:pb-0">
+                      <div className="flex items-start justify-between gap-3">
+                        {/* Ключевая фраза, как везде, где запись просматривают,
+                            а не читают; полный текст — в title. */}
+                        <Link
+                          href={`/insights/${insight.id}`}
+                          title={insight.text}
+                          className="min-w-0 text-sm hover:underline"
+                        >
+                          {insightKeyPhrase(insight.text)}
+                        </Link>
+                        {insight.stance && (
+                          <Badge variant={insightStanceTone[insight.stance]}>
+                            {insightStanceLabels[insight.stance]}
+                          </Badge>
+                        )}
+                      </div>
+                      {(insight.research || insight.conversation) && (
+                        <p className="text-xs text-muted-foreground">
+                          {insight.research && (
+                            <Link
+                              href={`/research/${insight.research.id}`}
+                              className="hover:underline"
+                            >
+                              #{insight.research.number} {insight.research.title}
+                            </Link>
+                          )}
+                          {insight.research && insight.conversation && ' · '}
+                          {insight.conversation && (
+                            <Link
+                              href={`/conversations/${insight.conversation.id}`}
+                              className="hover:underline"
+                            >
+                              {insight.conversation.title}
+                            </Link>
+                          )}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+
+          <Link
+            href={`/insights/new?productId=${hypothesis.product.id}&hypothesisId=${hypothesis.id}&from=/hypotheses/${hypothesis.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            + Добавить доказательство
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="border-l-4 border-primary">
+          <CardTitle className="text-base font-semibold">Готовность к решению</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReadinessChecklist
+            readiness={readiness}
+            hypothesisId={hypothesis.id}
+            productId={hypothesis.product.id}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="border-l-4 border-primary">

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Manrope, IBM_Plex_Mono } from 'next/font/google'
+import { Manrope, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { cn } from '@/lib/utils'
 import { SiteNav } from '@/components/shared/site-nav'
@@ -8,10 +8,20 @@ import { QuickCapture } from '@/components/shared/quick-capture'
 import { getNavStage } from '@/lib/nav-stage'
 import { getCurrentUserId } from '@/lib/current-user'
 
-const inter = Inter({ subsets: ['latin', 'cyrillic'] })
+// Фирменный шрифт Рутокен — Gilroy, и он стоит первым в стеке
+// (`tailwind.config.ts`, `fontFamily.sans`/`display`). Файла шрифта мы не
+// отдаём: Gilroy лицензионный, а desktop-лицензия — та, по которой нарисован
+// брендбук, — покрывает установку на машины и макеты, но не раздачу `.woff2`
+// с сайта. Поэтому у сотрудника, у которого Gilroy стоит локально, браузер
+// возьмёт его; всем остальным достаётся Manrope, ближайший геометрический
+// гротеск. Появится веб-лицензия — добавить `@font-face` поверх стека, ничего
+// больше менять не придётся. См. plans/2.1-redesign-plan.md, раздел про шрифт.
+//
+// Без `weight` next/font берёт вариативное начертание: один файл на все веса
+// вместо пяти. Это существенно теперь, когда Manrope стал ещё и текстовым —
+// раньше он грузился только в 600/700/800, потому что был заголовочным.
 const manrope = Manrope({
   subsets: ['latin', 'cyrillic'],
-  weight: ['600', '700', '800'],
   variable: '--font-display',
 })
 const plexMono = IBM_Plex_Mono({
@@ -53,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className={cn(inter.className, manrope.variable, plexMono.variable)}>
+      <body className={cn('font-sans', manrope.variable, plexMono.variable)}>
         {/* Skip-link (plans/2.0-hardening-plan.md, B3). Measured on /pm: 12
             consecutive stops through the navigation before the focus reaches
             any content, on every page. `sr-only focus:not-sr-only` keeps it

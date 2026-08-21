@@ -60,7 +60,13 @@ const config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-display)', ...defaultTheme.fontFamily.sans],
+        // Gilroy первым — фирменный шрифт Рутокен. Файл не раздаётся (см.
+        // комментарий в app/layout.tsx): у кого он установлен локально,
+        // браузер возьмёт его, остальным достанется Manrope из
+        // `--font-display`. Один и тот же стек для текста и заголовков —
+        // так задано брендбуком, разница только в начертании.
+        sans: ['Gilroy', 'var(--font-display)', ...defaultTheme.fontFamily.sans],
+        display: ['Gilroy', 'var(--font-display)', ...defaultTheme.fontFamily.sans],
         mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
       },
       // Same rem sizes as Tailwind's stock scale (nothing reflows) — the

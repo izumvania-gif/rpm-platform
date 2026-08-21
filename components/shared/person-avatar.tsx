@@ -1,16 +1,21 @@
 import { cn } from '@/lib/utils'
-import { signalTones, signalToneColors, type SignalTone } from '@/lib/signal-colors'
+import { categoricalTones, signalToneColors, type SignalTone } from '@/lib/signal-colors'
 
 // Person gets no dedicated color field — the tone is derived once,
 // deterministically, from the name, so the same person always renders in the
 // same one of the app's 4 existing --signal-* tones rather than inventing a
 // 5th palette just for avatars.
+//
+// Берётся именно `categoricalTones`, а не весь `signalTones`: цвет аватара
+// ничего не утверждает о человеке, он только отличает одного от другого. Если
+// хеш начнёт раздавать янтарный и зелёный, кому-то достанется аватар цвета
+// «здесь разрыв», а кому-то — цвета «подтверждено» (фаза 1 редизайна 2.1).
 function toneForName(name: string): SignalTone {
   let hash = 0
   for (let i = 0; i < name.length; i++) {
     hash = (hash * 31 + name.charCodeAt(i)) | 0
   }
-  return signalTones[Math.abs(hash) % signalTones.length]
+  return categoricalTones[Math.abs(hash) % categoricalTones.length]
 }
 
 function initialsForName(name: string): string {

@@ -51,7 +51,7 @@ export function ProductModuleCard({
           </Link>{' '}
           <span className="font-normal text-muted-foreground">{data.total}</span>
           {verdict && (
-            <span className="ml-2 whitespace-nowrap text-xs font-normal text-[hsl(var(--signal-red-text))]">
+            <span className="ml-2 whitespace-nowrap text-xs font-normal text-[hsl(var(--signal-amber-text))]">
               {verdict}
             </span>
           )}
@@ -70,7 +70,7 @@ export function ProductModuleCard({
                     <CircleAlert
                       size={13}
                       aria-label={row.attentionHint}
-                      className="mt-0.5 shrink-0 self-start text-[hsl(var(--signal-red-border))]"
+                      className="mt-0.5 shrink-0 self-start text-[hsl(var(--signal-amber-border))]"
                     />
                   ) : (
                     <span aria-hidden className="w-[13px] shrink-0" />

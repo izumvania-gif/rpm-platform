@@ -20,6 +20,10 @@ const badgeVariants = cva(
         blue: 'border-[hsl(var(--signal-blue-border))] bg-[hsl(var(--signal-blue-bg))] text-[hsl(var(--signal-blue-text))]',
         slate:
           'border-[hsl(var(--signal-slate-border))] bg-[hsl(var(--signal-slate-bg))] text-[hsl(var(--signal-slate-text))]',
+        amber:
+          'border-[hsl(var(--signal-amber-border))] bg-[hsl(var(--signal-amber-bg))] text-[hsl(var(--signal-amber-text))]',
+        green:
+          'border-[hsl(var(--signal-green-border))] bg-[hsl(var(--signal-green-bg))] text-[hsl(var(--signal-green-text))]',
       },
     },
     defaultVariants: {

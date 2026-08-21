@@ -53,7 +53,7 @@ export function DashboardGapsSummary({ counts }: { counts: GapsCounts }) {
     >
       {totalGaps === 0 ? (
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <CircleCheck size={15} className="text-[hsl(var(--signal-violet-border))]" />
+          <CircleCheck size={15} className="text-[hsl(var(--signal-green-border))]" />
           Пробелов не найдено.
         </p>
       ) : (
@@ -76,13 +76,13 @@ export function DashboardGapsSummary({ counts }: { counts: GapsCounts }) {
                   {hasGap ? (
                     <CircleAlert
                       size={14}
-                      className="text-[hsl(var(--signal-red-border))]"
+                      className="text-[hsl(var(--signal-amber-border))]"
                       aria-label="Требует внимания"
                     />
                   ) : (
                     <CircleCheck
                       size={14}
-                      className="text-[hsl(var(--signal-violet-border))]"
+                      className="text-[hsl(var(--signal-green-border))]"
                       aria-label="Нет пробелов"
                     />
                   )}

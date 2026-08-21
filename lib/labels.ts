@@ -55,13 +55,24 @@ export const hypothesisStatusOrder: HypothesisStatus[] = [
   HypothesisStatus.REJECTED,
 ]
 
-// Signal tone per pipeline stage: neutral while unevaluated, active while in motion,
-// strongest signal once validated, brand-red (already the "stop/negative" color via
-// --destructive) once rejected. See plans/growth-plan.md §2.7.
+// Signal tone per pipeline stage: neutral while unevaluated, active while in
+// motion, green once validated, red once disproven.
+//
+// CONFIRMED был `violet` и стал `green` в фазе 1 редизайна 2.1: во-первых,
+// правило говорит «зелёный — подтверждённое», во-вторых, фиолетовый здесь
+// сталкивался с фиолетовым же у BIG_JOB — один цвет отвечал и «большая
+// задача», и «гипотеза подтверждена».
+//
+// REJECTED намеренно оставлен красным — единственное исключение из правила
+// «красный только для действия». Опровергнутая гипотеза не индикатор разрыва
+// (то, ради чего заведён янтарный) и не кнопка: это помеченный словом
+// «Отклонена» терминальный статус, и «нет» — ровно то, что красный значит
+// культурно. Заменить его на slate нельзя — там уже DRAFT, и два несвязанных
+// состояния стали бы неразличимы.
 export const hypothesisStatusTone: Record<HypothesisStatus, SignalTone> = {
   DRAFT: 'slate',
   IN_REVIEW: 'blue',
-  CONFIRMED: 'violet',
+  CONFIRMED: 'green',
   REJECTED: 'red',
 }
 
@@ -74,9 +85,9 @@ export const hypothesisStatusIcon: Record<HypothesisStatus, LucideIcon> = {
   REJECTED: CircleX,
 }
 
-// 2.0 (plans/platform-views-plan.md §1) — same 4-tone mapping as
+// 2.0 (plans/platform-views-plan.md §1) — same mapping as
 // hypothesisStatusTone above: slate for not-started, blue for active,
-// violet for the strongest positive signal, red for stopped/not moving.
+// green for shipped.
 export const roadmapStatusLabels: Record<RoadmapStatus, string> = {
   PLANNED: 'Запланировано',
   IN_PROGRESS: 'В работе',
@@ -91,11 +102,14 @@ export const roadmapStatusOrder: RoadmapStatus[] = [
   RoadmapStatus.PAUSED,
 ]
 
+// PAUSED — янтарный, а не красный: приостановленный пункт это именно
+// «требует внимания, решение не принято», ровно то значение, под которое
+// янтарный и заведён.
 export const roadmapStatusTone: Record<RoadmapStatus, SignalTone> = {
   PLANNED: 'slate',
   IN_PROGRESS: 'blue',
-  SHIPPED: 'violet',
-  PAUSED: 'red',
+  SHIPPED: 'green',
+  PAUSED: 'amber',
 }
 
 export const roadmapStatusIcon: Record<RoadmapStatus, LucideIcon> = {

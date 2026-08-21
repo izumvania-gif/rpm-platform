@@ -78,7 +78,7 @@ export function DashboardDiscoveryChain({ counts }: { counts: ChainCounts }) {
               <TriangleAlert
                 size={13}
                 aria-hidden
-                className="mt-0.5 shrink-0 text-[hsl(var(--signal-red-border))]"
+                className="mt-0.5 shrink-0 text-[hsl(var(--signal-amber-border))]"
               />
               <span>
                 Слабое звено — {weakest.label.toLowerCase()}: {weakest.total - weakest.attached} из{' '}

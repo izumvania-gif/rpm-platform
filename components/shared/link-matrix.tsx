@@ -74,7 +74,7 @@ export function LinkMatrix({
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">
         {unlinked > 0 ? (
-          <span className="text-[hsl(var(--signal-red-text))]">
+          <span className="text-[hsl(var(--signal-amber-text))]">
             Без связи: {unlinked} из {rows.length}
           </span>
         ) : (
@@ -171,7 +171,7 @@ export function LinkMatrix({
                   className={
                     'py-1.5 text-center font-mono text-xs tabular-nums ' +
                     (counts[col.id] === 0
-                      ? 'text-[hsl(var(--signal-red-text))]'
+                      ? 'text-[hsl(var(--signal-amber-text))]'
                       : 'text-muted-foreground')
                   }
                 >

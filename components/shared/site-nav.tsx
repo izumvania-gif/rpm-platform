@@ -15,6 +15,7 @@ import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { KeyboardShortcutsOverlay } from '@/components/shared/keyboard-shortcuts-overlay'
 import { PersonaSwitcher } from '@/components/shared/persona-switcher'
 import { PublicHeader } from '@/components/shared/public-header'
+import { RutokenLogo } from '@/components/shared/rutoken-logo'
 
 interface NavLink {
   href: string
@@ -104,8 +105,14 @@ export function SiteNav({ autoStage = 'full' }: { autoStage?: NavStage }) {
       <div className="h-1 bg-primary" />
       <div className="border-b bg-background">
         <div className="container flex h-16 items-center justify-between gap-4">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+          {/* Логотип компании и имя продукта — разные вещи, поэтому оба, а не
+              один вместо другого: Рутокен отвечает на «чьё это», RPM — на «что
+              это». Разделены волосяной чертой. Логотип красный в светлой теме и
+              светлый в тёмной (`currentColor`, см. RutokenLogo) — оба варианта
+              санкционированы брендбуком, с. 1. */}
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+            <RutokenLogo className="h-4 w-auto text-primary dark:text-foreground" />
+            <span aria-hidden className="h-5 w-px bg-border" />
             <span className="font-display text-lg font-bold tracking-tight">
               RPM<span className="text-primary">.</span>
             </span>

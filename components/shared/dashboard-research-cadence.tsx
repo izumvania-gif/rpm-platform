@@ -52,10 +52,10 @@ function Sparkline({ data }: { data: MonthlyResearchCount[] }) {
   const areaPath = `${linePath} L${points[points.length - 1].x},${baselineY} L${points[0].x},${baselineY} Z`
   const last = points[points.length - 1]
   const lastIsEmpty = last.count === 0
-  // Not a distinct marker color for the "gap" case — this app's brand
-  // primary is already red, so a signal-red marker wouldn't read as
-  // different from the line itself. The text note below the chart (icon +
-  // label, not color alone) carries that signal instead.
+  // Not a distinct marker color for the "gap" case — the line itself is drawn
+  // in the brand primary, so a second colored dot on it would read as part of
+  // the series rather than as a warning. The text note below the chart (icon +
+  // label, not color alone) carries that signal instead, in amber.
 
   return (
     <div>
@@ -127,7 +127,7 @@ function Sparkline({ data }: { data: MonthlyResearchCount[] }) {
       </table>
 
       {lastIsEmpty && (
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-[hsl(var(--signal-red-text))]">
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-[hsl(var(--signal-amber-text))]">
           <CircleAlert size={13} />В этом месяце пока нет исследований.
         </p>
       )}

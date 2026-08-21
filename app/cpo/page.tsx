@@ -242,7 +242,7 @@ export default async function CpoViewPage({ searchParams }: { searchParams: { vi
                     <td className="py-2 px-3 text-center tabular-nums">{row.stuckHypotheses}</td>
                     <td className="py-2 px-3 text-center">
                       {row.staleResearch ? (
-                        <Badge variant="red">да</Badge>
+                        <Badge variant="amber">да</Badge>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}

@@ -23,6 +23,7 @@ import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface HypothesisFormValues {
   statement?: string
+  validationCriterion?: string | null
   status?: HypothesisStatus
   priority?: number | null
   tags?: string[]
@@ -102,6 +103,21 @@ export function HypothesisForm({
             name="statement"
             required
             defaultValue={defaultValues?.statement}
+          />
+        </div>
+        {/* Стоит сразу под формулировкой, а не в конце формы: критерий имеет
+            смысл записывать, пока гипотеза ещё формулируется. Не required —
+            заставить придумать критерий здесь и сейчас значило бы получать
+            отписки, а пустое поле честно говорит «критерия нет» и именно так
+            и считается в чек-листе готовности. */}
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="validationCriterion">Критерий проверки</Label>
+          <Textarea
+            id="validationCriterion"
+            name="validationCriterion"
+            rows={2}
+            placeholder="При каком результате считаем гипотезу подтверждённой"
+            defaultValue={defaultValues?.validationCriterion ?? ''}
           />
         </div>
         <div className="space-y-2">

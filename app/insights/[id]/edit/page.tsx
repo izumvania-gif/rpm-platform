@@ -14,14 +14,16 @@ export default async function EditInsightPage({
   searchParams: { error?: string }
 }) {
   const userId = getCurrentUserId()
-  const [insight, products, segments, jtbds, researches, conversations] = await Promise.all([
-    prisma.insight.findFirst({ where: { id: params.id, userId } }),
-    prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
-    prisma.segment.findMany({ where: { userId } }),
-    prisma.jTBD.findMany({ where: { userId } }),
-    prisma.research.findMany({ where: { userId } }),
-    prisma.conversation.findMany({ where: { userId } }),
-  ])
+  const [insight, products, segments, jtbds, researches, conversations, hypotheses] =
+    await Promise.all([
+      prisma.insight.findFirst({ where: { id: params.id, userId } }),
+      prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+      prisma.segment.findMany({ where: { userId } }),
+      prisma.jTBD.findMany({ where: { userId } }),
+      prisma.research.findMany({ where: { userId } }),
+      prisma.conversation.findMany({ where: { userId } }),
+      prisma.hypothesis.findMany({ where: { userId } }),
+    ])
 
   if (!insight) notFound()
 
@@ -37,6 +39,7 @@ export default async function EditInsightPage({
         jtbds={jtbds}
         researches={researches}
         conversations={conversations}
+        hypotheses={hypotheses}
         defaultValues={insight}
         error={searchParams.error}
         submitLabel="Сохранить"

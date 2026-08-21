@@ -18,7 +18,7 @@ async function otherUser() {
 
 async function seedChain() {
   const product = await createTestProduct()
-  const [segment, jtbd, feature, rtb] = await Promise.all([
+  const [segment, jtbd, feature, rtb, hypothesis] = await Promise.all([
     prisma.segment.create({
       data: { name: 'Банки', slug: 'banki', productId: product.id, userId: DEFAULT_USER_ID },
     }),
@@ -36,8 +36,15 @@ async function seedChain() {
     prisma.rTB.create({
       data: { statement: 'Выпуск за 15 минут', productId: product.id, userId: DEFAULT_USER_ID },
     }),
+    prisma.hypothesis.create({
+      data: {
+        statement: 'Если выпускать удалённо, банки согласятся на пилот',
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+      },
+    }),
   ])
-  return { product, segment, jtbd, feature, rtb }
+  return { product, segment, jtbd, feature, rtb, hypothesis }
 }
 
 describe('setLink', () => {
@@ -77,6 +84,50 @@ describe('setLink', () => {
       select: { features: { select: { id: true } } },
     })
     expect(linked?.features.map((f) => f.id)).toEqual([feature.id])
+  })
+
+  it('connects a feature to a hypothesis', async () => {
+    const { feature, hypothesis } = await seedChain()
+    expect(await setLink('hypothesis-feature', feature.id, hypothesis.id, true)).toEqual({
+      ok: true,
+    })
+    const linked = await prisma.hypothesis.findUnique({
+      where: { id: hypothesis.id },
+      select: { features: { select: { id: true } } },
+    })
+    expect(linked?.features.map((f) => f.id)).toEqual([feature.id])
+
+    expect(await setLink('hypothesis-feature', feature.id, hypothesis.id, false)).toEqual({
+      ok: true,
+    })
+    const unlinked = await prisma.hypothesis.findUnique({
+      where: { id: hypothesis.id },
+      select: { features: { select: { id: true } } },
+    })
+    expect(unlinked?.features).toEqual([])
+  })
+
+  it('refuses a hypothesis belonging to another tenant', async () => {
+    const { feature } = await seedChain()
+    const other = await otherUser()
+    const otherProduct = await prisma.product.create({
+      data: { name: 'Чужой 3', slug: 'chuzhoy-links-3', userId: other.id },
+    })
+    const otherHypothesis = await prisma.hypothesis.create({
+      data: { statement: 'Чужая гипотеза', productId: otherProduct.id, userId: other.id },
+    })
+
+    // Same shape as the segment case above: the row is ours, so a guard on the
+    // row alone would attach somebody else's hypothesis to our feature.
+    expect(await setLink('hypothesis-feature', feature.id, otherHypothesis.id, true)).toEqual({
+      ok: false,
+      error: NOT_OWNED_ERROR,
+    })
+    const linked = await prisma.feature.findUnique({
+      where: { id: feature.id },
+      select: { hypotheses: { select: { id: true } } },
+    })
+    expect(linked?.hypotheses).toEqual([])
   })
 
   it('is idempotent — connecting twice leaves one link, not a duplicate', async () => {

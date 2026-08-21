@@ -22,11 +22,12 @@ const cols: MatrixAxisItem[] = [
 ]
 
 describe('LINK_MATRICES', () => {
-  it('covers exactly the three many-to-many relations in the schema', () => {
+  it('covers exactly the four many-to-many relations in the schema', () => {
     expect(LINK_MATRICES.map((m) => m.kind)).toEqual([
       'segment-jtbd',
       'jtbd-feature',
       'feature-rtb',
+      'hypothesis-feature',
     ])
   })
 
@@ -35,7 +36,7 @@ describe('LINK_MATRICES', () => {
     // in OWNERSHIP would throw at runtime, not at build time.
     for (const meta of LINK_MATRICES) {
       expect(['jtbd', 'feature']).toContain(meta.rowModel)
-      expect(['segment', 'jtbd', 'rtb']).toContain(meta.colModel)
+      expect(['segment', 'jtbd', 'rtb', 'hypothesis']).toContain(meta.colModel)
     }
   })
 

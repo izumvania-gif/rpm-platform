@@ -1,5 +1,6 @@
 import {
   HypothesisStatus,
+  InsightStance,
   ProductResourceKind,
   ResearchStatus,
   ResearchType,
@@ -125,4 +126,23 @@ export const productResourceKindLabels: Record<ProductResourceKind, string> = {
   CONFLUENCE_LINK: 'Confluence',
   JIRA_LINK: 'Jira',
   OTHER: 'Другое',
+}
+
+// Сторона инсайта относительно гипотезы (фаза 2 редизайна 2.1). Зелёный и
+// красный, а не два нейтральных тона: это и есть «подтверждённое» против
+// «опровергнутого» — ровно те два значения, под которые заведены тона в
+// фазе 1. Порядок «за, потом против» — как в полосе баланса на карточке.
+export const insightStanceLabels: Record<InsightStance, string> = {
+  SUPPORTS: 'Подтверждает',
+  CONTRADICTS: 'Опровергает',
+}
+
+export const insightStanceOrder: InsightStance[] = [
+  InsightStance.SUPPORTS,
+  InsightStance.CONTRADICTS,
+]
+
+export const insightStanceTone: Record<InsightStance, SignalTone> = {
+  SUPPORTS: 'green',
+  CONTRADICTS: 'red',
 }

@@ -16,8 +16,8 @@
 // unattached" verdict are unit tested without a database. The writes live in
 // lib/actions/links.ts.
 
-/** The three implicit many-to-many relations in schema.prisma. */
-export type LinkKind = 'segment-jtbd' | 'jtbd-feature' | 'feature-rtb'
+/** The four implicit many-to-many relations in schema.prisma. */
+export type LinkKind = 'segment-jtbd' | 'jtbd-feature' | 'feature-rtb' | 'hypothesis-feature'
 
 export interface LinkMatrixMeta {
   kind: LinkKind
@@ -29,7 +29,7 @@ export interface LinkMatrixMeta {
    * and sideways badly, so the axis expected to grow is the vertical one.
    */
   rowModel: 'jtbd' | 'feature'
-  colModel: 'segment' | 'jtbd' | 'rtb'
+  colModel: 'segment' | 'jtbd' | 'rtb' | 'hypothesis'
   rowHeader: string
   colHeader: string
   /** Named precisely so an empty axis says which module to go fill. */
@@ -66,6 +66,19 @@ export const LINK_MATRICES: LinkMatrixMeta[] = [
     rowHeader: 'Фича',
     colHeader: 'RTB',
     emptyMessage: 'Нужны и фичи, и RTB — сейчас есть не всё.',
+  },
+  {
+    kind: 'hypothesis-feature',
+    title: 'Фичи × Гипотезы',
+    hint: 'Какую гипотезу отрабатывает фича. Фича без гипотезы — решение без вопроса, на который оно отвечает.',
+    // Строка — фича, как и у двух матриц выше: так у всех трёх «фичевых»
+    // матриц одна и та же вертикальная ось, и их можно читать подряд, не
+    // переучиваясь на каждой.
+    rowModel: 'feature',
+    colModel: 'hypothesis',
+    rowHeader: 'Фича',
+    colHeader: 'Гипотеза',
+    emptyMessage: 'Нужны и фичи, и гипотезы — сейчас есть не всё.',
   },
 ]
 

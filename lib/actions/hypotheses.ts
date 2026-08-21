@@ -24,6 +24,7 @@ const hypothesisSchema = z.object({
   jtbdId: optionalString(),
   segmentId: optionalString(),
   researchId: optionalString(),
+  validationCriterion: optionalString(),
 })
 
 function parseHypothesisForm(formData: FormData) {
@@ -36,6 +37,7 @@ function parseHypothesisForm(formData: FormData) {
     jtbdId: formData.get('jtbdId'),
     segmentId: formData.get('segmentId'),
     researchId: formData.get('researchId'),
+    validationCriterion: formData.get('validationCriterion'),
   })
 }
 
@@ -147,13 +149,24 @@ export async function createHypothesisQuick(
 
 export async function updateHypothesisField(
   id: string,
-  field: 'statement' | 'priority' | 'tags',
+  field: 'statement' | 'priority' | 'tags' | 'validationCriterion',
   value: string
 ): Promise<InlineFieldResult> {
   const denied = await denyUnowned('hypothesis', id, getCurrentUserId())
   if (denied) return denied
 
   switch (field) {
+    // Пустая строка — это null, а не пустой текст: «критерия нет» и «критерий
+    // задан пустым» должны быть одним состоянием, иначе чек-лист готовности
+    // (фаза 3) засчитает второе как заполненное.
+    case 'validationCriterion': {
+      const criterion = value.trim()
+      await prisma.hypothesis.update({
+        where: { id },
+        data: { validationCriterion: criterion || null },
+      })
+      break
+    }
     case 'statement': {
       const statement = value.trim()
       if (!statement) return { ok: false, error: 'Формулировка не может быть пустой' }

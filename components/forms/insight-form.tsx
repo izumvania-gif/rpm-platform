@@ -1,7 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import type { Conversation, JTBD, Product, Research, Segment } from '@prisma/client'
+import type {
+  Conversation,
+  Hypothesis,
+  InsightStance,
+  JTBD,
+  Product,
+  Research,
+  Segment,
+} from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +21,8 @@ import {
   InlineCreateSegment,
 } from '@/components/shared/inline-create'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
+import { insightStanceLabels, insightStanceOrder } from '@/lib/labels'
+import { hypothesisKeyPhrase } from '@/lib/key-phrase'
 
 export interface InsightFormValues {
   text?: string
@@ -22,6 +32,8 @@ export interface InsightFormValues {
   jtbdId?: string | null
   researchId?: string | null
   conversationId?: string | null
+  hypothesisId?: string | null
+  stance?: InsightStance | null
 }
 
 export function InsightForm({
@@ -32,6 +44,7 @@ export function InsightForm({
   jtbds,
   researches,
   conversations,
+  hypotheses,
   error,
   submitLabel,
   redirectTo,
@@ -43,6 +56,7 @@ export function InsightForm({
   jtbds: JTBD[]
   researches: Research[]
   conversations: Conversation[]
+  hypotheses: Hypothesis[]
   error?: string
   submitLabel: string
   /** Where to land after saving; the action falls back to its own page. */
@@ -84,6 +98,10 @@ export function InsightForm({
   const productConversations = useMemo(
     () => conversations.filter((c) => c.productId === productId),
     [conversations, productId]
+  )
+  const productHypotheses = useMemo(
+    () => hypotheses.filter((h) => h.productId === productId),
+    [hypotheses, productId]
   )
 
   return (
@@ -196,6 +214,36 @@ export function InsightForm({
             {productConversations.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.title}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {/* Гипотеза и сторона — одна мысль, поэтому стоят рядом. Сторона
+            спрашивается, а не выводится из текста: определить «за» или
+            «против» по формулировке значило бы угадать за пользователя, а
+            полоса баланса на карточке гипотезы считает именно эти голоса. */}
+        <div className="space-y-2">
+          <Label htmlFor="hypothesisId">Гипотеза</Label>
+          <Select
+            id="hypothesisId"
+            name="hypothesisId"
+            defaultValue={defaultValues?.hypothesisId ?? ''}
+          >
+            <option value="">Не указана</option>
+            {productHypotheses.map((h) => (
+              <option key={h.id} value={h.id}>
+                {hypothesisKeyPhrase(h.statement)}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="stance">Подтверждает или опровергает</Label>
+          <Select id="stance" name="stance" defaultValue={defaultValues?.stance ?? ''}>
+            <option value="">Не выбрано</option>
+            {insightStanceOrder.map((s) => (
+              <option key={s} value={s}>
+                {insightStanceLabels[s]}
               </option>
             ))}
           </Select>

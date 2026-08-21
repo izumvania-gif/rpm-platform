@@ -17,18 +17,18 @@ export default async function NewInsightPage({
   }
 }) {
   const userId = getCurrentUserId()
-  const [products, segments, jtbds, researches, conversations, duplicateSource] = await Promise.all(
-    [
+  const [products, segments, jtbds, researches, conversations, hypotheses, duplicateSource] =
+    await Promise.all([
       prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
       prisma.segment.findMany({ where: { userId } }),
       prisma.jTBD.findMany({ where: { userId } }),
       prisma.research.findMany({ where: { userId } }),
       prisma.conversation.findMany({ where: { userId } }),
+      prisma.hypothesis.findMany({ where: { userId } }),
       searchParams.duplicateFrom
         ? prisma.insight.findFirst({ where: { id: searchParams.duplicateFrom, userId } })
         : null,
-    ]
-  )
+    ])
 
   return (
     <main className="container py-12">
@@ -46,6 +46,7 @@ export default async function NewInsightPage({
           jtbds={jtbds}
           researches={researches}
           conversations={conversations}
+          hypotheses={hypotheses}
           defaultValues={
             duplicateSource
               ? {

@@ -7,11 +7,11 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LinkMatrix } from '@/components/shared/link-matrix'
 import { LINK_MATRICES, linkKey, type MatrixAxisItem } from '@/lib/link-matrix'
-import { jtbdKeyPhrase } from '@/lib/key-phrase'
+import { jtbdKeyPhrase, hypothesisKeyPhrase } from '@/lib/key-phrase'
 
 export const dynamic = 'force-dynamic'
 
-// Связи — the three many-to-many relations of one product as three grids.
+// Связи — the four many-to-many relations of one product as four grids.
 //
 // Every other entry surface in the app creates records; this one creates the
 // links between them, which is the half the discovery chain, the gaps report
@@ -23,7 +23,7 @@ export default async function ProductLinksPage({ params }: { params: { id: strin
   const product = await prisma.product.findFirst({ where: { id: params.id, userId } })
   if (!product) notFound()
 
-  const [segments, jtbds, features, rtbs] = await Promise.all([
+  const [segments, jtbds, features, rtbs, hypotheses] = await Promise.all([
     prisma.segment.findMany({
       where: { productId: product.id },
       select: { id: true, name: true },
@@ -41,10 +41,16 @@ export default async function ProductLinksPage({ params }: { params: { id: strin
         name: true,
         jtbds: { select: { id: true } },
         rtbs: { select: { id: true } },
+        hypotheses: { select: { id: true } },
       },
       orderBy: { name: 'asc' },
     }),
     prisma.rTB.findMany({
+      where: { productId: product.id },
+      select: { id: true, statement: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.hypothesis.findMany({
       where: { productId: product.id },
       select: { id: true, statement: true },
       orderBy: { createdAt: 'asc' },
@@ -68,16 +74,26 @@ export default async function ProductLinksPage({ params }: { params: { id: strin
     href: `/features/${f.id}`,
   }))
   const rtbAxis: MatrixAxisItem[] = rtbs.map((r) => ({ id: r.id, label: r.statement }))
+  // Гипотеза — тот же шаблонный текст, что и JTBD, и здесь её так же
+  // сканируют, а не читают, поэтому ключевая фраза и полный текст в title.
+  const hypothesisAxis: MatrixAxisItem[] = hypotheses.map((h) => ({
+    id: h.id,
+    label: hypothesisKeyPhrase(h.statement),
+    fullLabel: h.statement,
+    href: `/hypotheses/${h.id}`,
+  }))
 
   const links = {
     'segment-jtbd': jtbds.flatMap((j) => j.segments.map((s) => linkKey(j.id, s.id))),
     'jtbd-feature': features.flatMap((f) => f.jtbds.map((j) => linkKey(f.id, j.id))),
     'feature-rtb': features.flatMap((f) => f.rtbs.map((r) => linkKey(f.id, r.id))),
+    'hypothesis-feature': features.flatMap((f) => f.hypotheses.map((h) => linkKey(f.id, h.id))),
   }
   const axes = {
     'segment-jtbd': { rows: jtbdAxis, cols: segmentAxis },
     'jtbd-feature': { rows: featureAxis, cols: jtbdAxis },
     'feature-rtb': { rows: featureAxis, cols: rtbAxis },
+    'hypothesis-feature': { rows: featureAxis, cols: hypothesisAxis },
   }
 
   return (

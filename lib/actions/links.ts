@@ -53,6 +53,12 @@ export async function setLink(
         data: { rtbs: { [op]: { id: colId } } },
       })
       break
+    case 'hypothesis-feature':
+      await prisma.feature.update({
+        where: { id: rowId },
+        data: { hypotheses: { [op]: { id: colId } } },
+      })
+      break
   }
 
   // Everything that counts attachments rather than rows.
@@ -60,6 +66,7 @@ export async function setLink(
   revalidatePath('/features')
   revalidatePath('/marketing')
   revalidatePath('/segments')
+  revalidatePath('/hypotheses')
   revalidatePath('/reports/gaps')
   revalidatePath('/reports/segments-jtbd')
   revalidatePath('/')

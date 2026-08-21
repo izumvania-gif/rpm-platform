@@ -16,6 +16,15 @@ export function optionalDate(schema: z.ZodDate = z.coerce.date()) {
   return z.preprocess((val) => (val === '' || val == null ? undefined : val), schema.optional())
 }
 
+// Первое опциональное перечисление в проекте появилось у Insight.stance
+// (фаза 2 редизайна 2.1). Отдельный хелпер, а не optionalString с enum'ом
+// внутри: у optionalString сигнатура принимает z.ZodString, и перечисление
+// туда не пролезает по типам. Смысл тот же — пустой <select> означает «не
+// выбрано», то есть undefined, а не провал валидации.
+export function optionalEnum<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((val) => (val === '' || val == null ? undefined : val), schema.optional())
+}
+
 // Shared return shape for the inline-editable-field Server Actions (§2.9.5) —
 // one per model, each switching over a whitelisted set of field names.
 export type InlineFieldResult = { ok: true } | { ok: false; error: string }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
   optionalDate,
+  optionalEnum,
   optionalNumber,
   optionalString,
   toLines,
@@ -46,6 +47,30 @@ describe('optionalDate', () => {
   it('coerces a real date string', () => {
     const result = schema.parse({ value: '2026-01-15' })
     expect(result.value).toBeInstanceOf(Date)
+  })
+})
+
+describe('optionalEnum', () => {
+  const Stance = z.enum(['SUPPORTS', 'CONTRADICTS'])
+  const schema = z.object({ value: optionalEnum(Stance) })
+
+  it('treats an empty string as absent rather than as a validation failure', () => {
+    // Это и есть причина существования хелпера: пустой <select> означает
+    // «сторона не выбрана», а не «пользователь ошибся».
+    expect(schema.parse({ value: '' })).toEqual({ value: undefined })
+  })
+
+  it('treats null and undefined as absent', () => {
+    expect(schema.parse({ value: null })).toEqual({ value: undefined })
+    expect(schema.parse({})).toEqual({ value: undefined })
+  })
+
+  it('passes a real member through', () => {
+    expect(schema.parse({ value: 'SUPPORTS' })).toEqual({ value: 'SUPPORTS' })
+  })
+
+  it('still rejects a value that is not a member', () => {
+    expect(schema.safeParse({ value: 'MAYBE' }).success).toBe(false)
   })
 })
 

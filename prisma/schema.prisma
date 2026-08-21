@@ -53,8 +53,8 @@ model Product {
   // company dashboard (§4 of the same plan); the public route falls back to
   // a trimmed `description` when it's empty.
   ownerId       String?
-  owner         Person?  @relation(fields: [ownerId], references: [id], onDelete: SetNull)
-  publicSummary String?  @db.Text
+  owner         Person? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  publicSummary String? @db.Text
 
   // CPO strategic grouping (plans/platform-views-plan.md §11) — a separate
   // axis from userId/ownerId, same "cross-product organizational unit"
@@ -211,16 +211,16 @@ enum JtbdJobType {
 
 // JTBD (Jobs-to-be-Done)
 model JTBD {
-  id          String     @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String
   category    String
-  description String?    @db.Text
+  description String?     @db.Text
   jobType     JtbdJobType @default(SMALL_JOB)
-  confirmed   Boolean    @default(false)
+  confirmed   Boolean     @default(false)
   tags        String[]
-  pinned      Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  pinned      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -315,6 +315,16 @@ model Hypothesis {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
+  // «При каком результате мы считаем гипотезу подтверждённой» — записывается
+  // до проверки, а не после (фаза 2 редизайна 2.1). Без него статус
+  // CONFIRMED — это мнение: критерий превращает его в проверяемый факт и
+  // кормит чек-лист готовности на карточке гипотезы (фаза 3).
+  //
+  // Опционально и без значения по умолчанию намеренно: подставить сюда текст
+  // за пользователя значило бы придумать критерий, которого никто не
+  // формулировал. Пустое поле — честный ответ «критерия нет».
+  validationCriterion String? @db.Text
+
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -331,6 +341,16 @@ model Hypothesis {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   statusChanges HypothesisStatusChange[]
+
+  // Доказательства (фаза 2 редизайна 2.1). До этого инсайт можно было
+  // привязать к сегменту, JTBD, исследованию и разговору — то есть ко всему,
+  // кроме утверждения, которое он подтверждает или опровергает.
+  insights Insight[]
+
+  // Фичи, которыми гипотеза отрабатывается. Многие-ко-многим, потому что
+  // одна фича закрывает несколько гипотез, а одна гипотеза может требовать
+  // нескольких фич — единственной FK тут не обойтись.
+  features Feature[]
 }
 
 enum HypothesisStatus {
@@ -454,6 +474,7 @@ model Feature {
   jtbds        JTBD[]
   rtbs         RTB[]
   roadmapItems RoadmapItem[]
+  hypotheses   Hypothesis[]
 }
 
 // RTB (Reasons To Believe) — маркетинговые обещания, опирающиеся на фичи
@@ -490,7 +511,7 @@ model Insight {
   segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
 
   jtbdId String?
-  jtbd   JTBD? @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
+  jtbd   JTBD?   @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
 
   researchId String?
   research   Research? @relation(fields: [researchId], references: [id], onDelete: SetNull)
@@ -498,8 +519,25 @@ model Insight {
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 
+  // Гипотеза, которую этот инсайт подтверждает или опровергает (фаза 2
+  // редизайна 2.1). SetNull, как и остальные связи инсайта: удаление
+  // гипотезы не должно уносить с собой цитату из разговора — сказанное
+  // клиентом остаётся фактом независимо от судьбы утверждения.
+  hypothesisId String?
+  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id], onDelete: SetNull)
+
+  // За или против. Nullable намеренно, и это не «ещё не заполнили»: инсайт
+  // может быть просто наблюдением, не занимающим сторону, и заставлять его
+  // выбирать значило бы получать выдуманные голоса в полосе баланса.
+  stance InsightStance?
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum InsightStance {
+  SUPPORTS
+  CONTRADICTS
 }
 
 // --- 2.0 (plans/platform-views-plan.md) ---
@@ -554,10 +592,10 @@ model RoadmapItem {
   status      RoadmapStatus     @default(PLANNED)
   quarter     String? // свободный текст "2026 Q3" — не date-range picker,
   // пока реальное использование не покажет, что нужен более строгий формат
-  visibility RoadmapVisibility @default(INTERNAL)
-  pinned     Boolean           @default(false)
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  visibility  RoadmapVisibility @default(INTERNAL)
+  pinned      Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   // Gantt view (/pm's "Гант" tab, added after the platform-views-plan's 8
   // phases shipped) — trackGroup/track are free-text lanes, same philosophy
@@ -566,14 +604,14 @@ model RoadmapItem {
   // nests track under a block (e.g. "Разработка" containing "Фронт"/"Бэк"),
   // both optional so existing items without them still work — they fall
   // back to "Без блока"/"Без трека" groups on the chart.
-  trackGroup String?
-  track      String?
-  startDate  DateTime?
-  endDate    DateTime?
+  trackGroup  String?
+  track       String?
+  startDate   DateTime?
+  endDate     DateTime?
   // A milestone renders as a full-height vertical line labeled with the
   // item's title (e.g. "v2.5") instead of a bar — startDate is the
   // marker's date, endDate/track/trackGroup are ignored for milestones.
-  isMilestone Boolean @default(false)
+  isMilestone Boolean   @default(false)
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -585,7 +623,7 @@ model RoadmapItem {
   feature   Feature? @relation(fields: [featureId], references: [id], onDelete: SetNull)
 
   jtbdId String?
-  jtbd   JTBD? @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
+  jtbd   JTBD?   @relation(fields: [jtbdId], references: [id], onDelete: SetNull)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

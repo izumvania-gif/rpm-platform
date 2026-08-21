@@ -6,6 +6,7 @@ import {
   HypothesisStatus,
   ProductResourceKind,
   JtbdJobType,
+  InsightStance,
 } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { DEFAULT_USER_ID } from '../lib/current-user'
@@ -414,6 +415,9 @@ async function seedDemoProduct(userId: string) {
         'защищённом hardware-контуре, то зрелые финтех/банковские клиенты с высокими требованиями ' +
         'ИБ выберут нас вместо самописного решения.',
       status: HypothesisStatus.CONFIRMED,
+      validationCriterion:
+        'Не менее 3 из 5 банков топ-30 на интервью называют hardware-хранение ключей ' +
+        'обязательным требованием, а не пожеланием.',
       priority: 1,
       tags: ['hsm', 'дифференциация'],
       pinned: true,
@@ -441,6 +445,9 @@ async function seedDemoProduct(userId: string) {
         'CMP/EST/ACME/WSTEP, смена сертификатов не реже раза в год), то это станет решающим ' +
         'фактором при выборе для организаций КИИ из госсектора.',
       status: HypothesisStatus.CONFIRMED,
+      validationCriterion:
+        'В требованиях хотя бы двух госзакупок КИИ прямо упомянут Приказ №117 и поддержка ' +
+        'CMP/EST/ACME/WSTEP.',
       priority: 1,
       tags: ['фстэк', 'кии'],
       productId: product.id,
@@ -466,6 +473,9 @@ async function seedDemoProduct(userId: string) {
         "Let's Encrypt) по доменным именам, то онбординг для облачных и гибридных сред " +
         'упростится, и незрелый сегмент облачных провайдеров начнёт проявлять интерес.',
       status: HypothesisStatus.IN_REVIEW,
+      validationCriterion:
+        'Хотя бы 2 облачных провайдера доходят до пилота после демонстрации безагентского ' +
+        'сканирования.',
       priority: 2,
       tags: ['сканирование', 'roadmap'],
       productId: product.id,
@@ -511,6 +521,9 @@ async function seedDemoProduct(userId: string) {
         'сертификата против стоимости внедрения CLM), то это ускорит принятие решения у ' +
         '«полузрелых» клиентов, которые ещё не до конца осознали потребность.',
       status: HypothesisStatus.REJECTED,
+      validationCriterion:
+        'Средний срок от первой встречи до решения сокращается хотя бы на четверть у сделок, ' +
+        'где показывали ROI-калькулятор.',
       priority: 4,
       tags: ['roi', 'презентация'],
       productId: product.id,
@@ -751,6 +764,8 @@ async function seedDemoProduct(userId: string) {
       productId: product.id,
       segmentId: segments.banks.id,
       jtbdId: jtbds.inventory.id,
+      hypothesisId: h1.id,
+      stance: InsightStance.SUPPORTS,
       researchId: researches.interviews.id,
       userId,
       createdAt: daysAgo(58),
@@ -764,6 +779,8 @@ async function seedDemoProduct(userId: string) {
       tags: ['вывод', 'бюджет'],
       productId: product.id,
       segmentId: segments.banks.id,
+      hypothesisId: h2.id,
+      stance: InsightStance.SUPPORTS,
       researchId: researches.interviews.id,
       userId,
       createdAt: daysAgo(58),
@@ -778,10 +795,70 @@ async function seedDemoProduct(userId: string) {
       productId: product.id,
       segmentId: segments.industry.id,
       jtbdId: jtbds.infosec.id,
+      hypothesisId: h2.id,
+      stance: InsightStance.CONTRADICTS,
       researchId: researches.interviews.id,
       userId,
       createdAt: daysAgo(52),
     },
+  })
+
+  // Доказательства с обеих сторон — чтобы полоса баланса на карточке гипотезы
+  // показывала не единогласие, а реальный разброс: у h2 три «за» и одно
+  // «против», и это честнее, чем демо, где все голоса совпадают.
+  await prisma.insight.create({
+    data: {
+      text:
+        '«Ключи в софте нам не согласует ИБ. Либо HSM, либо разговора нет.» — архитектор ИБ, ' +
+        'банк из топ-10.',
+      tags: ['цитата', 'hsm'],
+      productId: product.id,
+      segmentId: segments.banks.id,
+      researchId: researches.interviews.id,
+      hypothesisId: h2.id,
+      stance: InsightStance.SUPPORTS,
+      userId,
+      createdAt: daysAgo(50),
+    },
+  })
+  await prisma.insight.create({
+    data: {
+      text:
+        '«Мы уже купили HSM под другую задачу, но ключи CLM всё равно храним в софте — ' +
+        'интеграция дороже, чем риск.» — руководитель ИТ, банк из топ-30.',
+      tags: ['цитата', 'hsm'],
+      productId: product.id,
+      segmentId: segments.banks.id,
+      researchId: researches.interviews.id,
+      hypothesisId: h2.id,
+      stance: InsightStance.SUPPORTS,
+      userId,
+      createdAt: daysAgo(47),
+    },
+  })
+  await prisma.insight.create({
+    data: {
+      text:
+        'Вывод: ROI-калькулятор не влияет на скорость решения — из шести сделок, где его ' +
+        'показывали, срок сократился только в одной.',
+      tags: ['вывод', 'roi'],
+      productId: product.id,
+      researchId: researches.survey.id,
+      hypothesisId: h5.id,
+      stance: InsightStance.CONTRADICTS,
+      userId,
+      createdAt: daysAgo(5),
+    },
+  })
+
+  // Гипотеза ↔ фича: чем гипотеза отрабатывается, если подтвердится.
+  await prisma.hypothesis.update({
+    where: { id: h1.id },
+    data: { features: { connect: [{ id: featureInventory.id }] } },
+  })
+  await prisma.hypothesis.update({
+    where: { id: h4.id },
+    data: { features: { connect: [{ id: featureProtocols.id }] } },
   })
 
   console.log('Демо-продукт «Рутокен CLM» создан.')

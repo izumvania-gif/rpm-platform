@@ -1,14 +1,14 @@
 'use server'
 
 import { z } from 'zod'
-import type { Insight } from '@prisma/client'
+import { InsightStance, type Insight } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { safeRedirectPath } from '@/lib/safe-redirect'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
-import { optionalString, toTagsArray, type InlineFieldResult } from '@/lib/validation'
+import { optionalString, optionalEnum, toTagsArray, type InlineFieldResult } from '@/lib/validation'
 
 const insightSchema = z.object({
   text: z.string().trim().min(1, 'Текст обязателен'),
@@ -18,6 +18,10 @@ const insightSchema = z.object({
   jtbdId: optionalString(),
   researchId: optionalString(),
   conversationId: optionalString(),
+  hypothesisId: optionalString(),
+  // Пустая строка из <select> — это «сторона не выбрана», то есть null, а не
+  // ошибка валидации: инсайт имеет право быть просто наблюдением.
+  stance: optionalEnum(z.nativeEnum(InsightStance)),
 })
 
 function parseInsightForm(formData: FormData) {
@@ -29,6 +33,8 @@ function parseInsightForm(formData: FormData) {
     jtbdId: formData.get('jtbdId'),
     researchId: formData.get('researchId'),
     conversationId: formData.get('conversationId'),
+    hypothesisId: formData.get('hypothesisId'),
+    stance: formData.get('stance'),
   })
 }
 

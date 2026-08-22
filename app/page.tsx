@@ -15,9 +15,6 @@ import { DashboardHypothesisFunnel } from '@/components/shared/dashboard-hypothe
 import { DashboardResearchCadence } from '@/components/shared/dashboard-research-cadence'
 import { productModule, moduleByHref } from '@/lib/module-meta'
 import { stageLabels } from '@/lib/labels'
-import { ModuleRail } from '@/components/shared/module-rail'
-import { getNavStage } from '@/lib/nav-stage'
-import { isBaseModule } from '@/lib/nav-disclosure'
 import {
   getGapsCounts,
   getHypothesisStatusCounts,
@@ -52,15 +49,6 @@ export default async function Home() {
 
   const [
     productCount,
-    researchCount,
-    segmentCount,
-    jtbdCount,
-    hypothesisCount,
-    conversationCount,
-    competitorCount,
-    featureCount,
-    rtbCount,
-    insightCount,
     pinnedResearch,
     pinnedSegments,
     pinnedJtbds,
@@ -81,16 +69,11 @@ export default async function Home() {
     recentRTBs,
     recentInsights,
   ] = await Promise.all([
+    // Только продукты: остальные девять счётчиков existed ради плитки
+    // разделов, которую убрала фаза 6 (меню-цепочка теперь всегда на виду).
+    // Девять запросов на каждый рендер дашборда — не та цена, которую стоит
+    // платить за мёртвые переменные.
     prisma.product.count({ where: { userId } }),
-    prisma.research.count({ where: { userId } }),
-    prisma.segment.count({ where: { userId } }),
-    prisma.jTBD.count({ where: { userId } }),
-    prisma.hypothesis.count({ where: { userId } }),
-    prisma.conversation.count({ where: { userId } }),
-    prisma.competitor.count({ where: { userId } }),
-    prisma.feature.count({ where: { userId } }),
-    prisma.rTB.count({ where: { userId } }),
-    prisma.insight.count({ where: { userId } }),
     prisma.research.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.segment.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
     prisma.jTBD.findMany({ where: { userId, pinned: true }, orderBy: { updatedAt: 'desc' } }),
@@ -278,28 +261,6 @@ export default async function Home() {
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 15)
 
-  const counts: Record<string, number> = {
-    '/products': productCount,
-    '/research': researchCount,
-    '/segments': segmentCount,
-    '/jtbd': jtbdCount,
-    '/hypotheses': hypothesisCount,
-    '/conversations': conversationCount,
-    '/competitors': competitorCount,
-    '/features': featureCount,
-    '/marketing': rtbCount,
-    '/insights': insightCount,
-  }
-
-  // The dashboard already counts every module, so it derives the disclosure
-  // stage from what it has instead of paying getNavStage's extra queries (C1).
-  // Note the rail's counts cover only nav modules — Люди/Департаменты are not
-  // on it — so this asks lib/nav-stage.ts only when the counts say "basic",
-  // which is exactly when the answer could still be wrong.
-  const navStage = Object.entries(counts).some(([href, n]) => n > 0 && !isBaseModule(href))
-    ? 'full'
-    : await getNavStage(userId)
-
   const featuredProduct = recentProducts[0]
 
   return (
@@ -359,8 +320,6 @@ export default async function Home() {
           </CardContent>
         </Card>
       )}
-
-      <ModuleRail counts={counts} autoStage={navStage} />
 
       <div className="mb-8">
         <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>

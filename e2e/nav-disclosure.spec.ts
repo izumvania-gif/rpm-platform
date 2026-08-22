@@ -1,70 +1,67 @@
 import { expect, test } from '@playwright/test'
 
-// Progressive disclosure of the nav (plans/2.0-product-leap-plan.md, C1).
+// Прогрессивное раскрытие меню (plans/2.0-product-leap-plan.md, C1), после
+// перекройки в меню-цепочку (фаза 6 редизайна 2.1).
 //
-// The shared test database is populated, so the derived stage here is always
-// 'full' — a collapsed nav cannot be produced by fixtures. These specs drive
-// the explicit override instead, which is the same rendering path; the
-// derivation itself (and its safety property, that basic mode only ever hides
-// empty modules) is covered in tests/integration/nav-stage.test.ts.
+// Общая тестовая база наполнена, поэтому выводимая стадия здесь всегда
+// 'full' — свёрнутое меню фикстурами не получить. Спекигоняют явный
+// override: это тот же путь отрисовки. Сама деривация и её свойство
+// безопасности («базовый режим скрывает только пустое») проверяются в
+// tests/integration/nav-stage.test.ts.
 
 async function collapseNav(page: import('@playwright/test').Page) {
   await page.addInitScript(() => window.localStorage.setItem('rpm:nav-stage', 'basic'))
 }
 
-test('a collapsed nav shows only the base chain', async ({ page }) => {
+const nav = (page: import('@playwright/test').Page) => page.locator('header nav')
+
+test('a collapsed nav shows only the start of the chain', async ({ page }) => {
   await collapseNav(page)
   await page.goto('/')
 
-  const nav = page.locator('header nav')
-  await expect(nav.getByRole('link', { name: 'Продукты' })).toBeVisible()
-  await expect(nav.getByRole('link', { name: 'Сегменты' })).toBeVisible()
-  await expect(nav.getByRole('link', { name: 'JTBD', exact: true })).toBeVisible()
+  await expect(nav(page).getByRole('link', { name: 'Обзор' })).toBeVisible()
+  await expect(nav(page).getByRole('link', { name: 'Сегменты' })).toBeVisible()
+  await expect(nav(page).getByRole('link', { name: 'JTBD', exact: true })).toBeVisible()
 
-  await expect(nav.getByRole('link', { name: 'Исследования' })).toHaveCount(0)
-  await expect(nav.getByRole('link', { name: 'Маркетинг' })).toHaveCount(0)
+  // Дальше цепочки и групп в базовом режиме нет.
+  await expect(nav(page).getByRole('link', { name: 'Гипотезы' })).toHaveCount(0)
+  await expect(nav(page).getByRole('link', { name: 'Обещания' })).toHaveCount(0)
+  await expect(nav(page).getByRole('link', { name: 'База знаний' })).toHaveCount(0)
 })
 
 test('hiding a link does not hide the route behind it', async ({ page }) => {
   await collapseNav(page)
   await page.goto('/')
-  await expect(page.locator('header nav').getByRole('link', { name: 'Маркетинг' })).toHaveCount(0)
+  await expect(nav(page).getByRole('link', { name: 'Обещания' })).toHaveCount(0)
 
-  // Reachable by URL while collapsed — this is disclosure, not access control.
+  // Доступно по адресу и в свёрнутом виде — это раскрытие, а не право доступа.
   const response = await page.goto('/marketing')
   expect(response?.ok()).toBe(true)
 
-  // And standing on a hidden section puts its tab back, so the nav never hides
-  // the page you are currently looking at.
-  await expect(page.locator('header nav').getByRole('link', { name: 'Маркетинг' })).toBeVisible()
+  // И раздел, на котором стоишь, возвращается в меню: оно не имеет права
+  // спрятать страницу, которую человек сейчас открыл.
+  await expect(nav(page).getByRole('link', { name: 'Обещания' })).toBeVisible()
 })
 
 test('the keyboard shortcut still reaches a hidden section', async ({ page }) => {
   await collapseNav(page)
   await page.goto('/')
-  // `g` then `m` is the Маркетинг shortcut; hiding the tab must not unbind it.
+  // `g` затем `m` — шорткат на /marketing; скрытая вкладка не отвязывает его.
   await page.keyboard.press('g')
   await page.keyboard.press('m')
   await page.waitForURL('/marketing')
 })
 
-test('the rail toggle expands the nav without a reload', async ({ page }) => {
+test('the header toggle expands and collapses the chain without a reload', async ({ page }) => {
   await collapseNav(page)
   await page.goto('/')
+  await expect(nav(page).getByRole('link', { name: 'Гипотезы' })).toHaveCount(0)
 
-  const rail = page.locator('nav[aria-label="Разделы"]')
-  await expect(rail.getByRole('link', { name: /Маркетинг/ })).toHaveCount(0)
+  // Переключатель живёт в шапке: плитку разделов на дашборде фаза 6 убрала,
+  // и это теперь единственное — и всегда доступное — место управления.
+  await page.getByRole('button', { name: 'Все разделы' }).click()
+  await expect(nav(page).getByRole('link', { name: 'Гипотезы' })).toBeVisible()
 
-  await rail.getByRole('button', { name: 'Все разделы' }).click()
-
-  // One click moves both surfaces: the rail gains its module chips and the
-  // header nav gains its tabs, through the shared nav-stage event.
-  await expect(rail.getByRole('link', { name: /Маркетинг/ })).toBeVisible()
-  await expect(page.locator('header nav').getByRole('link', { name: 'Исследования' })).toBeVisible()
-
-  // And back again.
-  await rail.getByRole('button', { name: 'Только основное' }).click()
-  await expect(page.locator('header nav').getByRole('link', { name: 'Исследования' })).toHaveCount(
-    0
-  )
+  await page.getByRole('button', { name: 'Только основное' }).click()
+  await expect(nav(page).getByRole('link', { name: 'Гипотезы' })).toHaveCount(0)
 })

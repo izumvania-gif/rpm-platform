@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { activeProductFilter } from '@/lib/product-context'
 import { buttonVariants } from '@/components/ui/button'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
 import { PinButton } from '@/components/shared/pin-button'
@@ -31,10 +33,16 @@ export default async function FeaturesPage({
     : 'created_desc'
   const userId = getCurrentUserId()
 
+  // Активный продукт (фаза 5 редизайна 2.1). Фильтруется не только сам список,
+  // но и оба пикера над ним: предлагать в фильтре JTBD из другого продукта
+  // значит предлагать выбор, который заведомо ничего не найдёт.
+  const activeProductId = await getActiveProductId(userId)
+
   const [features, jtbds, segments] = await Promise.all([
     prisma.feature.findMany({
       where: {
         userId,
+        ...activeProductFilter(activeProductId),
         ...(searchParams.jtbdId ? { jtbds: { some: { id: searchParams.jtbdId } } } : {}),
         ...(searchParams.segmentId
           ? { jtbds: { some: { segments: { some: { id: searchParams.segmentId } } } } }
@@ -44,12 +52,12 @@ export default async function FeaturesPage({
       include: { product: true, jtbds: true, rtbs: true },
     }),
     prisma.jTBD.findMany({
-      where: { userId },
+      where: { userId, ...activeProductFilter(activeProductId) },
       include: { product: true },
       orderBy: { title: 'asc' },
     }),
     prisma.segment.findMany({
-      where: { userId },
+      where: { userId, ...activeProductFilter(activeProductId) },
       include: { product: true },
       orderBy: { name: 'asc' },
     }),

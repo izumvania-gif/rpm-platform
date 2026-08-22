@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import {
   deleteConversation,
   toggleConversationPinned,
@@ -28,6 +30,8 @@ export default async function ConversationDetailPage({ params }: { params: { id:
 
   if (!conversation) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const [segments, jtbds] = await Promise.all([
     prisma.segment.findMany({
       where: { productId: conversation.productId, userId },
@@ -48,6 +52,11 @@ export default async function ConversationDetailPage({ params }: { params: { id:
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={conversation.product}
+        redirectTo={`/conversations/${conversation.id}`}
+      />
       <RecentlyViewedTracker
         href={`/conversations/${conversation.id}`}
         title={conversation.title}

@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import { deleteFeature, toggleFeaturePinned, updateFeatureField } from '@/lib/actions/features'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +27,8 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
 
   if (!feature) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const chainSegments = Array.from(
     new Map(feature.jtbds.flatMap((j) => j.segments).map((s) => [s.id, s])).values()
   )
@@ -34,6 +38,11 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={feature.product}
+        redirectTo={`/features/${feature.id}`}
+      />
       <RecentlyViewedTracker href={`/features/${feature.id}`} title={feature.name} kind="Фича" />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

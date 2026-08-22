@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import { deleteRTB, toggleRTBPinned, updateRTBField } from '@/lib/actions/rtbs'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,11 +23,18 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
 
   if (!rtb) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const deleteRTBWithId = deleteRTB.bind(null, rtb.id)
   const toggleRTBPinnedWithId = toggleRTBPinned.bind(null, rtb.id, !rtb.pinned)
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={rtb.product}
+        redirectTo={`/marketing/${rtb.id}`}
+      />
       <RecentlyViewedTracker href={`/marketing/${rtb.id}`} title={rtb.statement} kind="RTB" />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

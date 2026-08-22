@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { activeProductFilter } from '@/lib/product-context'
 import { buttonVariants } from '@/components/ui/button'
 import { TagBadges } from '@/components/shared/tag-badges'
 import { SortControl } from '@/components/shared/sort-control'
@@ -35,8 +37,12 @@ export default async function ConversationsPage({
         ? ({ title: 'asc' } as const)
         : ({ date: 'desc' } as const)
 
+  // Активный продукт (фаза 5 редизайна 2.1) — список показывает только его.
+
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const conversations = await prisma.conversation.findMany({
-    where: { userId: getCurrentUserId() },
+    where: { userId: getCurrentUserId(), ...activeProductFilter(activeProductId) },
     orderBy,
     include: { product: true },
   })

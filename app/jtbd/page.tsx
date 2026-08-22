@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { activeProductFilter } from '@/lib/product-context'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
@@ -20,8 +22,11 @@ import { QuickAddButton } from '@/components/shared/quick-add-button'
 export const dynamic = 'force-dynamic'
 
 export default async function JtbdPage() {
+  // Активный продукт (фаза 5 редизайна 2.1) — список показывает только его.
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const jtbds = await prisma.jTBD.findMany({
-    where: { userId: getCurrentUserId() },
+    where: { userId: getCurrentUserId(), ...activeProductFilter(activeProductId) },
     orderBy: { createdAt: 'desc' },
     include: { product: true },
   })

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { activeProductFilter } from '@/lib/product-context'
 import { buttonVariants } from '@/components/ui/button'
 import { SortControl } from '@/components/shared/sort-control'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
@@ -20,8 +22,12 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
     ? (searchParams.sort as string)
     : 'created_desc'
 
+  // Активный продукт (фаза 5 редизайна 2.1) — список показывает только его.
+
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const rtbs = await prisma.rTB.findMany({
-    where: { userId: getCurrentUserId() },
+    where: { userId: getCurrentUserId(), ...activeProductFilter(activeProductId) },
     orderBy: { createdAt: 'desc' },
     include: { product: true, features: true },
   })

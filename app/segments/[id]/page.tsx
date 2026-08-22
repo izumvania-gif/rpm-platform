@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import { deleteSegment, toggleSegmentPinned, updateSegmentField } from '@/lib/actions/segments'
 import { buttonVariants } from '@/components/ui/button'
 import { DeleteButton } from '@/components/shared/delete-button'
@@ -27,11 +29,18 @@ export default async function SegmentDetailPage({ params }: { params: { id: stri
 
   if (!segment) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const deleteSegmentWithId = deleteSegment.bind(null, segment.id)
   const toggleSegmentPinnedWithId = toggleSegmentPinned.bind(null, segment.id, !segment.pinned)
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={segment.product}
+        redirectTo={`/segments/${segment.id}`}
+      />
       <RecentlyViewedTracker href={`/segments/${segment.id}`} title={segment.name} kind="Сегмент" />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

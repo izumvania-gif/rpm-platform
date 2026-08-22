@@ -1,8 +1,10 @@
 'use client'
 
 import type { NavStage } from '@/lib/nav-disclosure'
+import { ACTIVE_PRODUCT_COOKIE, ACTIVE_PRODUCT_COOKIE_MAX_AGE } from '@/lib/product-context'
 
 const RECENTLY_VIEWED_KEY = 'rpm:recently-viewed'
+/** Старый ключ. Читается только при миграции в cookie, см. getDefaultProductId. */
 const DEFAULT_PRODUCT_KEY = 'rpm:default-product-id'
 const DASHBOARD_LAYOUT_KEY = 'rpm:dashboard-layout'
 const NAV_STAGE_KEY = 'rpm:nav-stage'
@@ -36,10 +38,21 @@ export function getRecentlyViewed(): RecentlyViewedEntry[] {
   }
 }
 
+// Активный продукт переехал из localStorage в cookie (фаза 4 редизайна 2.1,
+// plans/2.1-redesign-plan.md, правка 1): страницы со списками — Server
+// Components, а из RSC localStorage не читается. Имена функций не изменились,
+// поэтому 16 мест вызова трогать не пришлось.
+//
+// Хранилище именно одно, а не два: держать тот же факт ещё и в localStorage —
+// ровно тот антипаттерн, против которого спека пишет раздел «Один источник
+// правды». Старый ключ читается один раз, при миграции, и сразу удаляется.
+
 export function setDefaultProductId(productId: string) {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(DEFAULT_PRODUCT_KEY, productId)
+    document.cookie =
+      `${ACTIVE_PRODUCT_COOKIE}=${encodeURIComponent(productId)}` +
+      `; path=/; max-age=${ACTIVE_PRODUCT_COOKIE_MAX_AGE}; samesite=lax`
   } catch {
     // ignore
   }
@@ -48,10 +61,33 @@ export function setDefaultProductId(productId: string) {
 export function getDefaultProductId(): string | null {
   if (typeof window === 'undefined') return null
   try {
-    return window.localStorage.getItem(DEFAULT_PRODUCT_KEY)
+    const fromCookie = readCookie(ACTIVE_PRODUCT_COOKIE)
+    if (fromCookie) return fromCookie
+
+    // Разовая миграция: у кого продукт уже был выбран до этой фазы, он лежит
+    // в localStorage. Переносим в cookie и убираем старый ключ, чтобы второго
+    // хранилища не осталось.
+    const legacy = window.localStorage.getItem(DEFAULT_PRODUCT_KEY)
+    if (legacy) {
+      setDefaultProductId(legacy)
+      window.localStorage.removeItem(DEFAULT_PRODUCT_KEY)
+      return legacy
+    }
+    return null
   } catch {
     return null
   }
+}
+
+function readCookie(name: string): string | null {
+  const prefix = `${name}=`
+  for (const part of document.cookie.split(';')) {
+    const trimmed = part.trim()
+    if (trimmed.startsWith(prefix)) {
+      return decodeURIComponent(trimmed.slice(prefix.length)) || null
+    }
+  }
+  return null
 }
 
 // Dashboard widget show/hide + order (plans/archive/dashboard-redesign-plan.md

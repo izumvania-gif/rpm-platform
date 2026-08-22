@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, type InlineFieldResult } from '@/lib/validation'
+import { clearActiveProductCookie, setActiveProductCookie } from '@/lib/product-context.server'
 
 const productSchema = z.object({
   name: z.string().trim().min(1, 'Название обязательно'),
@@ -54,6 +55,12 @@ export async function createProduct(formData: FormData) {
     const product = await prisma.product.create({
       data: { ...parsed.data, userId: getCurrentUserId() },
     })
+    // Только что созданный продукт становится активным: человек его завёл —
+    // значит, сейчас работает в нём, и следующий же список должен показывать
+    // именно его. Server Action имеет право писать cookie, поэтому источник
+    // правды об активном продукте меняется здесь, а не догоняется с клиента
+    // после редиректа (фаза 4 редизайна 2.1).
+    setActiveProductCookie(product.id)
     revalidatePath('/products')
     redirect(onboarding ? `/products/${product.id}/onboarding/segments` : `/products/${product.id}`)
   } catch (e) {
@@ -94,6 +101,10 @@ export async function deleteProduct(id: string) {
   await assertOwned('product', id, getCurrentUserId())
 
   await prisma.product.delete({ where: { id } })
+  // Cookie, указывающая на удалённый продукт, безвредна — resolveActiveProductId
+  // такое значение игнорирует и откатывается на первый по алфавиту, — но
+  // оставлять её значит хранить ссылку на несуществующую запись. Чистим.
+  clearActiveProductCookie()
   revalidatePath('/products')
   redirect('/products')
 }

@@ -6,6 +6,7 @@ import { SiteNav } from '@/components/shared/site-nav'
 import { KeyboardShortcuts } from '@/components/shared/keyboard-shortcuts'
 import { QuickCapture } from '@/components/shared/quick-capture'
 import { getNavStage } from '@/lib/nav-stage'
+import { getProductContext, type ActiveProduct } from '@/lib/product-context.server'
 import { getCurrentUserId } from '@/lib/current-user'
 
 // Фирменный шрифт Рутокен — Gilroy, и он стоит первым в стеке
@@ -57,6 +58,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // their first record outside the base chain — a stale "basic" would hide a
   // section they just filled.
   const autoStage = await getNavStage(getCurrentUserId())
+  // Активный продукт (фаза 5 редизайна 2.1) — читается здесь, потому что
+  // переключатель живёт в шапке, а шапка в корневом layout. Тот же try/catch,
+  // что и у getNavStage: исключение в корневом layout кладёт сразу все
+  // маршруты, а отсутствие переключателя — не повод отдать 500.
+  let productContext: { products: ActiveProduct[]; activeProductId: string | null } = {
+    products: [],
+    activeProductId: null,
+  }
+  try {
+    productContext = await getProductContext(getCurrentUserId())
+  } catch {
+    // оставляем пустой контекст
+  }
 
   return (
     <html lang="ru" suppressHydrationWarning>
@@ -75,7 +89,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           Перейти к содержимому
         </a>
-        <SiteNav autoStage={autoStage} />
+        <SiteNav
+          autoStage={autoStage}
+          products={productContext.products}
+          activeProductId={productContext.activeProductId}
+        />
         <KeyboardShortcuts />
         <QuickCapture />
         {/* One wrapper here rather than an id on all 73 page-level <main>

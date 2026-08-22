@@ -14,6 +14,8 @@ import {
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { KeyboardShortcutsOverlay } from '@/components/shared/keyboard-shortcuts-overlay'
 import { PersonaSwitcher } from '@/components/shared/persona-switcher'
+import { ProductSwitcher } from '@/components/shared/product-switcher'
+import type { ActiveProduct } from '@/lib/product-context.server'
 import { PublicHeader } from '@/components/shared/public-header'
 import { RutokenLogo } from '@/components/shared/rutoken-logo'
 
@@ -74,7 +76,15 @@ function SearchBox() {
   )
 }
 
-export function SiteNav({ autoStage = 'full' }: { autoStage?: NavStage }) {
+export function SiteNav({
+  autoStage = 'full',
+  products = [],
+  activeProductId = null,
+}: {
+  autoStage?: NavStage
+  products?: ActiveProduct[]
+  activeProductId?: string | null
+}) {
   const pathname = usePathname()
   const { stage, override, choose } = useNavStage(autoStage)
 
@@ -220,6 +230,7 @@ export function SiteNav({ autoStage = 'full' }: { autoStage?: NavStage }) {
             >
               <InboxIcon size={16} strokeWidth={1.75} aria-hidden />
             </Link>
+            <ProductSwitcher products={products} activeProductId={activeProductId} />
             <PersonaSwitcher />
             <KeyboardShortcutsOverlay />
             <ThemeToggle />

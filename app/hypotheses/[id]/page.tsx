@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import {
   deleteHypothesis,
   toggleHypothesisPinned,
@@ -76,6 +78,8 @@ export default async function HypothesisDetailPage({
 
   if (!hypothesis) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const activeFilter: StanceFilter = STANCE_FILTERS.some((f) => f.key === searchParams.stance)
     ? (searchParams.stance as StanceFilter)
     : 'all'
@@ -119,6 +123,11 @@ export default async function HypothesisDetailPage({
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={hypothesis.product}
+        redirectTo={`/hypotheses/${hypothesis.id}`}
+      />
       <RecentlyViewedTracker
         href={`/hypotheses/${hypothesis.id}`}
         title={hypothesis.statement}

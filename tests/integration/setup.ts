@@ -32,6 +32,28 @@ if (!/rpm_platform_test|test/i.test(process.env.DATABASE_URL)) {
 // signal), letting tests assert on the intended destination with
 // `captureRedirect` (tests/integration/helpers.ts) while still exercising the
 // actual DB write that happens before the redirect call.
+// `cookies()` from next/headers has the same problem as redirect/revalidatePath:
+// it needs a live request context, and there is none when an action is called
+// directly from a test. Since фаза 4 the product actions set the active-product
+// cookie, so a stub is required — an in-memory store rather than a no-op, so a
+// test can still assert what the action wrote if it ever needs to.
+const cookieStore = new Map<string, string>()
+
+vi.mock('next/headers', () => ({
+  cookies: () => ({
+    get: (name: string) => {
+      const value = cookieStore.get(name)
+      return value === undefined ? undefined : { name, value }
+    },
+    set: (name: string, value: string) => {
+      cookieStore.set(name, value)
+    },
+    delete: (name: string) => {
+      cookieStore.delete(name)
+    },
+  }),
+}))
+
 vi.mock('next/navigation', () => ({
   redirect: vi.fn((url: string) => {
     throw new Error(`REDIRECT:${url}`)

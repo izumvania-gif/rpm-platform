@@ -10,6 +10,27 @@ export function uniqueName(prefix: string): string {
   return `${prefix} ${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
+/**
+ * Активный продукт живёт в cookie (фаза 4 редизайна 2.1,
+ * lib/product-context.ts). Спеки создают продукт и сразу идут в раздел — без
+ * этой фикстуры активным остался бы первый по алфавиту продукт из общей
+ * тестовой базы, и список отфильтровал бы только что созданную запись.
+ */
+export async function setActiveProduct(page: Page, productId: string) {
+  await page.context().addCookies([
+    {
+      name: 'rpm_active_product',
+      value: productId,
+      url: page.url().startsWith('http') ? new URL(page.url()).origin : 'http://localhost:3100',
+    },
+  ])
+}
+
+/** id продукта из его URL вида /products/<id>. */
+export function productIdFromUrl(url: string): string {
+  return new URL(url).pathname.split('/').filter(Boolean)[1]
+}
+
 export async function createProductViaUI(page: Page, name: string): Promise<string> {
   await page.goto('/products/new')
   await page.getByLabel('Название').fill(name)
@@ -22,6 +43,9 @@ export async function createProductViaUI(page: Page, name: string): Promise<stri
   // it renders here, with Playwright's normal retrying assertion, absorbs
   // that instead of letting it surface as a flaky failure deeper in a spec.
   await expect(page.getByRole('heading', { name })).toBeVisible()
+  // Только что созданный продукт становится активным — так же, как это
+  // делает форма в браузере (ProductForm пишет cookie после сохранения).
+  await setActiveProduct(page, productIdFromUrl(page.url()))
   return page.url()
 }
 

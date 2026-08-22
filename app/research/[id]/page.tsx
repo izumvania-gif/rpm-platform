@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import { deleteResearch, toggleResearchPinned, updateResearchField } from '@/lib/actions/research'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -27,6 +29,8 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
 
   if (!research) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const [segments, jtbds] = await Promise.all([
     prisma.segment.findMany({
       where: { productId: research.productId, userId },
@@ -43,6 +47,11 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={research.product}
+        redirectTo={`/research/${research.id}`}
+      />
       <RecentlyViewedTracker
         href={`/research/${research.id}`}
         title={`#${research.number} ${research.title}`}

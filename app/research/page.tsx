@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { ResearchStatus, ResearchType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { activeProductFilter } from '@/lib/product-context'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CsvExportButton } from '@/components/shared/csv-export-button'
@@ -41,8 +43,15 @@ export default async function ResearchPage({
         ? ({ title: 'asc' } as const)
         : ({ date: 'desc' } as const)
 
+  // Активный продукт (фаза 5 редизайна 2.1) — список показывает только его.
+  const activeProductId = await getActiveProductId(userId)
   const researches = await prisma.research.findMany({
-    where: { userId, ...(status ? { status } : {}), ...(type ? { type } : {}) },
+    where: {
+      userId,
+      ...activeProductFilter(activeProductId),
+      ...(status ? { status } : {}),
+      ...(type ? { type } : {}),
+    },
     orderBy,
     include: { product: true },
   })

@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import {
   deleteCompetitor,
   toggleCompetitorPinned,
@@ -26,6 +28,8 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
 
   if (!competitor) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const deleteCompetitorWithId = deleteCompetitor.bind(null, competitor.id)
   const toggleCompetitorPinnedWithId = toggleCompetitorPinned.bind(
     null,
@@ -35,6 +39,11 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={competitor.product}
+        redirectTo={`/competitors/${competitor.id}`}
+      />
       <RecentlyViewedTracker
         href={`/competitors/${competitor.id}`}
         title={competitor.name}

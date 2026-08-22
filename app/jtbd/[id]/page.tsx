@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import { deleteJtbd, toggleJtbdPinned, updateJtbdField } from '@/lib/actions/jtbd'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -41,6 +43,8 @@ export default async function JtbdDetailPage({
 
   if (!jtbd) notFound()
 
+  const activeProductId = await getActiveProductId(getCurrentUserId())
+
   const chainRtbs = Array.from(
     new Map(jtbd.features.flatMap((f) => f.rtbs).map((rtb) => [rtb.id, rtb])).values()
   )
@@ -54,6 +58,11 @@ export default async function JtbdDetailPage({
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <OtherProductNotice
+        activeProductId={activeProductId}
+        product={jtbd.product}
+        redirectTo={`/jtbd/${jtbd.id}`}
+      />
       <RecentlyViewedTracker href={`/jtbd/${jtbd.id}`} title={jtbd.title} kind="JTBD" />
       {backToGraphHref && (
         <Link href={backToGraphHref} className="text-sm text-muted-foreground hover:underline">

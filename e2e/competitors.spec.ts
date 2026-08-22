@@ -26,10 +26,16 @@ test('create a competitor and add/remove a news log entry', async ({ page }) => 
   await expect(page.getByText(newsTitle)).toHaveCount(0)
 })
 
-test('Продукты dropdown links to Конкуренты (§2.9.3 — restored to the nav)', async ({ page }) => {
+test('Конкуренты живут в меню, под «Обещаниями» (§2.9.3)', async ({ page }) => {
+  // Решение §2.9.3 в силе: конкуренты обязаны быть в меню, а не только
+  // ссылкой с карточки продукта. Изменился родитель — в меню-цепочке (фаза 6
+  // редизайна 2.1) они переехали из «Продуктов» в «Обещания»:
+  // позиционирование строится против конкурентов, там ему и место.
+  await page.addInitScript(() => window.localStorage.setItem('rpm:nav-stage', 'full'))
   await page.goto('/')
+
   const nav = page.locator('header nav')
-  await nav.getByRole('link', { name: 'Продукты' }).hover()
+  await nav.getByRole('link', { name: 'Обещания' }).hover()
   const competitorsLink = nav.getByRole('link', { name: 'Конкуренты' })
   await expect(competitorsLink).toBeVisible()
   await competitorsLink.click()

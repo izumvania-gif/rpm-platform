@@ -19,7 +19,7 @@ test('the «+» on a list page creates without leaving the list', async ({ page 
   const dialog = page.getByRole('dialog', { name: 'Быстрый захват' })
   await expect(dialog).toBeVisible()
   // No product in the URL here, so the modal picks one itself and shows which.
-  await expect(dialog.getByRole('combobox', { name: 'Продукт' })).not.toBeEmpty()
+  await expect(dialog.getByRole('combobox', { name: 'Продукт', exact: true })).not.toBeEmpty()
 
   await dialog.getByRole('textbox').first().fill(name)
   await dialog.getByRole('button', { name: 'Сохранить' }).click()

@@ -17,6 +17,13 @@ test('a create form with no product chosen reports instead of doing nothing', as
     if (message.type() === 'error') errors.push(message.text())
   })
 
+  // Форма подставляет активный продукт из cookie (фаза 4 редизайна 2.1),
+  // поэтому пустое обязательное поле теперь достижимо только без неё. Это
+  // само по себе улучшение — в обычной работе продукт почти всегда подставлен,
+  // — но проверяемая тут защита никуда не делась: у нового пользователя, у
+  // которого продукт ещё не выбран, форма обязана сказать, чего ей не хватает.
+  await page.context().clearCookies({ name: 'rpm_active_product' })
+
   // No ?productId= — the state every list page's «Новый JTBD» lands in.
   await page.goto('/jtbd/new')
   await page.getByLabel('Формулировка JTBD').fill('Когда падает сервис, я хочу узнать первым')

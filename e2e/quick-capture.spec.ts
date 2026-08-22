@@ -18,7 +18,7 @@ test('"c" opens quick capture, saves an insight, and stays open for the next one
 
   // The product select defaults to the remembered/first product; pick ours
   // explicitly so the assertion below is not order-dependent.
-  await dialog.getByRole('combobox', { name: 'Продукт' }).click()
+  await dialog.getByRole('combobox', { name: 'Продукт', exact: true }).click()
   await page.getByRole('option', { name: productName }).click()
 
   const insightText = uniqueName('Клиент не готов ждать неделю')
@@ -47,7 +47,7 @@ test('captured type switches between insight, hypothesis and segment', async ({ 
   await page.keyboard.press('c')
 
   const dialog = page.getByRole('dialog', { name: 'Быстрый захват' })
-  await dialog.getByRole('combobox', { name: 'Продукт' }).click()
+  await dialog.getByRole('combobox', { name: 'Продукт', exact: true }).click()
   await page.getByRole('option', { name: productName }).click()
 
   await dialog.getByRole('button', { name: 'Сегмент' }).click()

@@ -49,7 +49,9 @@ test('assigning a person as a product owner shows up on the product page', async
 
   await page.goto(`/people`)
   await page.getByRole('link', { name: ownerName }).click()
-  await expect(page.getByText(productName)).toBeVisible()
+  // Ищем в содержимом страницы, а не по всему документу: переключатель
+  // активного продукта в шапке тоже показывает имя продукта, и это правильно.
+  await expect(page.getByRole('main').getByText(productName)).toBeVisible()
 })
 
 test('the persona switcher links to the 2.0 stub views', async ({ page }) => {

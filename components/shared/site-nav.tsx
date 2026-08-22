@@ -230,13 +230,34 @@ export function SiteNav({
             >
               <InboxIcon size={16} strokeWidth={1.75} aria-hidden />
             </Link>
-            <ProductSwitcher products={products} activeProductId={activeProductId} />
             <PersonaSwitcher />
             <KeyboardShortcutsOverlay />
             <ThemeToggle />
           </div>
         </div>
       </div>
+      {/* Контекстная полоса отдельной строкой.
+          Переключатель сперва стоял в верхнем ряду — и там он ломал шапку:
+          nav в ней `overflow-x-visible` с нешринкующимися ссылками, поэтому
+          лишняя ширина не расширяет строку, а наезжает на соседей и
+          перехватывает клики (о чём предупреждает комментарий выше). Замер
+          подтвердил: и справа, и слева от лого верхний ряд перестаёт вмещать
+          содержимое — сначала переставал нажиматься «Инбокс», потом поле
+          поиска. Значит, дело не в месте, а в том, что в одну строку это
+          больше не влезает.
+          Отдельная строка решает это и заодно честнее по смыслу: активный
+          продукт — не инструмент в ряду инструментов, а ответ на вопрос «где
+          я сейчас работаю», то есть контекст для всего, что ниже. */}
+      {products.length > 1 && (
+        <div className="border-b bg-muted/30 print:hidden">
+          <div className="container flex h-11 items-center gap-2">
+            <span className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground">
+              Продукт
+            </span>
+            <ProductSwitcher products={products} activeProductId={activeProductId} />
+          </div>
+        </div>
+      )}
     </header>
   )
 }

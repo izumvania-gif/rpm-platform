@@ -20,7 +20,9 @@ test('the «+» on a module card creates without leaving the page', async ({ pag
   // Still on the product page: no navigation happened.
   await expect(page).toHaveURL(productUrl)
   // And the product is already the one whose page we are on.
-  await expect(dialog.getByRole('combobox', { name: 'Продукт' })).toContainText(productName)
+  await expect(dialog.getByRole('combobox', { name: 'Продукт', exact: true })).toContainText(
+    productName
+  )
 
   await dialog.getByRole('textbox').first().fill(segmentName)
   await dialog.getByRole('button', { name: 'Сохранить' }).click()

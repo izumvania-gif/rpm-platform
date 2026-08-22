@@ -20,7 +20,11 @@ test('saving from a list page returns to the list, not to the new record', async
   const title = uniqueName('Когда я добавляю подряд, я хочу остаться в списке')
   await page.getByLabel('Формулировка JTBD').fill(title)
   await page.getByLabel('Категория').fill('Навигация')
-  await selectRadixOption(page, page.getByRole('combobox', { name: 'Продукт' }), productName)
+  await selectRadixOption(
+    page,
+    page.getByRole('combobox', { name: 'Продукт', exact: true }),
+    productName
+  )
   await page.getByRole('button', { name: 'Создать', exact: true }).click()
 
   await page.waitForURL(/\/jtbd$/)
@@ -34,7 +38,11 @@ test('an off-site destination is ignored, not followed', async ({ page }) => {
   await page.goto('/segments/new?from=https://evil.example/steal')
   const name = uniqueName('Сегмент несмотря на чужой адрес')
   await page.getByLabel('Название').fill(name)
-  await selectRadixOption(page, page.getByRole('combobox', { name: 'Продукт' }), productName)
+  await selectRadixOption(
+    page,
+    page.getByRole('combobox', { name: 'Продукт', exact: true }),
+    productName
+  )
   await page.getByRole('button', { name: 'Создать', exact: true }).click()
 
   // Falls back to the action's own destination — the new segment's page.

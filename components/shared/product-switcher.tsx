@@ -41,7 +41,7 @@ export function ProductSwitcher({
         name="productId"
         value={activeProductId ?? ''}
         onChange={() => formRef.current?.requestSubmit()}
-        className="h-9 w-[10rem] sm:w-[13rem]"
+        className="h-8 w-[14rem] sm:w-[18rem]"
       >
         {products.map((product) => (
           <option key={product.id} value={product.id}>

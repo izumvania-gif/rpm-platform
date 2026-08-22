@@ -15,7 +15,7 @@ import { setActiveProductCookie } from '@/lib/product-context.server'
 // на сервере, а `document.cookie` с клиента этого не делает — списки остались
 // бы прежними до перезагрузки.
 export async function switchActiveProduct(formData: FormData) {
-  const productId = String(formData.get('productId') ?? '')
+  const productId = String(formData.get('activeProductId') ?? '')
   await assertOwned('product', productId, getCurrentUserId())
 
   setActiveProductCookie(productId)

@@ -36,9 +36,16 @@ export function ProductSwitcher({
       <label htmlFor="active-product" className="sr-only">
         Активный продукт
       </label>
+      {/* Имя поля НЕ `productId`: так называется поле выбора продукта в
+          формах создания, и два контрола с одним именем на странице — это
+          столкновение. Оно уже стрельнуло: спек читал
+          `select[name="productId"]`, находил зеркало переключателя в шапке
+          вместо поля формы и видел валидное значение там, где проверял
+          пустое. Переключатель ставит активный продукт, а не подаёт продукт в
+          форму — разные вещи, разные имена. */}
       <Select
         id="active-product"
-        name="productId"
+        name="activeProductId"
         value={activeProductId ?? ''}
         onChange={() => formRef.current?.requestSubmit()}
         className="h-8 w-[14rem] sm:w-[18rem]"

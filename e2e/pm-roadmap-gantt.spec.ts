@@ -124,15 +124,21 @@ test('dragging a milestone moves its date, and its edit link is keyboard-reachab
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
 
   await page.goto(`/pm?productId=${productId}&view=gantt`)
-  const label = page.getByText(milestoneTitle, { exact: true })
-  await label.scrollIntoViewIfNeeded()
-  const labelBox = (await label.boundingBox())!
-
-  await page.mouse.move(labelBox.x + labelBox.width / 2, labelBox.y + labelBox.height + 15)
+  // Целимся в саму ручку перетаскивания, а не «на 15px ниже подписи»:
+  // арифметика от подписи ломалась от любого изменения вертикального ритма
+  // страницы (её сломала строка контекста продукта в шапке, фаза 5).
+  // Наводимся на саму ручку перетаскивания через `hover`, а не считаем
+  // координату арифметикой от подписи: Playwright сам проскроллит элемент в
+  // видимую область и выберет точку, по которой действительно попадёт.
+  // Прежний вариант («на 15px ниже подписи») держался на том, что диаграмма
+  // помещалась во вьюпорт без прокрутки — строка контекста продукта в шапке
+  // (фаза 5) это сломала, и нажатие стало уходить мимо. Ручка `inset-y-0`, во
+  // всю высоту диаграммы, поэтому целимся у её верхнего края.
+  const handle = page.locator('[data-milestone-handle]').first()
+  await handle.hover({ position: { x: 1, y: 8 } })
+  const box = (await handle.boundingBox())!
   await page.mouse.down()
-  await page.mouse.move(labelBox.x + labelBox.width / 2 - 60, labelBox.y + labelBox.height + 15, {
-    steps: 8,
-  })
+  await page.mouse.move(box.x - 60, box.y + 8, { steps: 8 })
   await page.mouse.up()
   await page.waitForLoadState('networkidle')
 

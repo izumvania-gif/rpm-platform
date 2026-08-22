@@ -546,7 +546,14 @@ export function GanttChart({
                       isSaving && 'opacity-60'
                     )}
                   />
+                  {/* Ручка перетаскивания — полоска в 3px по всей высоте
+                      строки. `data-milestone-handle` нужен E2E: без него спек
+                      целился в неё арифметикой («на 15px ниже подписи»), и
+                      любое изменение вертикального ритма страницы — например,
+                      новая строка контекста в шапке — молча уводило клик мимо.
+                      Тест должен брать элемент, а не угадывать координату. */}
                   <div
+                    data-milestone-handle={milestone.id}
                     onPointerDown={(e) => startMilestoneDrag(e, milestone.id, milestone.date)}
                     onPointerMove={handlePointerMove}
                     onPointerUp={handlePointerUp}

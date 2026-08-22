@@ -32,7 +32,7 @@ export function OtherProductNotice({
         Запись из продукта «{product.name}», а сейчас активен другой — в списках её не видно.
       </p>
       <form action={switchActiveProduct}>
-        <input type="hidden" name="productId" value={product.id} />
+        <input type="hidden" name="activeProductId" value={product.id} />
         <input type="hidden" name="redirectTo" value={redirectTo} />
         <SubmitButton variant="outline" size="sm" pendingText="Переключаю…">
           Перейти в «{product.name}»

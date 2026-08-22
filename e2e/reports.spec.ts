@@ -17,7 +17,7 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
   const segmentName = uniqueName('Matrix Segment')
   await page.goto('/segments/new')
   await page.getByLabel('Название').fill(segmentName)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/segments\/[^/]+$/)
   // Same dev-mode HMR/fast-refresh timing hiccup documented on
@@ -33,7 +33,7 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
     .getByLabel('Формулировка JTBD')
     .fill('Когда я использую матрицу, я хочу видеть покрытие')
   await page.getByLabel('Категория').fill(category)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel(segmentName).check()
   await page.getByLabel('Подтверждено исследованием').check()
   await page.getByRole('button', { name: 'Создать' }).click()
@@ -56,7 +56,7 @@ test('gaps dashboard lists an unconfirmed JTBD', async ({ page }) => {
   await page.goto('/jtbd/new')
   await page.getByLabel('Формулировка JTBD').fill(jtbdTitle)
   await page.getByLabel('Категория').fill('Gaps')
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   // "Подтверждено исследованием" left unchecked on purpose.
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/jtbd\/[^/]+$/)

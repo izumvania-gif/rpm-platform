@@ -50,7 +50,7 @@ test('choosing a product clears the custom message and lets the form submit', as
   await page.getByLabel('Формулировка JTBD').fill('Когда истекает срок, я хочу узнать заранее')
   await page.getByLabel('Категория').fill('Наблюдаемость')
 
-  await page.getByLabel('Продукт').click()
+  await page.getByLabel('Продукт', { exact: true }).click()
   await page.getByRole('option').nth(1).click()
 
   await page.getByRole('button', { name: 'Создать' }).click()

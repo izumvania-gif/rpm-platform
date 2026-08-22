@@ -8,7 +8,7 @@ test('drag a hypothesis card to a different status column', async ({ page }) => 
   const statement = uniqueName('Если упростим онбординг, то вырастет активация')
   await page.goto('/hypotheses/new')
   await page.getByLabel('Формулировка гипотезы').fill(statement)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL('/hypotheses')
 

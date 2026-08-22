@@ -8,7 +8,7 @@ test('create a competitor and add/remove a news log entry', async ({ page }) => 
   const competitorName = uniqueName('Acme Rival')
   await page.goto('/competitors/new')
   await page.getByLabel('Название').fill(competitorName)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel('Модель ценообразования').fill('Per seat')
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/competitors\/[^/]+$/)

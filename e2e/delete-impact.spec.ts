@@ -13,7 +13,7 @@ test('the dialog counts the cascade before the delete goes through', async ({ pa
   for (const segment of ['Первый', 'Второй']) {
     await page.goto('/segments/new')
     await page.getByLabel('Название').fill(uniqueName(segment))
-    await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+    await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
     await page.getByRole('button', { name: 'Создать' }).click()
     await page.waitForURL(/\/segments\/[^/]+$/)
   }
@@ -22,7 +22,7 @@ test('the dialog counts the cascade before the delete goes through', async ({ pa
   await page.goto('/jtbd/new')
   await page.getByLabel('Формулировка JTBD').fill(jtbdTitle)
   await page.getByLabel('Категория').fill('к')
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/jtbd\/[^/]+$/)
 

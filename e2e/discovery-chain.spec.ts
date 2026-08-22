@@ -26,7 +26,7 @@ test('a record with a missing link shows the gap instead of hiding it', async ({
   const segmentName = uniqueName('Сегмент цепочки')
   await page.goto('/segments/new')
   await page.getByLabel('Название').fill(segmentName)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/segments\/[^/]+$/)
 
@@ -34,7 +34,7 @@ test('a record with a missing link shows the gap instead of hiding it', async ({
   await page.goto('/jtbd/new')
   await page.getByLabel('Формулировка JTBD').fill(jtbdTitle)
   await page.getByLabel('Категория').fill('цепочка')
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel(segmentName).check()
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/jtbd\/[0-9a-z]+$/)
@@ -59,7 +59,7 @@ test('the product page leads with what needs attention, not with everything', as
   for (let i = 0; i < 6; i++) {
     await page.goto('/segments/new')
     await page.getByLabel('Название').fill(uniqueName(`Сегмент ${i}`))
-    await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+    await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
     await page.getByRole('button', { name: 'Создать' }).click()
     await page.waitForURL(/\/segments\/[^/]+$/)
   }

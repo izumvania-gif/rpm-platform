@@ -26,7 +26,7 @@ test('shows sales-kit resources first, and a qualitative answer for "do we have 
   const featureName = uniqueName('SSO login')
   await page.goto('/features/new')
   await page.getByLabel('Название').fill(featureName)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/features\/(?!new)[^/]+$/)
 

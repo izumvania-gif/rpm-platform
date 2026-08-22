@@ -8,7 +8,7 @@ test('create a segment with tags and audience share, then edit it inline', async
   const segmentName = uniqueName('Enterprise')
   await page.goto('/segments/new')
   await page.getByLabel('Название').fill(segmentName)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel('Доля аудитории (%)').fill('35')
   await page.getByLabel('Теги (через запятую)').fill('b2b, key-account')
   await page.getByRole('button', { name: 'Создать' }).click()
@@ -33,7 +33,7 @@ test('deleting a segment cascades from the product page', async ({ page }) => {
   const segmentName = uniqueName('To Delete')
   await page.goto('/segments/new')
   await page.getByLabel('Название').fill(segmentName)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/segments\/[^/]+$/)
 

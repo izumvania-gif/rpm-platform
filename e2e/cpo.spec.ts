@@ -13,7 +13,7 @@ test('shows cross-product ecosystem correlations and the multi-product roadmap',
   for (const productName of [productAName, productBName]) {
     await page.goto('/segments/new')
     await page.getByLabel('Название').fill(segmentName)
-    await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+    await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
     await page.getByRole('button', { name: 'Создать' }).click()
     await page.waitForURL(/\/segments\/(?!new)[^/]+$/)
   }
@@ -23,7 +23,7 @@ test('shows cross-product ecosystem correlations and the multi-product roadmap',
     await page.goto('/jtbd/new')
     await page.getByLabel('Формулировка JTBD').fill(uniqueName('Job'))
     await page.getByLabel('Категория').fill(category)
-    await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+    await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
     await page.getByRole('button', { name: 'Создать' }).click()
     await page.waitForURL(/\/jtbd\/(?!new)[^/]+$/)
   }

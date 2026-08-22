@@ -60,7 +60,7 @@ test('a kanban card can be opened and edited without a mouse', async ({ page }) 
   const statement = uniqueName('Если убрать визит, то будет быстрее')
   await page.goto('/hypotheses/new')
   await page.getByLabel('Формулировка').fill(statement)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/hypotheses\/[0-9a-z]+$/)
 

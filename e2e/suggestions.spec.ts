@@ -10,7 +10,7 @@ test('a transcript offers its quotes as insights, and accepting one saves it', a
   const quote = uniqueName('Мы не можем ждать неделю выпуска сертификата')
   await page.goto('/conversations/new')
   await page.getByLabel('Название').fill(uniqueName('Разговор с подсказками'))
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel('Транскрипт').fill(`Обсудили сроки. «${quote}» — сказал клиент.`)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/conversations\/[^/]+$/)
@@ -35,7 +35,7 @@ test('a conversation with no transcript offers nothing', async ({ page }) => {
 
   await page.goto('/conversations/new')
   await page.getByLabel('Название').fill(uniqueName('Разговор без транскрипта'))
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/conversations\/[^/]+$/)
 
@@ -53,7 +53,7 @@ test('a feature with no marketing claim says so and offers the prefilled form', 
   const featureName = uniqueName('Массовый отзыв доступов')
   await page.goto('/features/new')
   await page.getByLabel('Название').fill(featureName)
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/features\/[^/]+$/)
 

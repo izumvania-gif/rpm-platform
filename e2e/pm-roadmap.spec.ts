@@ -57,7 +57,7 @@ test('the PM product switcher remembers the last selected product', async ({ pag
   await createProductViaUI(page, productName)
 
   await page.goto('/pm')
-  await selectOptionRobust(page, page.getByLabel('Продукт'), productName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.waitForURL(/\/pm\?productId=/)
 
   await page.goto('/pm')
@@ -71,6 +71,6 @@ test('"+ Новый продукт" in the PM product switcher goes to the creat
   await createProductViaUI(page, productName)
 
   await page.goto('/pm')
-  await selectOptionRobust(page, page.getByLabel('Продукт'), '+ Новый продукт')
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), '+ Новый продукт')
   await page.waitForURL(/\/products\/new$/)
 })

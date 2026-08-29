@@ -38,8 +38,8 @@ export async function createProcess(formData: FormData) {
   await assertOwned('product', parsed.data.productId, getCurrentUserId())
 
   const process = await prisma.process.create({ data: parsed.data })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${process.productId}&processId=${process.id}&scrollTo=process`)
+  revalidatePath('/pm/processes')
+  redirect(`/pm/processes?productId=${process.productId}&processId=${process.id}`)
 }
 
 export async function updateProcess(id: string, formData: FormData) {
@@ -51,8 +51,8 @@ export async function updateProcess(id: string, formData: FormData) {
   }
 
   const process = await prisma.process.update({ where: { id }, data: { title: parsed.data.title } })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${process.productId}&processId=${process.id}&scrollTo=process`)
+  revalidatePath('/pm/processes')
+  redirect(`/pm/processes?productId=${process.productId}&processId=${process.id}`)
 }
 
 // Inline "Добавить процесс" on /pm itself (plans/2.0-ux-improvement-plan.md,
@@ -70,7 +70,7 @@ export async function createProcessQuick(
   if (!trimmedTitle) return { ok: false, error: 'Название обязательно' }
 
   const process = await prisma.process.create({ data: { title: trimmedTitle, productId } })
-  revalidatePath('/pm')
+  revalidatePath('/pm/processes')
   return { ok: true, process }
 }
 
@@ -78,6 +78,6 @@ export async function deleteProcess(id: string) {
   await assertOwned('process', id, getCurrentUserId())
 
   const process = await prisma.process.delete({ where: { id } })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${process.productId}&scrollTo=process`)
+  revalidatePath('/pm/processes')
+  redirect(`/pm/processes?productId=${process.productId}`)
 }

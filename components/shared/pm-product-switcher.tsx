@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import type { Product } from '@prisma/client'
 import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -22,12 +22,16 @@ export function PmProductSwitcher({
   selectedProductId?: string
 }) {
   const router = useRouter()
+  // Смена продукта не должна уводить со вкладки, на которой человек стоит
+  // (фаза 9): раньше и переключатель, и восстановление из localStorage вели
+  // на жёстко зашитый `/pm`, потому что вкладка была одна.
+  const pathname = usePathname()
 
   useEffect(() => {
     if (selectedProductId) return
     const stored = getDefaultProductId()
     if (stored && products.some((p) => p.id === stored)) {
-      router.replace(`/pm?productId=${stored}`)
+      router.replace(`${pathname}?productId=${stored}`)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -38,7 +42,7 @@ export function PmProductSwitcher({
       return
     }
     setDefaultProductId(productId)
-    router.push(`/pm?productId=${productId}`)
+    router.push(`${pathname}?productId=${productId}`)
   }
 
   return (

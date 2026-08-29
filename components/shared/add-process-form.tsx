@@ -33,10 +33,12 @@ export function AddProcessForm({ productId }: { productId: string }) {
       reset()
       // Unlike the roadmap/action-plan lists, a process has a second level
       // (its canvas) — select the one just created instead of leaving the
-      // user on the list they were just looking at. `scroll: false` (plus
-      // scrollTo=process, same mechanism as Фаза 1) keeps this from
-      // resetting the page back to the top the way a plain router.push would.
-      router.push(`/pm?productId=${productId}&processId=${result.process.id}&scrollTo=process`, {
+      // user on the list they were just looking at. `scroll: false` keeps this
+      // from resetting the page back to the top the way a plain router.push
+      // would. Прежний `scrollTo=process` тут больше не нужен: с фазы 9
+      // процессы это отдельный маршрут, а не секция в середине длинной
+      // страницы, и возвращать скролл не к чему.
+      router.push(`/pm/processes?productId=${productId}&processId=${result.process.id}`, {
         scroll: false,
       })
     })

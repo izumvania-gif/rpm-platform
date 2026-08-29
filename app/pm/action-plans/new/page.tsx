@@ -34,7 +34,7 @@ export default async function NewActionPlanPage({
         processSteps={processSteps}
         error={searchParams.error}
         submitLabel="Добавить"
-        cancelHref={`/pm?productId=${product.id}&scrollTo=action-plans`}
+        cancelHref={`/pm/action-plans?productId=${product.id}`}
       />
     </main>
   )

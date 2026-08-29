@@ -36,7 +36,7 @@ export default async function NewRoadmapItemPage({
         jtbds={jtbds}
         error={searchParams.error}
         submitLabel="Добавить"
-        cancelHref={`/pm?productId=${product.id}&scrollTo=roadmap`}
+        cancelHref={`/pm/roadmap?productId=${product.id}`}
       />
     </main>
   )

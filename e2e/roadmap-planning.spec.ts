@@ -20,12 +20,12 @@ test('a newly added item is visible on the Gantt, in the unscheduled tray', asyn
   await createProductViaUI(page, productName)
   const productId = new URL(page.url()).pathname.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/roadmap?productId=${productId}`)
   const title = uniqueName('Пункт без дат')
   await addRoadmapItem(page, title)
 
   // Switch to the chart: before the tray, this item simply would not be here.
-  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  await page.goto(`/pm/gantt?productId=${productId}`)
   await expect(page.getByText(/Не на диаграмме — \d+/)).toBeVisible()
   await expect(page.getByTitle(new RegExp(`${title} — нет дат`))).toBeVisible()
 })
@@ -35,11 +35,11 @@ test('«с сегодня» puts an item on the timeline without opening a form'
   await createProductViaUI(page, productName)
   const productId = new URL(page.url()).pathname.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/roadmap?productId=${productId}`)
   const title = uniqueName('Запланировать одним нажатием')
   await addRoadmapItem(page, title)
 
-  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  await page.goto(`/pm/gantt?productId=${productId}`)
   const chip = page.getByTitle(new RegExp(title))
   await expect(chip).toBeVisible()
 

@@ -47,7 +47,7 @@ export default async function EditRoadmapItemPage({
         defaultValues={item}
         error={searchParams.error}
         submitLabel="Сохранить"
-        cancelHref={`/pm?productId=${product.id}&scrollTo=roadmap`}
+        cancelHref={`/pm/roadmap?productId=${product.id}`}
       />
     </main>
   )

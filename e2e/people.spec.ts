@@ -58,6 +58,6 @@ test('the persona switcher links to the 2.0 stub views', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Представления' }).click()
   await page.getByRole('menuitem', { name: 'PM' }).click()
-  await page.waitForURL('/pm')
-  await expect(page.getByRole('heading', { name: 'PM' })).toBeVisible()
+  await page.waitForURL(/\/pm\/roadmap$/)
+  await expect(page.getByRole('heading', { name: 'Доставка' })).toBeVisible()
 })

@@ -44,7 +44,7 @@ test('an owner can be created from the roadmap form on /pm', async ({ page }) =>
   await createProductViaUI(page, productName)
   const productId = new URL(page.url()).pathname.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/roadmap?productId=${productId}`)
   await page.getByRole('button', { name: 'Добавить пункт' }).click()
 
   const itemTitle = uniqueName('Пункт с новым ответственным')

@@ -78,7 +78,7 @@ describe('removeProductTeamMember', () => {
     if (!added.ok) throw new Error('setup failed')
 
     const redirectPath = await captureRedirect(() => removeProductTeamMember(added.member.id))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=team`)
+    expect(redirectPath).toBe(`/pm/team?productId=${product.id}`)
 
     expect(await prisma.productTeamMember.count()).toBe(0)
     expect(await prisma.person.findUnique({ where: { id: person.id } })).not.toBeNull()

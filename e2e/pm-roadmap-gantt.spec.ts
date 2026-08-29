@@ -61,7 +61,7 @@ test('dragging a bar body moves both dates, dragging its edge resizes one', asyn
   await page.getByRole('button', { name: 'Добавить' }).click()
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
 
-  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  await page.goto(`/pm/gantt?productId=${productId}`)
   const bar = page.locator(`div[title^="${barTitle}"]`)
   await bar.scrollIntoViewIfNeeded()
   const box = (await bar.boundingBox())!
@@ -91,7 +91,7 @@ test('dragging a bar body moves both dates, dragging its edge resizes one', asyn
   expect(durationDays).toBe(10)
 
   // Resize the right edge — only the end date should move, start stays put.
-  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  await page.goto(`/pm/gantt?productId=${productId}`)
   const barAfterMove = page.locator(`div[title^="${barTitle}"]`)
   await barAfterMove.scrollIntoViewIfNeeded()
   const box2 = (await barAfterMove.boundingBox())!
@@ -123,7 +123,7 @@ test('dragging a milestone moves its date, and its edit link is keyboard-reachab
   await page.getByRole('button', { name: 'Добавить' }).click()
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
 
-  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  await page.goto(`/pm/gantt?productId=${productId}`)
   // Целимся в саму ручку перетаскивания, а не «на 15px ниже подписи»:
   // арифметика от подписи ломалась от любого изменения вертикального ритма
   // страницы (её сломала строка контекста продукта в шапке, фаза 5).
@@ -154,7 +154,7 @@ test('dragging a milestone moves its date, and its edit link is keyboard-reachab
   // without a pointer — this is the resolution to the plan's open
   // accessibility question for Фаза 6 (a visible "Редактировать" link next
   // to each bar/milestone, not arrow-key hijacking).
-  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  await page.goto(`/pm/gantt?productId=${productId}`)
   const keyboardEditLink = page.getByRole('link', { name: /Изменить дату/ })
   await keyboardEditLink.focus()
   await expect(keyboardEditLink).toBeFocused()
@@ -190,7 +190,7 @@ test('dragging a bar vertically onto another track row reassigns its track (/pm 
   await page.getByRole('button', { name: 'Добавить' }).click()
   await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
 
-  await page.goto(`/pm?productId=${productId}&view=gantt`)
+  await page.goto(`/pm/gantt?productId=${productId}`)
   const bar = page.locator(`div[title^="${barTitle}"]`)
   await bar.scrollIntoViewIfNeeded()
   const box = (await bar.boundingBox())!

@@ -54,13 +54,13 @@ test('Отмена collapses the inline roadmap item form without navigating', a
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/roadmap?productId=${productId}`)
   await page.getByRole('button', { name: 'Добавить пункт' }).click()
   const draftTitle = uniqueName('Unsaved inline roadmap item')
   await page.getByPlaceholder('Название').fill(draftTitle)
 
   await page.getByRole('button', { name: 'Отмена' }).click()
-  await expect(page).toHaveURL(new RegExp(`/pm\\?productId=${productId}$`))
+  await expect(page).toHaveURL(new RegExp(`/pm/roadmap\\?productId=${productId}$`))
   await expect(page.getByRole('button', { name: 'Добавить пункт' })).toBeVisible()
   await expect(page.getByText(draftTitle)).toHaveCount(0)
 })
@@ -70,7 +70,7 @@ test('Отмена collapses the inline action plan form without navigating', as
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/action-plans?productId=${productId}`)
   await page.getByRole('button', { name: 'Добавить план' }).click()
   const draftScenario = uniqueName('Unsaved inline scenario')
   await page
@@ -78,7 +78,7 @@ test('Отмена collapses the inline action plan form without navigating', as
     .fill(draftScenario)
 
   await page.getByRole('button', { name: 'Отмена' }).click()
-  await expect(page).toHaveURL(new RegExp(`/pm\\?productId=${productId}$`))
+  await expect(page).toHaveURL(new RegExp(`/pm/action-plans\\?productId=${productId}$`))
   await expect(page.getByRole('button', { name: 'Добавить план' })).toBeVisible()
   await expect(page.getByText(draftScenario)).toHaveCount(0)
 })
@@ -88,13 +88,13 @@ test('Отмена collapses the inline process form without navigating', async 
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/processes?productId=${productId}`)
   await page.getByRole('button', { name: 'Добавить процесс' }).click()
   const draftTitle = uniqueName('Unsaved inline process')
   await page.getByPlaceholder('Например: Запуск маркетинговой кампании').fill(draftTitle)
 
   await page.getByRole('button', { name: 'Отмена' }).click()
-  await expect(page).toHaveURL(new RegExp(`/pm\\?productId=${productId}$`))
+  await expect(page).toHaveURL(new RegExp(`/pm/processes\\?productId=${productId}$`))
   await expect(page.getByRole('button', { name: 'Добавить процесс' })).toBeVisible()
   await expect(page.getByText(draftTitle)).toHaveCount(0)
 })

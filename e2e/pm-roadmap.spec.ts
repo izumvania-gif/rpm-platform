@@ -6,7 +6,7 @@ test('add a roadmap item on /pm, see it grouped by quarter, then delete it', asy
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/roadmap?productId=${productId}`)
   await expect(page.getByRole('heading', { name: 'PM' })).toBeVisible()
 
   // Inline "Добавить пункт" (plans/2.0-ux-improvement-plan.md, Фаза 5) — no
@@ -58,10 +58,10 @@ test('the PM product switcher remembers the last selected product', async ({ pag
 
   await page.goto('/pm')
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
-  await page.waitForURL(/\/pm\?productId=/)
+  await page.waitForURL(/\/pm\/roadmap\?productId=/)
 
   await page.goto('/pm')
-  await expect(page).toHaveURL(/\/pm\?productId=/)
+  await expect(page).toHaveURL(/\/pm\/roadmap\?productId=/)
 })
 
 test('"+ Новый продукт" in the PM product switcher goes to the create-product form', async ({

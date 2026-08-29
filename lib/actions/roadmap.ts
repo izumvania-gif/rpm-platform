@@ -73,8 +73,9 @@ export async function createRoadmapItem(formData: FormData) {
   await prisma.roadmapItem.create({
     data: { ...parsed.data, userId: getCurrentUserId() },
   })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${parsed.data.productId}&scrollTo=roadmap`)
+  revalidatePath('/pm/roadmap')
+  revalidatePath('/pm/gantt')
+  redirect(`/pm/roadmap?productId=${parsed.data.productId}`)
 }
 
 export async function updateRoadmapItem(id: string, formData: FormData) {
@@ -86,23 +87,26 @@ export async function updateRoadmapItem(id: string, formData: FormData) {
   }
 
   const item = await prisma.roadmapItem.update({ where: { id }, data: parsed.data })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${item.productId}&scrollTo=roadmap`)
+  revalidatePath('/pm/roadmap')
+  revalidatePath('/pm/gantt')
+  redirect(`/pm/roadmap?productId=${item.productId}`)
 }
 
 export async function deleteRoadmapItem(id: string) {
   await assertOwned('roadmapItem', id, getCurrentUserId())
 
   const item = await prisma.roadmapItem.delete({ where: { id } })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${item.productId}&scrollTo=roadmap`)
+  revalidatePath('/pm/roadmap')
+  revalidatePath('/pm/gantt')
+  redirect(`/pm/roadmap?productId=${item.productId}`)
 }
 
 export async function toggleRoadmapItemPinned(id: string, pinned: boolean) {
   await assertOwned('roadmapItem', id, getCurrentUserId())
 
   await prisma.roadmapItem.update({ where: { id }, data: { pinned } })
-  revalidatePath('/pm')
+  revalidatePath('/pm/roadmap')
+  revalidatePath('/pm/gantt')
 }
 
 // Gantt drag-and-drop save (plans/2.0-ux-improvement-plan.md, Фаза 6) —
@@ -148,7 +152,8 @@ export async function updateRoadmapItemDates(
       ...(trackGroup !== undefined ? { trackGroup: trackGroup.trim() || null } : {}),
     },
   })
-  revalidatePath('/pm')
+  revalidatePath('/pm/roadmap')
+  revalidatePath('/pm/gantt')
   revalidatePath('/cpo')
   return { ok: true }
 }
@@ -184,6 +189,7 @@ export async function createRoadmapItemQuick(
     },
     include: { owner: true, feature: true, jtbd: true },
   })
-  revalidatePath('/pm')
+  revalidatePath('/pm/roadmap')
+  revalidatePath('/pm/gantt')
   return { ok: true, item }
 }

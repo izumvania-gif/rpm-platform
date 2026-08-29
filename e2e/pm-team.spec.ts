@@ -6,7 +6,7 @@ test('the product block on /pm inline-edits name, stage, and description', async
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/team?productId=${productId}`)
 
   const renamed = `${productName} (renamed)`
   await page.getByRole('button', { name: productName, exact: true }).click()
@@ -30,7 +30,7 @@ test('add an existing person to the team roster, then remove them', async ({ pag
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/people\/(?!new)[^/]+$/)
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/team?productId=${productId}`)
   await expect(page.getByText('Команда продукта — явно добавленные люди')).toBeVisible()
 
   await page.getByRole('button', { name: '+ Добавить в команду' }).click()
@@ -50,7 +50,7 @@ test('create a new person directly from the team roster form', async ({ page }) 
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/team?productId=${productId}`)
   await page.getByRole('button', { name: '+ Добавить в команду' }).click()
   await page.getByRole('button', { name: 'Новый человек' }).click()
 

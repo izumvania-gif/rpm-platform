@@ -35,7 +35,7 @@ describe('createRoadmapItem', () => {
     })
 
     const redirectPath = await captureRedirect(() => createRoadmapItem(formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=roadmap`)
+    expect(redirectPath).toBe(`/pm/roadmap?productId=${product.id}`)
 
     const item = await prisma.roadmapItem.findFirst({ where: { productId: product.id } })
     expect(item).toMatchObject({
@@ -74,7 +74,7 @@ describe('createRoadmapItem', () => {
       endDate: '2026-09-20',
     })
     const redirectPath = await captureRedirect(() => createRoadmapItem(formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=roadmap`)
+    expect(redirectPath).toBe(`/pm/roadmap?productId=${product.id}`)
 
     const item = await prisma.roadmapItem.findFirst({ where: { productId: product.id } })
     expect(item).toMatchObject({
@@ -97,7 +97,7 @@ describe('createRoadmapItem', () => {
       isMilestone: 'on',
     })
     const redirectPath = await captureRedirect(() => createRoadmapItem(formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=roadmap`)
+    expect(redirectPath).toBe(`/pm/roadmap?productId=${product.id}`)
 
     const item = await prisma.roadmapItem.findFirst({ where: { productId: product.id } })
     expect(item?.isMilestone).toBe(true)
@@ -140,7 +140,7 @@ describe('updateRoadmapItem / deleteRoadmapItem / toggleRoadmapItemPinned', () =
       productId: product.id,
     })
     const redirectPath = await captureRedirect(() => updateRoadmapItem(item.id, formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=roadmap`)
+    expect(redirectPath).toBe(`/pm/roadmap?productId=${product.id}`)
 
     const updated = await prisma.roadmapItem.findUnique({ where: { id: item.id } })
     expect(updated).toMatchObject({ title: 'New', status: 'SHIPPED' })
@@ -159,7 +159,7 @@ describe('updateRoadmapItem / deleteRoadmapItem / toggleRoadmapItemPinned', () =
     })
 
     const redirectPath = await captureRedirect(() => deleteRoadmapItem(item.id))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=roadmap`)
+    expect(redirectPath).toBe(`/pm/roadmap?productId=${product.id}`)
     expect(await prisma.roadmapItem.findUnique({ where: { id: item.id } })).toBeNull()
   })
 

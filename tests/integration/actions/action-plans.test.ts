@@ -40,7 +40,7 @@ describe('createActionPlan', () => {
     })
 
     const redirectPath = await captureRedirect(() => createActionPlan(formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=action-plans`)
+    expect(redirectPath).toBe(`/pm/action-plans?productId=${product.id}`)
 
     const plan = await prisma.actionPlan.findFirst({ where: { productId: product.id } })
     expect(plan).toMatchObject({
@@ -76,7 +76,7 @@ describe('updateActionPlan / deleteActionPlan / toggleActionPlanPinned', () => {
 
     const formData = buildFormData({ scenario: 'New', productId: product.id })
     const redirectPath = await captureRedirect(() => updateActionPlan(plan.id, formData))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=action-plans`)
+    expect(redirectPath).toBe(`/pm/action-plans?productId=${product.id}`)
     expect((await prisma.actionPlan.findUnique({ where: { id: plan.id } }))?.scenario).toBe('New')
   })
 
@@ -93,7 +93,7 @@ describe('updateActionPlan / deleteActionPlan / toggleActionPlanPinned', () => {
     })
 
     const redirectPath = await captureRedirect(() => deleteActionPlan(plan.id))
-    expect(redirectPath).toBe(`/pm?productId=${product.id}&scrollTo=action-plans`)
+    expect(redirectPath).toBe(`/pm/action-plans?productId=${product.id}`)
     expect(await prisma.actionPlan.findUnique({ where: { id: plan.id } })).toBeNull()
   })
 

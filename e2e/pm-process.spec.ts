@@ -8,7 +8,7 @@ test('create a process, add a step, edit it via the inspector, then delete step 
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/processes?productId=${productId}`)
   await expect(page.getByRole('heading', { name: 'Процесс' })).toBeVisible()
   await expect(page.getByText('Процесс — кто что делает')).toBeVisible()
 
@@ -62,7 +62,7 @@ test('create an action plan with ordered steps and tags, then delete it', async 
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm?productId=${productId}`)
+  await page.goto(`/pm/processes?productId=${productId}`)
 
   // Inline "Добавить план" (plans/2.0-ux-improvement-plan.md, Фаза 5) — no
   // navigation away from /pm. Tags stay on the full form (reachable via

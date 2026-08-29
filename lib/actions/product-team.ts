@@ -28,7 +28,7 @@ export async function addProductTeamMemberQuick(
       data: { productId, personId },
       include: { person: true },
     })
-    revalidatePath('/pm')
+    revalidatePath('/pm/team')
     return { ok: true, member }
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
@@ -63,7 +63,7 @@ export async function createPersonAndAddToTeamQuick(
     },
     include: { person: true },
   })
-  revalidatePath('/pm')
+  revalidatePath('/pm/team')
   revalidatePath('/people')
   return { ok: true, member }
 }
@@ -77,6 +77,6 @@ export async function removeProductTeamMember(id: string) {
   if (denied) return denied
 
   const member = await prisma.productTeamMember.delete({ where: { id } })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${member.productId}&scrollTo=team`)
+  revalidatePath('/pm/team')
+  redirect(`/pm/team?productId=${member.productId}`)
 }

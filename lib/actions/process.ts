@@ -39,7 +39,7 @@ export async function createProcessStepQuick(
       assignedPersonId: assignedPersonId || undefined,
     },
   })
-  revalidatePath('/pm')
+  revalidatePath('/pm/processes')
   return { ok: true, step }
 }
 
@@ -57,7 +57,7 @@ export async function updateProcessStep(
     where: { id },
     data: { title, assignedPersonId: data.assignedPersonId },
   })
-  revalidatePath('/pm')
+  revalidatePath('/pm/processes')
   return { ok: true }
 }
 
@@ -66,7 +66,7 @@ export async function deleteProcessStep(id: string): Promise<void> {
   await assertOwned('processStep', id, getCurrentUserId())
 
   await prisma.processStep.delete({ where: { id } })
-  revalidatePath('/pm')
+  revalidatePath('/pm/processes')
 }
 
 export async function saveProcessStepPositions(
@@ -89,7 +89,7 @@ export async function saveProcessStepPositions(
       })
     )
   )
-  revalidatePath('/pm')
+  revalidatePath('/pm/processes')
 }
 
 export async function createProcessEdge(
@@ -115,7 +115,7 @@ export async function createProcessEdge(
   } catch {
     return { ok: false, error: 'Такая связь уже существует' }
   }
-  revalidatePath('/pm')
+  revalidatePath('/pm/processes')
   return { ok: true }
 }
 
@@ -124,5 +124,5 @@ export async function deleteProcessEdge(id: string): Promise<void> {
   await assertOwned('processEdge', id, getCurrentUserId())
 
   await prisma.processEdge.delete({ where: { id } })
-  revalidatePath('/pm')
+  revalidatePath('/pm/processes')
 }

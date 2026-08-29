@@ -27,7 +27,7 @@ export default async function NewProcessPage({
         productName={product.name}
         error={searchParams.error}
         submitLabel="Создать"
-        cancelHref={`/pm?productId=${product.id}&scrollTo=process`}
+        cancelHref={`/pm/processes?productId=${product.id}`}
       />
     </main>
   )

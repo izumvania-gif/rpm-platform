@@ -55,8 +55,8 @@ export async function createActionPlan(formData: FormData) {
   await prisma.actionPlan.create({
     data: { ...data, steps: toLines(steps), tags: toTagsArray(tags), userId: getCurrentUserId() },
   })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${parsed.data.productId}&scrollTo=action-plans`)
+  revalidatePath('/pm/action-plans')
+  redirect(`/pm/action-plans?productId=${parsed.data.productId}`)
 }
 
 export async function updateActionPlan(id: string, formData: FormData) {
@@ -74,23 +74,23 @@ export async function updateActionPlan(id: string, formData: FormData) {
     where: { id },
     data: { ...data, steps: toLines(steps), tags: toTagsArray(tags) },
   })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${plan.productId}&scrollTo=action-plans`)
+  revalidatePath('/pm/action-plans')
+  redirect(`/pm/action-plans?productId=${plan.productId}`)
 }
 
 export async function deleteActionPlan(id: string) {
   await assertOwned('actionPlan', id, getCurrentUserId())
 
   const plan = await prisma.actionPlan.delete({ where: { id } })
-  revalidatePath('/pm')
-  redirect(`/pm?productId=${plan.productId}&scrollTo=action-plans`)
+  revalidatePath('/pm/action-plans')
+  redirect(`/pm/action-plans?productId=${plan.productId}`)
 }
 
 export async function toggleActionPlanPinned(id: string, pinned: boolean) {
   await assertOwned('actionPlan', id, getCurrentUserId())
 
   await prisma.actionPlan.update({ where: { id }, data: { pinned } })
-  revalidatePath('/pm')
+  revalidatePath('/pm/action-plans')
 }
 
 // Inline "Добавить план" on /pm itself (plans/2.0-ux-improvement-plan.md,
@@ -122,6 +122,6 @@ export async function createActionPlanQuick(
     },
     include: { owner: true, processStep: true },
   })
-  revalidatePath('/pm')
+  revalidatePath('/pm/action-plans')
   return { ok: true, plan }
 }

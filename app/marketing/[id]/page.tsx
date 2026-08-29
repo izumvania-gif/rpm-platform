@@ -3,15 +3,10 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { getActiveProductId } from '@/lib/product-context.server'
-import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import { deleteRTB, toggleRTBPinned, updateRTBField } from '@/lib/actions/rtbs'
-import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DeleteButton } from '@/components/shared/delete-button'
-import { PinButton } from '@/components/shared/pin-button'
-import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { RecordPage, RecordSection } from '@/components/shared/record-page'
+import { recordBlockers } from '@/lib/record-blockers'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,79 +20,51 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
 
   const activeProductId = await getActiveProductId(getCurrentUserId())
 
-  const deleteRTBWithId = deleteRTB.bind(null, rtb.id)
-  const toggleRTBPinnedWithId = toggleRTBPinned.bind(null, rtb.id, !rtb.pinned)
-
   return (
-    <main className="container py-12 max-w-2xl space-y-6">
-      <OtherProductNotice
-        activeProductId={activeProductId}
-        product={rtb.product}
-        redirectTo={`/marketing/${rtb.id}`}
-      />
-      <RecentlyViewedTracker href={`/marketing/${rtb.id}`} title={rtb.statement} kind="RTB" />
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">
-            <InlineEditableField
-              value={rtb.statement}
-              type="textarea"
-              action={updateRTBField.bind(null, rtb.id)}
-            />
-          </h1>
-          <div className="flex flex-wrap gap-2">
-            <PinButton pinned={rtb.pinned} action={toggleRTBPinnedWithId} />
-            <CopyLinkButton />
-            <Link
-              href={`/marketing/new?productId=${rtb.product.id}&duplicateFrom=${rtb.id}`}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              Дублировать
-            </Link>
-            <Link
-              href={`/marketing/${rtb.id}/edit`}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              Редактировать
-            </Link>
-            <DeleteButton
-              action={deleteRTBWithId}
-              impact={{ model: 'rtb', id: rtb.id }}
-              name={rtb.statement}
-            />
-          </div>
-        </div>
-        <Link
-          href={`/products/${rtb.product.id}`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          {rtb.product.name}
-        </Link>
-      </div>
-
-      <Card>
-        <CardHeader className="border-l-4 border-primary">
-          <CardTitle className="text-base font-semibold">
-            Фичи, на которых основано{' '}
-            <span className="font-normal text-muted-foreground">({rtb.features.length})</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {rtb.features.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Пока не привязано ни одной фичи.</p>
-          ) : (
-            <ul className="space-y-2">
-              {rtb.features.map((f) => (
-                <li key={f.id}>
-                  <Link href={`/features/${f.id}`} className="text-sm hover:underline">
-                    {f.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+    <RecordPage
+      product={rtb.product}
+      activeProductId={activeProductId}
+      href={`/marketing/${rtb.id}`}
+      moduleHref="/marketing"
+      moduleLabel="Обещания"
+      kind="RTB"
+      plainTitle={rtb.statement}
+      recordId={rtb.id}
+      deleteModel="rtb"
+      deleteAction={deleteRTB.bind(null, rtb.id)}
+      pinned={rtb.pinned}
+      togglePinned={toggleRTBPinned.bind(null, rtb.id, !rtb.pinned)}
+      duplicateHref={`/marketing/new?productId=${rtb.product.id}&duplicateFrom=${rtb.id}`}
+      editHref={`/marketing/${rtb.id}/edit`}
+      title={
+        <InlineEditableField
+          value={rtb.statement}
+          type="textarea"
+          action={updateRTBField.bind(null, rtb.id)}
+        />
+      }
+      blockers={recordBlockers({
+        kind: 'rtb',
+        id: rtb.id,
+        productId: rtb.productId,
+        featureCount: rtb.features.length,
+      })}
+    >
+      <RecordSection
+        title="Фичи, на которых основано"
+        count={rtb.features.length}
+        empty="Ни одной фичи не привязано."
+      >
+        <ul className="space-y-2">
+          {rtb.features.map((f) => (
+            <li key={f.id}>
+              <Link href={`/features/${f.id}`} className="text-sm hover:underline">
+                {f.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </RecordSection>
+    </RecordPage>
   )
 }

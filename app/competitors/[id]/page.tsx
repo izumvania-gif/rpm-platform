@@ -1,22 +1,17 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { getActiveProductId } from '@/lib/product-context.server'
-import { OtherProductNotice } from '@/components/shared/other-product-notice'
 import {
   deleteCompetitor,
   toggleCompetitorPinned,
   updateCompetitorField,
 } from '@/lib/actions/competitors'
-import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DeleteButton } from '@/components/shared/delete-button'
-import { PinButton } from '@/components/shared/pin-button'
-import { CopyLinkButton } from '@/components/shared/copy-link-button'
-import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { CompetitorNewsList } from '@/components/shared/competitor-news-list'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { RecordPage } from '@/components/shared/record-page'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { recordBlockers } from '@/lib/record-blockers'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,103 +25,84 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
 
   const activeProductId = await getActiveProductId(getCurrentUserId())
 
-  const deleteCompetitorWithId = deleteCompetitor.bind(null, competitor.id)
-  const toggleCompetitorPinnedWithId = toggleCompetitorPinned.bind(
-    null,
-    competitor.id,
-    !competitor.pinned
-  )
-
   return (
-    <main className="container py-12 max-w-2xl space-y-6">
-      <OtherProductNotice
-        activeProductId={activeProductId}
-        product={competitor.product}
-        redirectTo={`/competitors/${competitor.id}`}
-      />
-      <RecentlyViewedTracker
-        href={`/competitors/${competitor.id}`}
-        title={competitor.name}
-        kind="Конкурент"
-      />
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h1 className="text-2xl font-bold">
-            <InlineEditableField
-              value={competitor.name}
-              action={updateCompetitorField.bind(null, competitor.id, 'name')}
-            />
-          </h1>
-          <div className="flex flex-wrap gap-2">
-            <PinButton pinned={competitor.pinned} action={toggleCompetitorPinnedWithId} />
-            <CopyLinkButton />
-            <Link
-              href={`/competitors/new?productId=${competitor.product.id}&duplicateFrom=${competitor.id}`}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              Дублировать
-            </Link>
-            <Link
-              href={`/competitors/${competitor.id}/edit`}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              Редактировать
-            </Link>
-            <DeleteButton
-              action={deleteCompetitorWithId}
-              impact={{ model: 'competitor', id: competitor.id }}
-              name={competitor.name}
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-3 mb-4 text-sm text-muted-foreground">
-          <Link href={`/products/${competitor.product.id}`} className="hover:underline">
-            {competitor.product.name}
-          </Link>
-          <InlineEditableField
-            value={competitor.url ?? ''}
-            placeholder="+ добавить сайт"
-            action={updateCompetitorField.bind(null, competitor.id, 'url')}
-            display="link"
-          />
-        </div>
-        <div className="mb-4">
+    // Конкурент — не звено цепочки, поэтому без ленты связей. Всё остальное
+    // общее с сегментом, JTBD, фичей и обещанием: крошки, шапка, ключевые
+    // поля, «Что мешает», секции связанных записей.
+    <RecordPage
+      product={competitor.product}
+      activeProductId={activeProductId}
+      href={`/competitors/${competitor.id}`}
+      moduleHref="/competitors"
+      moduleLabel="Конкуренты"
+      kind="Конкурент"
+      plainTitle={competitor.name}
+      recordId={competitor.id}
+      deleteModel="competitor"
+      deleteAction={deleteCompetitor.bind(null, competitor.id)}
+      pinned={competitor.pinned}
+      togglePinned={toggleCompetitorPinned.bind(null, competitor.id, !competitor.pinned)}
+      duplicateHref={`/competitors/new?productId=${competitor.product.id}&duplicateFrom=${competitor.id}`}
+      editHref={`/competitors/${competitor.id}/edit`}
+      title={
+        <InlineEditableField
+          value={competitor.name}
+          action={updateCompetitorField.bind(null, competitor.id, 'name')}
+        />
+      }
+      meta={
+        <InlineEditableField
+          value={competitor.url ?? ''}
+          placeholder="+ добавить сайт"
+          action={updateCompetitorField.bind(null, competitor.id, 'url')}
+          display="link"
+        />
+      }
+      tags={
+        <span id="rival-features" className="block scroll-mt-24">
           <InlineEditableField
             value={competitor.features.join(', ')}
             action={updateCompetitorField.bind(null, competitor.id, 'features')}
             placeholder="+ добавить фичи конкурента"
             display="tags"
           />
-        </div>
-        <p className="text-muted-foreground">
+        </span>
+      }
+      description={
+        <span id="positioning" className="block scroll-mt-24">
           <InlineEditableField
             value={competitor.positioning ?? ''}
             type="textarea"
+            placeholder="+ описать позиционирование"
             action={updateCompetitorField.bind(null, competitor.id, 'positioning')}
           />
-        </p>
-        <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-          <div>
-            <dt className="text-xs text-muted-foreground">Модель ценообразования</dt>
-            <dd>
-              <InlineEditableField
-                value={competitor.pricingModel ?? ''}
-                action={updateCompetitorField.bind(null, competitor.id, 'pricingModel')}
-              />
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Размер компании / стадия</dt>
-            <dd>
-              <InlineEditableField
-                value={competitor.companySize ?? ''}
-                action={updateCompetitorField.bind(null, competitor.id, 'companySize')}
-              />
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Последняя проверка</dt>
-            <dd>
+        </span>
+      }
+      facts={[
+        {
+          label: 'Модель ценообразования',
+          value: (
+            <InlineEditableField
+              value={competitor.pricingModel ?? ''}
+              placeholder="+ указать модель"
+              action={updateCompetitorField.bind(null, competitor.id, 'pricingModel')}
+            />
+          ),
+        },
+        {
+          label: 'Размер компании / стадия',
+          value: (
+            <InlineEditableField
+              value={competitor.companySize ?? ''}
+              placeholder="+ указать размер"
+              action={updateCompetitorField.bind(null, competitor.id, 'companySize')}
+            />
+          ),
+        },
+        {
+          label: 'Последняя проверка',
+          value: (
+            <span id="last-checked" className="block scroll-mt-24">
               <InlineEditableField
                 value={
                   competitor.lastCheckedAt
@@ -134,14 +110,25 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
                     : ''
                 }
                 type="date"
+                placeholder="+ отметить проверку"
                 action={updateCompetitorField.bind(null, competitor.id, 'lastCheckedAt')}
                 display="date"
               />
-            </dd>
-          </div>
-        </dl>
-      </div>
-
+            </span>
+          ),
+        },
+      ]}
+      blockers={recordBlockers({
+        kind: 'competitor',
+        id: competitor.id,
+        productId: competitor.productId,
+        hasPositioning: Boolean(competitor.positioning?.trim()),
+        featureCount: competitor.features.length,
+        lastCheckedAt: competitor.lastCheckedAt,
+      })}
+    >
+      {/* Не RecordSection: лента новостей пополняется на месте и держит своё
+          состояние, поэтому её «пусто» — это её собственная форма. */}
       <Card>
         <CardHeader className="border-l-4 border-primary">
           <CardTitle className="text-base font-semibold">
@@ -155,6 +142,6 @@ export default async function CompetitorDetailPage({ params }: { params: { id: s
           <CompetitorNewsList competitorId={competitor.id} initialItems={competitor.newsItems} />
         </CardContent>
       </Card>
-    </main>
+    </RecordPage>
   )
 }

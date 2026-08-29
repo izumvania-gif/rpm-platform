@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import type { JtbdJobType } from '@prisma/client'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -65,6 +66,7 @@ export function InlineEditableField({
   // its ref there, not to the hidden native <select> used for form submission)
   // so entering edit mode moves keyboard focus somewhere the user can act on.
   const selectRef = useRef<HTMLButtonElement>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (!editing) return
@@ -94,6 +96,16 @@ export function InlineEditableField({
       setDraft(nextValue)
       setError(null)
       setEditing(false)
+      // Остальная страница тоже зависит от этого значения — с фазы 8 буквально:
+      // блок «Что мешает» читает позиционирование конкурента, дату проверки и
+      // прочие поля, которые правятся здесь. Раньше локального состояния
+      // хватало, потому что от инлайн-поля ничего на странице не зависело; без
+      // обновления блок продолжал бы утверждать «не описано позиционирование»
+      // над только что описанным позиционированием.
+      //
+      // После обновления серверное значение совпадает с `saved`, так что
+      // мигания нет — не подмена локального состояния, а сверка с сервером.
+      router.refresh()
     })
   }
 

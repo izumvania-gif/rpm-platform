@@ -60,9 +60,9 @@ export default async function HypothesisDetailPage({
     where: { id: params.id, userId: getCurrentUserId() },
     include: {
       product: true,
-      // The job carries the rest of the chain for the ribbon: which segments
-      // it serves and which features (and their marketing claims) rest on it.
-      jtbd: { include: { segments: true, features: { include: { rtbs: true } } } },
+      // The job carries one thing the ribbon needs: which segments it serves,
+      // for a hypothesis that names no segment of its own.
+      jtbd: { include: { segments: true } },
       segment: true,
       research: true,
       statusChanges: { orderBy: { changedAt: 'desc' } },
@@ -72,7 +72,8 @@ export default async function HypothesisDetailPage({
         orderBy: { createdAt: 'desc' },
         include: { research: true, conversation: true },
       },
-      features: true,
+      // rtbs — на одно соединение дальше, для последнего слота ленты цепочки.
+      features: { include: { rtbs: true } },
     },
   })
 
@@ -109,9 +110,14 @@ export default async function HypothesisDetailPage({
   const chainSegments = hypothesis.segment
     ? [hypothesis.segment]
     : (hypothesis.jtbd?.segments ?? [])
-  const chainFeatures = hypothesis.jtbd?.features ?? []
+  // Обещания — через СВОИ фичи гипотезы, а не через фичи её задачи. До фазы 7
+  // лента показывала здесь вторые: прямой связи «гипотеза ↔ фича» тогда просто
+  // не было (она появилась в фазе 2 схемы). Теперь есть, и держать в ленте
+  // фичи задачи значило бы противоречить чек-листу готовности на этой же
+  // странице — он считает `hypothesis.features` и говорит «нет фичи» ровно
+  // тогда, когда лента показывала бы чужие.
   const chainRtbs = Array.from(
-    new Map(chainFeatures.flatMap((f) => f.rtbs).map((rtb) => [rtb.id, rtb])).values()
+    new Map(hypothesis.features.flatMap((f) => f.rtbs).map((rtb) => [rtb.id, rtb])).values()
   )
 
   const deleteHypothesisWithId = deleteHypothesis.bind(null, hypothesis.id)
@@ -171,7 +177,11 @@ export default async function HypothesisDetailPage({
                 title: 'Сегмент',
                 items: chainSegments.map((s) => ({ label: s.name, href: `/segments/${s.id}` })),
                 emptyLabel: 'не привязан',
-                addHref: `/hypotheses/${hypothesis.id}/edit`,
+                gap: {
+                  kind: 'hypothesis-segment',
+                  anchorId: hypothesis.id,
+                  productId: hypothesis.product.id,
+                },
               },
               {
                 title: 'JTBD',
@@ -184,7 +194,11 @@ export default async function HypothesisDetailPage({
                     ]
                   : [],
                 emptyLabel: 'не привязан',
-                addHref: `/hypotheses/${hypothesis.id}/edit`,
+                gap: {
+                  kind: 'hypothesis-jtbd',
+                  anchorId: hypothesis.id,
+                  productId: hypothesis.product.id,
+                },
               },
               {
                 title: 'Гипотеза',
@@ -200,9 +214,16 @@ export default async function HypothesisDetailPage({
               },
               {
                 title: 'Фича',
-                items: chainFeatures.map((f) => ({ label: f.name, href: `/features/${f.id}` })),
+                items: hypothesis.features.map((f) => ({
+                  label: f.name,
+                  href: `/features/${f.id}`,
+                })),
                 emptyLabel: 'ни одной',
-                addHref: `/features/new?productId=${hypothesis.product.id}`,
+                gap: {
+                  kind: 'hypothesis-feature',
+                  anchorId: hypothesis.id,
+                  productId: hypothesis.product.id,
+                },
               },
               {
                 title: 'Маркетинг',

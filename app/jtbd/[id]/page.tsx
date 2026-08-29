@@ -107,7 +107,7 @@ export default async function JtbdDetailPage({
                 title: 'Сегмент',
                 items: jtbd.segments.map((s) => ({ label: s.name, href: `/segments/${s.id}` })),
                 emptyLabel: 'не привязан',
-                addHref: `/jtbd/${jtbd.id}/edit`,
+                gap: { kind: 'jtbd-segment', anchorId: jtbd.id, productId: jtbd.product.id },
               },
               {
                 title: 'JTBD',
@@ -129,13 +129,13 @@ export default async function JtbdDetailPage({
                   href: `/hypotheses/${h.id}`,
                 })),
                 emptyLabel: 'ни одной',
-                addHref: `/hypotheses/new?productId=${jtbd.product.id}&jtbdId=${jtbd.id}`,
+                gap: { kind: 'jtbd-hypothesis', anchorId: jtbd.id, productId: jtbd.product.id },
               },
               {
                 title: 'Фича',
                 items: jtbd.features.map((f) => ({ label: f.name, href: `/features/${f.id}` })),
                 emptyLabel: 'ни одной',
-                addHref: `/features/new?productId=${jtbd.product.id}`,
+                gap: { kind: 'jtbd-feature', anchorId: jtbd.id, productId: jtbd.product.id },
               },
               {
                 title: 'Маркетинг',

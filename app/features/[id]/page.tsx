@@ -91,7 +91,7 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
                   href: `/jtbd/${j.id}`,
                 })),
                 emptyLabel: 'ни одного',
-                addHref: `/features/${feature.id}/edit`,
+                gap: { kind: 'feature-jtbd', anchorId: feature.id, productId: feature.product.id },
               },
               {
                 title: 'Фича',
@@ -106,7 +106,7 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
                   href: `/marketing/${r.id}`,
                 })),
                 emptyLabel: 'нет обещаний',
-                addHref: `/marketing/new?productId=${feature.product.id}&featureId=${feature.id}`,
+                gap: { kind: 'feature-rtb', anchorId: feature.id, productId: feature.product.id },
               },
             ]}
           />

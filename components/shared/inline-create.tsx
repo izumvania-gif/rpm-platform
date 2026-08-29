@@ -1,7 +1,16 @@
 'use client'
 
 import { useState, useTransition, type ReactNode } from 'react'
-import { ResearchType, type JTBD, type Person, type Research, type Segment } from '@prisma/client'
+import {
+  ResearchType,
+  type Feature,
+  type Hypothesis,
+  type JTBD,
+  type Person,
+  type RTB,
+  type Research,
+  type Segment,
+} from '@prisma/client'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -10,6 +19,9 @@ import { createSegmentQuick } from '@/lib/actions/segments'
 import { createResearchQuick } from '@/lib/actions/research'
 import { createJtbdQuick } from '@/lib/actions/jtbd-graph'
 import { createPersonQuick } from '@/lib/actions/people'
+import { createFeatureQuick } from '@/lib/actions/features'
+import { createHypothesisQuick } from '@/lib/actions/hypotheses'
+import { createRTBQuick } from '@/lib/actions/rtbs'
 
 // "+ Новый …" inside a relation picker (plans/2.0-round-trip-audit.md).
 //
@@ -249,6 +261,111 @@ export function InlineCreateJtbd({
         placeholder="Категория"
         className="h-8 w-40 text-sm"
         aria-label="Категория JTBD"
+      />
+    </InlineCreateShell>
+  )
+}
+
+export function InlineCreateFeature({
+  productId,
+  onCreated,
+}: {
+  productId: string
+  onCreated: (feature: Feature) => void
+}) {
+  const [name, setName] = useState('')
+
+  return (
+    <InlineCreateShell
+      label="+ Новая фича"
+      submitLabel="Создать фичу"
+      disabled={!productId}
+      canSubmit={name.trim() !== ''}
+      onReset={() => setName('')}
+      onSubmit={async () => {
+        const result = await createFeatureQuick(productId, name)
+        if (!result.ok) return result.error
+        onCreated(result.feature)
+        return null
+      }}
+    >
+      <Input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Название фичи"
+        className="h-8 w-56 text-sm"
+      />
+    </InlineCreateShell>
+  )
+}
+
+export function InlineCreateHypothesis({
+  productId,
+  onCreated,
+}: {
+  productId: string
+  onCreated: (hypothesis: Hypothesis) => void
+}) {
+  const [statement, setStatement] = useState('')
+
+  return (
+    // Статус не спрашивается: createHypothesisQuick заводит DRAFT, и это не
+    // умолчание «на глазок», а единственный честный статус для гипотезы,
+    // которую только что записали.
+    <InlineCreateShell
+      label="+ Новая гипотеза"
+      submitLabel="Создать гипотезу"
+      disabled={!productId}
+      canSubmit={statement.trim() !== ''}
+      onReset={() => setStatement('')}
+      onSubmit={async () => {
+        const result = await createHypothesisQuick(productId, statement)
+        if (!result.ok) return result.error
+        onCreated(result.hypothesis)
+        return null
+      }}
+    >
+      <Input
+        autoFocus
+        value={statement}
+        onChange={(e) => setStatement(e.target.value)}
+        placeholder="Мы верим, что …"
+        className="h-8 w-64 text-sm"
+      />
+    </InlineCreateShell>
+  )
+}
+
+export function InlineCreateRTB({
+  productId,
+  onCreated,
+}: {
+  productId: string
+  onCreated: (rtb: RTB) => void
+}) {
+  const [statement, setStatement] = useState('')
+
+  return (
+    <InlineCreateShell
+      label="+ Новое обещание"
+      submitLabel="Создать обещание"
+      disabled={!productId}
+      canSubmit={statement.trim() !== ''}
+      onReset={() => setStatement('')}
+      onSubmit={async () => {
+        const result = await createRTBQuick(productId, statement)
+        if (!result.ok) return result.error
+        onCreated(result.rtb)
+        return null
+      }}
+    >
+      <Input
+        autoFocus
+        value={statement}
+        onChange={(e) => setStatement(e.target.value)}
+        placeholder="Формулировка обещания"
+        className="h-8 w-64 text-sm"
       />
     </InlineCreateShell>
   )

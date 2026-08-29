@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { ChevronRight, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ChainGapFiller } from '@/components/shared/chain-gap-filler'
+import type { ChainGapKind } from '@/lib/chain-gap'
 
 // The discovery chain for one record, in one line
 // (plans/inspirations.md рекомендация №6, Teresa Torres' Opportunity Solution
@@ -32,6 +34,15 @@ export type RibbonStage = {
   emptyLabel: string
   /** Where to go to fill this gap; omitted when there is nothing sensible to link. */
   addHref?: string
+  /**
+   * Разрыв, который чинится прямо в слоте (фаза 7 редизайна 2.1). Когда он
+   * задан, слот показывает пикер вместо ссылки «+ добавить»: ссылка уводила с
+   * карточки, а разрыв виден именно здесь.
+   *
+   * Задан не у каждого пустого слота — только там, где до цели ровно одно
+   * звено; какие это слоты и почему, решает lib/chain-gap.ts.
+   */
+  gap?: { kind: ChainGapKind; anchorId: string; productId: string }
   /** The record whose page this is — anchors the reader in the line. */
   current?: boolean
 }
@@ -59,18 +70,27 @@ export function ChainRibbon({ stages }: { stages: RibbonStage[] }) {
               {stage.title}
             </span>
             {stage.items.length === 0 ? (
-              <span className="flex items-center gap-1 text-muted-foreground">
-                {stage.emptyLabel}
-                {stage.addHref && (
-                  <Link
-                    href={stage.addHref}
-                    className="inline-flex items-center gap-0.5 underline hover:no-underline"
-                  >
-                    <Plus size={11} aria-hidden />
-                    добавить
-                  </Link>
-                )}
-              </span>
+              stage.gap ? (
+                <ChainGapFiller
+                  kind={stage.gap.kind}
+                  anchorId={stage.gap.anchorId}
+                  productId={stage.gap.productId}
+                  emptyLabel={stage.emptyLabel}
+                />
+              ) : (
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  {stage.emptyLabel}
+                  {stage.addHref && (
+                    <Link
+                      href={stage.addHref}
+                      className="inline-flex items-center gap-0.5 underline hover:no-underline"
+                    >
+                      <Plus size={11} aria-hidden />
+                      добавить
+                    </Link>
+                  )}
+                </span>
+              )
             ) : (
               <span className="flex flex-wrap items-center gap-x-1.5">
                 {stage.items.slice(0, MAX_VISIBLE).map((item) => (

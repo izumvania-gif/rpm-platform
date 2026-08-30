@@ -12,6 +12,9 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleInsightPinned } from '@/lib/actions/insights'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { KnowledgeTabs } from '@/components/knowledge/knowledge-tabs'
+import { LinkBadge } from '@/components/knowledge/link-badge'
+import { insightLinkBadge } from '@/lib/knowledge-links'
 import { insightKeyPhrase } from '@/lib/key-phrase'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 
@@ -31,6 +34,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
   const insights = await prisma.insight.findMany({
     where: { userId: getCurrentUserId(), ...activeProductFilter(activeProductId) },
     orderBy: { createdAt: 'desc' },
+    // researchId / conversationId / hypothesisId — для бейджа связей (фаза 11):
+    // нужны сами id, а не записи, поэтому без include.
     include: { product: true, segment: true, jtbd: true },
   })
 
@@ -45,6 +50,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
 
   return (
     <main className="container py-12">
+      <KnowledgeTabs />
       <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
         <SectionHeading
           level={1}
@@ -110,10 +116,22 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
                         {insightKeyPhrase(insight.text)}
                       </span>
                       {(insight.segment || insight.jtbd) && (
-                        <span className="shrink-0 text-xs text-muted-foreground">
+                        <span className="shrink-0 truncate text-xs text-muted-foreground">
                           {[insight.segment?.name, insight.jtbd?.title].filter(Boolean).join(' · ')}
                         </span>
                       )}
+                      {/* Бейдж говорит, ЧЕМ запись связана, а строка выше —
+                          с чем именно. Он нужен и там, где связей нет: пустое
+                          место молчит, а «ни к чему не привязан» — нет. */}
+                      <LinkBadge
+                        badge={insightLinkBadge({
+                          segment: insight.segmentId !== null,
+                          jtbd: insight.jtbdId !== null,
+                          research: insight.researchId !== null,
+                          conversation: insight.conversationId !== null,
+                          hypothesis: insight.hypothesisId !== null,
+                        })}
+                      />
                       <TagBadges tags={insight.tags} />
                       <PinButton
                         pinned={insight.pinned}

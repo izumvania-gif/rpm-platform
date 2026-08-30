@@ -16,6 +16,7 @@
 // Чистый модуль: раскладка и правила видимости проверяются юнит-тестами без
 // браузера, включая инвентаризацию маршрутов (tests/unit/nav-chain.test.ts).
 
+import { KNOWLEDGE_TABS } from '@/lib/knowledge-nav'
 import { PM_TABS } from '@/lib/pm-nav'
 
 export interface NavNode {
@@ -82,12 +83,14 @@ export const GROUPS: NavNode[] = [
     children: PM_TABS.map((tab) => ({ href: tab.href, label: tab.label })),
   },
   {
+    // Три вкладки одного раздела (фаза 11). Список живёт в lib/knowledge-nav.ts —
+    // он же строит полосу вкладок на самих страницах; два списка разошлись бы.
+    // «Исследования» в подменю есть наравне с остальными, хотя href родителя
+    // ведёт туда же: в полосе вкладок это равноправная вкладка, и меню не
+    // должно утверждать обратное.
     href: '/research',
     label: 'База знаний',
-    children: [
-      { href: '/conversations', label: 'Разговоры' },
-      { href: '/insights', label: 'Инсайты' },
-    ],
+    children: KNOWLEDGE_TABS.map((tab) => ({ href: tab.href, label: tab.label })),
   },
   {
     href: '/people',

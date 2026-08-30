@@ -12,6 +12,9 @@ import { SectionHeading } from '@/components/shared/section-heading'
 import { toggleConversationPinned } from '@/lib/actions/conversations'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { KnowledgeTabs } from '@/components/knowledge/knowledge-tabs'
+import { LinkBadge } from '@/components/knowledge/link-badge'
+import { conversationLinkBadge } from '@/lib/knowledge-links'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,11 +47,13 @@ export default async function ConversationsPage({
   const conversations = await prisma.conversation.findMany({
     where: { userId: getCurrentUserId(), ...activeProductFilter(activeProductId) },
     orderBy,
-    include: { product: true },
+    // Сколько инсайтов извлечено — для бейджа в строке (фаза 11).
+    include: { product: true, _count: { select: { insights: true } } },
   })
 
   return (
     <main className="container py-12">
+      <KnowledgeTabs />
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <SectionHeading
           level={1}
@@ -85,6 +90,7 @@ export default async function ConversationsPage({
                 <th className="py-2 pr-4"></th>
                 <th className="py-2 pr-4">Название</th>
                 <th className="py-2 pr-4">Продукт</th>
+                <th className="py-2 pr-4">Связи</th>
                 <th className="py-2 pr-4">Теги</th>
                 <th className="py-2 pr-4">Дата</th>
               </tr>
@@ -104,6 +110,9 @@ export default async function ConversationsPage({
                     </Link>
                   </td>
                   <td className="py-2 pr-4">{c.product.name}</td>
+                  <td className="py-2 pr-4">
+                    <LinkBadge badge={conversationLinkBadge(c._count.insights)} />
+                  </td>
                   <td className="py-2 pr-4">
                     <TagBadges tags={c.tags} />
                   </td>

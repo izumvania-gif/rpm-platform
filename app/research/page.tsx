@@ -15,6 +15,9 @@ import { statusLabels, typeLabels } from '@/lib/labels'
 import { ResearchFilterForm } from '@/components/forms/research-filter-form'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
+import { KnowledgeTabs } from '@/components/knowledge/knowledge-tabs'
+import { LinkBadge } from '@/components/knowledge/link-badge'
+import { researchLinkBadge } from '@/lib/knowledge-links'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,11 +56,17 @@ export default async function ResearchPage({
       ...(type ? { type } : {}),
     },
     orderBy,
-    include: { product: true },
+    // Счётчики связей — для бейджа в строке (фаза 11). `_count` вместо
+    // выборки записей: в строке показывается число, сами записи не нужны.
+    include: {
+      product: true,
+      _count: { select: { jtbds: true, hypotheses: true, conversations: true, insights: true } },
+    },
   })
 
   return (
     <main className="container py-12">
+      <KnowledgeTabs />
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <SectionHeading
           level={1}
@@ -98,6 +107,7 @@ export default async function ResearchPage({
                 <th className="py-2 pr-4">Продукт</th>
                 <th className="py-2 pr-4">Тип</th>
                 <th className="py-2 pr-4">Статус</th>
+                <th className="py-2 pr-4">Связи</th>
                 <th className="py-2 pr-4">Теги</th>
                 <th className="py-2 pr-4">Дата</th>
               </tr>
@@ -130,6 +140,9 @@ export default async function ResearchPage({
                     <Badge variant={r.status === 'COMPLETED' ? 'default' : 'secondary'}>
                       {statusLabels[r.status]}
                     </Badge>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <LinkBadge badge={researchLinkBadge(r._count)} />
                   </td>
                   <td className="py-2 pr-4">
                     <TagBadges tags={r.tags} />

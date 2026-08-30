@@ -33,13 +33,13 @@ test('shows a product with its public summary and owner, and only public roadmap
   )
   await page.getByLabel('Квартал').fill('2026 Q4')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   const internalItemTitle = uniqueName('Internal-only item')
   await page.goto(`/pm/roadmap/new?productId=${productId}`)
   await page.getByLabel('Название').fill(internalItemTitle)
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   await page.goto('/public')
   await expect(page.getByRole('heading', { name: 'Компания' })).toBeVisible()

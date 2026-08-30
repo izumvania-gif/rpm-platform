@@ -7,7 +7,7 @@ test('add a roadmap item on /pm, see it grouped by quarter, then delete it', asy
   const productId = productUrl.split('/').pop()!
 
   await page.goto(`/pm/roadmap?productId=${productId}`)
-  await expect(page.getByRole('heading', { name: 'PM' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Доставка' })).toBeVisible()
 
   // Inline "Добавить пункт" (plans/2.0-ux-improvement-plan.md, Фаза 5) — no
   // navigation away from /pm at all, unlike the old full-page flow.
@@ -23,7 +23,7 @@ test('add a roadmap item on /pm, see it grouped by quarter, then delete it', asy
   await expect(page.getByText('В работе')).toBeVisible()
 
   await confirmDelete(page)
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
   await expect(page.getByText(itemTitle)).toHaveCount(0)
 })
 
@@ -44,11 +44,17 @@ test('assigning a roadmap item owner shows their workload in the Команда 
   await page.getByLabel('Название').fill(uniqueName('Ship feature'))
   await selectOptionRobust(page, page.getByLabel('Ответственный'), personName)
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
-  // Both the roadmap item ("Ответственный: Carol PM…") and the Команда row
-  // contain the person's name, so scope on the workload text instead — it
-  // only ever appears in the Команда section.
+  // С фазы 9 «Команда» — своя вкладка, а не секция под роадмапом.
+  await page
+    .getByRole('navigation', { name: 'Разделы доставки' })
+    .getByRole('link', { name: 'Команда' })
+    .click()
+  await page.waitForURL(new RegExp(`/pm/team\\?productId=${productId}`))
+
+  // И строка роадмапа («Ответственный: Carol PM…»), и строка команды содержат
+  // имя, поэтому проверяем нагрузку — она есть только в «Команде».
   await expect(page.getByText('1 активных · 1 всего')).toBeVisible()
 })
 

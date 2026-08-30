@@ -50,5 +50,5 @@ test('«с сегодня» puts an item on the timeline without opening a form'
   // It leaves the tray and becomes a bar — no navigation anywhere.
   await expect(page.getByTitle(new RegExp(`${title} — нет дат`))).toHaveCount(0)
   await expect(page.locator('[data-track-key]').first()).toBeVisible()
-  await expect(page).toHaveURL(new RegExp(`view=gantt`))
+  await expect(page).toHaveURL(new RegExp(`/pm/gantt`))
 })

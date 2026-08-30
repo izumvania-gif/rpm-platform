@@ -17,7 +17,7 @@ test('switching to the Гант tab renders tracked bars grouped by block and a 
   await page.locator('#startDate').fill('2026-09-01')
   await page.locator('#endDate').fill('2026-09-20')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   const milestoneTitle = uniqueName('v3.0')
   await page.goto(`/pm/roadmap/new?productId=${productId}`)
@@ -25,13 +25,14 @@ test('switching to the Гант tab renders tracked bars grouped by block and a 
   await page.locator('#startDate').fill('2026-09-10')
   await page.getByLabel('Это веха', { exact: false }).check()
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
-  // List view is the default landing state for /pm.
-  await expect(page.getByRole('link', { name: 'Список' })).toBeVisible()
+  // «Роадмап» — вкладка, на которую /pm приземляет по умолчанию (фаза 9).
+  const tabs = page.getByRole('navigation', { name: 'Разделы доставки' })
+  await expect(tabs.getByRole('link', { name: 'Роадмап' })).toBeVisible()
 
-  await page.getByRole('link', { name: 'Гант' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&view=gantt`))
+  await tabs.getByRole('link', { name: 'Гант' }).click()
+  await page.waitForURL(new RegExp(`/pm/gantt\\?productId=${productId}`))
 
   await expect(page.getByText(trackGroup)).toBeVisible()
   await expect(page.getByText('Фронт', { exact: true })).toBeVisible()
@@ -59,7 +60,7 @@ test('dragging a bar body moves both dates, dragging its edge resizes one', asyn
   await page.locator('#startDate').fill('2026-09-05')
   await page.locator('#endDate').fill('2026-09-15')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   await page.goto(`/pm/gantt?productId=${productId}`)
   const bar = page.locator(`div[title^="${barTitle}"]`)
@@ -121,7 +122,7 @@ test('dragging a milestone moves its date, and its edit link is keyboard-reachab
   await page.locator('#startDate').fill('2026-09-15')
   await page.getByLabel('Это веха', { exact: false }).check()
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   await page.goto(`/pm/gantt?productId=${productId}`)
   // Целимся в саму ручку перетаскивания, а не «на 15px ниже подписи»:
@@ -177,7 +178,7 @@ test('dragging a bar vertically onto another track row reassigns its track (/pm 
   await page.locator('#startDate').fill('2026-09-01')
   await page.locator('#endDate').fill('2026-09-10')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   // A second track in the same block, so there's somewhere to drop onto —
   // buildGanttLayout only renders a track row that has at least one item.
@@ -188,7 +189,7 @@ test('dragging a bar vertically onto another track row reassigns its track (/pm 
   await page.locator('#startDate').fill('2026-09-01')
   await page.locator('#endDate').fill('2026-09-10')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   await page.goto(`/pm/gantt?productId=${productId}`)
   const bar = page.locator(`div[title^="${barTitle}"]`)

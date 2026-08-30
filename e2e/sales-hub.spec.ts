@@ -35,7 +35,7 @@ test('shows sales-kit resources first, and a qualitative answer for "do we have 
   await page.getByLabel('Название').fill(plannedTitle)
   await page.getByLabel('Квартал').fill('2026 Q4')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   await page.goto(`/sales-hub?productId=${productId}`)
   await expect(page.getByRole('heading', { name: 'Продажи' })).toBeVisible()

@@ -47,13 +47,13 @@ test('create a process, add a step, edit it via the inspector, then delete step 
 
   // Back to the process list, then delete the process itself.
   await page.getByRole('link', { name: 'Все процессы' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}$`))
+  await page.waitForURL(new RegExp(`/pm/processes\\?productId=${productId}$`))
   await expect(page.getByText(processTitle)).toBeVisible()
 
   await page.getByText(processTitle).click()
-  await page.waitForURL(/\/pm\?productId=.+&processId=.+/)
+  await page.waitForURL(/\/pm\/processes\?productId=.+&processId=.+/)
   await confirmDelete(page)
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&scrollTo=process$`))
+  await page.waitForURL(new RegExp(`/pm/processes\\?productId=${productId}$`))
   await expect(page.getByText('Процесс — кто что делает')).toBeVisible()
 })
 
@@ -62,7 +62,7 @@ test('create an action plan with ordered steps and tags, then delete it', async 
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!
 
-  await page.goto(`/pm/processes?productId=${productId}`)
+  await page.goto(`/pm/action-plans?productId=${productId}`)
 
   // Inline "Добавить план" (plans/2.0-ux-improvement-plan.md, Фаза 5) — no
   // navigation away from /pm. Tags stay on the full form (reachable via
@@ -84,6 +84,6 @@ test('create an action plan with ordered steps and tags, then delete it', async 
 
   const planRow = page.locator('li', { hasText: scenario })
   await confirmDelete(page, planRow.getByRole('button', { name: 'Удалить' }))
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/action-plans\\?productId=${productId}`))
   await expect(page.getByText(scenario)).toHaveCount(0)
 })

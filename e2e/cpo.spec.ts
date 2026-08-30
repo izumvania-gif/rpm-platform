@@ -37,7 +37,7 @@ test('shows cross-product ecosystem correlations and the multi-product roadmap',
   await page.getByLabel('Название').fill(roadmapItemTitle)
   await page.getByLabel('Квартал').fill('2026 Q4')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productAId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productAId}`))
 
   await page.goto('/cpo')
   await expect(page.getByRole('heading', { name: 'CPO' })).toBeVisible()

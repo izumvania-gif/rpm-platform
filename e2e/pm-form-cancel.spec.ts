@@ -16,7 +16,7 @@ test('Отмена on the roadmap item form returns to /pm without saving', asyn
   const draftTitle = uniqueName('Unsaved roadmap item')
   await page.getByLabel('Название').fill(draftTitle)
   await page.getByRole('link', { name: 'Отмена' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&scrollTo=roadmap$`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}$`))
   await expect(page.getByText(draftTitle)).toHaveCount(0)
 })
 
@@ -29,7 +29,7 @@ test('Отмена on the action plan form returns to /pm without saving', async
   const draftScenario = uniqueName('Unsaved scenario')
   await page.getByLabel('Сценарий', { exact: true }).fill(draftScenario)
   await page.getByRole('link', { name: 'Отмена' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&scrollTo=action-plans$`))
+  await page.waitForURL(new RegExp(`/pm/action-plans\\?productId=${productId}$`))
   await expect(page.getByText(draftScenario)).toHaveCount(0)
 })
 
@@ -42,7 +42,7 @@ test('Отмена on the process form returns to /pm without saving', async ({ 
   const draftTitle = uniqueName('Unsaved process')
   await page.getByLabel('Название процесса').fill(draftTitle)
   await page.getByRole('link', { name: 'Отмена' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}&scrollTo=process$`))
+  await page.waitForURL(new RegExp(`/pm/processes\\?productId=${productId}$`))
   await expect(page.getByText(draftTitle)).toHaveCount(0)
 })
 

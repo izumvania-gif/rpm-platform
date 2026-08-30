@@ -45,7 +45,7 @@ test('shows the JTBD -> feature -> RTB chain for a segment, and upcoming roadmap
   await page.goto(`/pm/roadmap/new?productId=${productId}`)
   await page.getByLabel('Название').fill(roadmapItemTitle)
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   await page.goto('/marketing-hub')
   await selectOptionRobust(page, page.getByLabel('Сегмент'), segmentName)

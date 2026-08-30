@@ -41,7 +41,7 @@ test('add an existing person to the team roster, then remove them', async ({ pag
   await expect(page.getByText('0 активных · 0 всего')).toBeVisible()
 
   await confirmDelete(page, page.getByRole('button', { name: 'Убрать' }))
-  await page.waitForURL(/scrollTo=team/)
+  await page.waitForURL(/\/pm\/team\?productId=/)
   await expect(page.getByText('Команда продукта — явно добавленные люди')).toBeVisible()
 })
 

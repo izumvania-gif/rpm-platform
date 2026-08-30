@@ -87,7 +87,7 @@ test('CPO groups products by department and shows a multi-product Gantt', async 
   await page.locator('#startDate').fill('2026-09-01')
   await page.locator('#endDate').fill('2026-09-20')
   await page.getByRole('button', { name: 'Добавить' }).click()
-  await page.waitForURL(new RegExp(`/pm\\?productId=${productId}`))
+  await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
 
   await page.goto('/cpo')
   await expect(page.getByText(departmentName).first()).toBeVisible()

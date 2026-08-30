@@ -10,12 +10,16 @@ import { DashboardWidgetGrid } from '@/components/shared/dashboard-widget-grid'
 import { DashboardGapsSummary } from '@/components/shared/dashboard-gaps-summary'
 import { DashboardJtbdCoverage } from '@/components/shared/dashboard-jtbd-coverage'
 import { DashboardDiscoveryChain } from '@/components/shared/dashboard-discovery-chain'
+import { DashboardDecisionQueue } from '@/components/shared/dashboard-decision-queue'
+import { DashboardWeakLink } from '@/components/shared/dashboard-weak-link'
+import { buildChainRows, weakestStage } from '@/lib/discovery-chain'
 import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 import { DashboardHypothesisFunnel } from '@/components/shared/dashboard-hypothesis-funnel'
 import { DashboardResearchCadence } from '@/components/shared/dashboard-research-cadence'
 import { productModule, moduleByHref } from '@/lib/module-meta'
 import { stageLabels } from '@/lib/labels'
 import {
+  getDecisionQueue,
   getGapsCounts,
   getHypothesisStatusCounts,
   getDiscoveryChain,
@@ -45,6 +49,7 @@ export default async function Home() {
     getDiscoveryChain(userId),
     getHypothesisStatusCounts(userId),
     getResearchCadence(userId),
+    getDecisionQueue(userId),
   ])
 
   const [
@@ -101,8 +106,18 @@ export default async function Home() {
     prisma.insight.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 15 }),
   ])
 
-  const [gapsCounts, jtbdCoverage, discoveryChain, hypothesisStatusCounts, researchCadence] =
-    await dashboardMetrics
+  const [
+    gapsCounts,
+    jtbdCoverage,
+    discoveryChain,
+    hypothesisStatusCounts,
+    researchCadence,
+    decisionQueue,
+  ] = await dashboardMetrics
+
+  // Вывод считается здесь, а не внутри карточки цепочки: с фазы 10 он стоит
+  // отдельной плашкой НАД метрами, а не сноской под ними.
+  const weakest = weakestStage(buildChainRows(discoveryChain))
 
   const pinnedItems: FeedItem[] = [
     ...pinnedResearch.map((r) => ({
@@ -321,6 +336,28 @@ export default async function Home() {
         </Card>
       )}
 
+      {/* Постоянная часть дашборда (фаза 10 редизайна 2.1): «где мы» и «что
+          решать». Она не в настраиваемой сетке ниже намеренно — эти два
+          вопроса задаёт каждый, кто открывает главную, и виджет, который
+          можно спрятать, на них не отвечает. Поэтому «Цепочка дискавери» и
+          «Пробелы» ушли из реестра виджетов: иначе они рисовались бы дважды.
+          Сохранённые в браузерах раскладки переживают это без миграции —
+          `reconcileDashboardLayout` выбрасывает id, которых больше нет. */}
+      {weakest && (
+        <div className="mb-6">
+          <DashboardWeakLink weakest={weakest} />
+        </div>
+      )}
+
+      <div className="mb-6 grid gap-6 lg:grid-cols-2">
+        <DashboardDiscoveryChain counts={discoveryChain} />
+        <DashboardDecisionQueue items={decisionQueue} />
+      </div>
+
+      <div className="mb-8">
+        <DashboardGapsSummary counts={gapsCounts} />
+      </div>
+
       <div className="mb-8">
         <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
           Отчёты: матрица Сегменты × JTBD, пробелы →
@@ -329,9 +366,7 @@ export default async function Home() {
 
       <DashboardWidgetGrid
         widgets={{
-          'gaps-summary': <DashboardGapsSummary counts={gapsCounts} />,
           'jtbd-coverage': <DashboardJtbdCoverage coverage={jtbdCoverage} />,
-          'discovery-chain': <DashboardDiscoveryChain counts={discoveryChain} />,
           'hypothesis-funnel': <DashboardHypothesisFunnel counts={hypothesisStatusCounts} />,
           'research-cadence': <DashboardResearchCadence data={researchCadence} />,
           'recently-viewed': <RecentlyViewedWidget />,

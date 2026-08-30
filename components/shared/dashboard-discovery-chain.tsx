@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { Link2, TriangleAlert } from 'lucide-react'
+import { Link2 } from 'lucide-react'
 import type { ChainCounts } from '@/lib/discovery-chain'
-import { buildChainRows, chainIsEmpty, weakestStage } from '@/lib/discovery-chain'
+import { buildChainRows, chainIsEmpty } from '@/lib/discovery-chain'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 
 // Five ratios against a limit → five meters, built exactly like the JTBD
@@ -17,9 +17,13 @@ import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 // pass contrast; the pale track is a meter track, not a data mark.
 //
 // Numbers stay in text tokens — the colored mark beside them carries identity.
+//
+// Вывод про слабое звено с фазы 10 живёт не здесь, а отдельной плашкой над
+// карточкой (`DashboardWeakLink`): это главное, что говорит экран, а сноска
+// под пятью полосками читается последней. Дублировать её тут нельзя — один и
+// тот же вывод дважды на одном экране это шум, а не акцент.
 export function DashboardDiscoveryChain({ counts }: { counts: ChainCounts }) {
   const rows = buildChainRows(counts)
-  const weakest = weakestStage(rows)
 
   return (
     <DashboardWidgetCard
@@ -70,25 +74,6 @@ export function DashboardDiscoveryChain({ counts }: { counts: ChainCounts }) {
               </div>
             </div>
           ))}
-
-          {weakest && (
-            // One conclusion, not five. An empty stage is never named here —
-            // "0 из 0" is a stage you have not started, not a broken link.
-            <p className="flex items-start gap-1.5 pt-1 text-xs text-muted-foreground">
-              <TriangleAlert
-                size={13}
-                aria-hidden
-                className="mt-0.5 shrink-0 text-[hsl(var(--signal-amber-border))]"
-              />
-              <span>
-                Слабое звено — {weakest.label.toLowerCase()}: {weakest.total - weakest.attached} из{' '}
-                {weakest.total} ни с чем не связаны.{' '}
-                <Link href="/reports/gaps" className="underline hover:no-underline">
-                  Что делать
-                </Link>
-              </span>
-            </p>
-          )}
         </div>
       )}
     </DashboardWidgetCard>

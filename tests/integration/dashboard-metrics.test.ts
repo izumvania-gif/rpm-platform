@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { HypothesisStatus, ResearchType } from '@prisma/client'
+import { HypothesisStatus, InsightStance, ResearchType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
   coveragePercent,
@@ -11,6 +11,7 @@ import {
   getSegmentsWithoutJtbd,
   getStuckHypotheses,
   getDiscoveryChain,
+  getDecisionQueue,
   getUnconfirmedJtbds,
 } from '@/lib/dashboard-metrics'
 import { DEFAULT_USER_ID } from '@/lib/current-user'
@@ -411,5 +412,109 @@ describe('getDiscoveryChain', () => {
     })
 
     expect((await getDiscoveryChain(DEFAULT_USER_ID)).segment).toEqual({ total: 0, attached: 0 })
+  })
+})
+
+describe('getDecisionQueue', () => {
+  /** Гипотеза со всем набором: критерий, три инсайта, сегмент, задача, фича. */
+  async function seedReadyHypothesis(status: HypothesisStatus = HypothesisStatus.IN_REVIEW) {
+    const product = await createTestProduct()
+    const segment = await prisma.segment.create({
+      data: {
+        name: 'Банки',
+        slug: `banki-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        tags: [],
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+      },
+    })
+    const jtbd = await prisma.jTBD.create({
+      data: {
+        title: 'Продлить сертификат',
+        category: 'Выпуск',
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+      },
+    })
+    const feature = await prisma.feature.create({
+      data: { name: 'Удалённый выпуск', productId: product.id, userId: DEFAULT_USER_ID },
+    })
+    const hypothesis = await prisma.hypothesis.create({
+      data: {
+        statement: 'Если выпускать удалённо, то банки согласятся',
+        status,
+        validationCriterion: 'Три из пяти банков подтвердят',
+        segmentId: segment.id,
+        jtbdId: jtbd.id,
+        productId: product.id,
+        userId: DEFAULT_USER_ID,
+        features: { connect: { id: feature.id } },
+      },
+    })
+    const stances = [InsightStance.SUPPORTS, InsightStance.SUPPORTS, InsightStance.CONTRADICTS]
+    for (const stance of stances) {
+      await prisma.insight.create({
+        data: {
+          text: `Инсайт ${stance}`,
+          tags: [],
+          stance,
+          hypothesisId: hypothesis.id,
+          productId: product.id,
+          userId: DEFAULT_USER_ID,
+        },
+      })
+    }
+    return { product, hypothesis }
+  }
+
+  it('returns a hypothesis that has everything, with its evidence balance', async () => {
+    const { hypothesis, product } = await seedReadyHypothesis()
+
+    const queue = await getDecisionQueue(DEFAULT_USER_ID)
+    expect(queue).toHaveLength(1)
+    expect(queue[0].id).toBe(hypothesis.id)
+    expect(queue[0].productName).toBe(product.name)
+    expect(queue[0].balance).toMatchObject({ supports: 2, contradicts: 1, neutral: 0 })
+  })
+
+  it('leaves out a hypothesis missing one condition', async () => {
+    const { hypothesis } = await seedReadyHypothesis()
+    // Критерий — единственное, чего лишаем; всё остальное на месте.
+    await prisma.hypothesis.update({
+      where: { id: hypothesis.id },
+      data: { validationCriterion: null },
+    })
+
+    expect(await getDecisionQueue(DEFAULT_USER_ID)).toEqual([])
+  })
+
+  // Решение уже принято — очередь такое не показывает. Фильтр стоит в запросе,
+  // поэтому проверяется именно здесь, а не юнит-тестом.
+  it.each([HypothesisStatus.CONFIRMED, HypothesisStatus.REJECTED])(
+    'leaves out a %s hypothesis',
+    async (status) => {
+      await seedReadyHypothesis(status)
+      expect(await getDecisionQueue(DEFAULT_USER_ID)).toEqual([])
+    }
+  )
+
+  it('does not reach another user’s hypotheses', async () => {
+    const them = await prisma.user.create({
+      data: { email: `other-queue-${Date.now()}@example.com`, passwordHash: 'x' },
+    })
+    const theirProduct = await prisma.product.create({
+      data: { name: 'Чужой', slug: `foreign-queue-${Date.now()}`, userId: them.id },
+    })
+    await prisma.hypothesis.create({
+      data: {
+        statement: 'Если чужое, то чужое',
+        status: HypothesisStatus.IN_REVIEW,
+        validationCriterion: 'критерий',
+        productId: theirProduct.id,
+        userId: them.id,
+      },
+    })
+
+    expect(await getDecisionQueue(DEFAULT_USER_ID)).toEqual([])
   })
 })

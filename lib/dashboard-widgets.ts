@@ -10,10 +10,13 @@ export interface DashboardWidgetDef {
   title: string
 }
 
+// «Пробелы», «Цепочка дискавери» и плашка слабого звена ушли отсюда в фазе 10
+// редизайна 2.1: они стали постоянной частью дашборда. Вопросы «где мы» и «что
+// решать» задаёт каждый, кто открывает главную, а виджет, который можно
+// спрятать, на них не отвечает. Раскладки, сохранённые в браузерах до этого,
+// чинит `reconcileDashboardLayout` — он выбрасывает неизвестные id.
 export const dashboardWidgetDefs: DashboardWidgetDef[] = [
-  { id: 'gaps-summary', title: 'Пробелы' },
   { id: 'jtbd-coverage', title: 'Покрытие JTBD' },
-  { id: 'discovery-chain', title: 'Цепочка дискавери' },
   { id: 'hypothesis-funnel', title: 'Воронка гипотез' },
   { id: 'research-cadence', title: 'Частота исследований' },
   { id: 'recently-viewed', title: 'Недавно просмотренное' },

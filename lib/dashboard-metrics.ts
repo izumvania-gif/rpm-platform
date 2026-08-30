@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { isStale } from '@/lib/utils'
 import { hypothesisStatusOrder } from '@/lib/labels'
 import type { ChainCounts } from '@/lib/discovery-chain'
+import { OPEN_STATUSES, buildDecisionQueue, type DecisionItem } from '@/lib/decision-queue'
 
 // Hypotheses move through the pipeline faster than research/content gets
 // written, so a shorter stuck-threshold than isStale()'s 90 days.
@@ -198,4 +199,47 @@ export async function getDiscoveryChain(userId: string): Promise<ChainCounts> {
     feature: { total: features, attached: featuresAttached },
     rtb: { total: rtbs, attached: rtbsAttached },
   }
+}
+
+/**
+ * Гипотезы, по которым можно принять решение прямо сейчас (фаза 10).
+ *
+ * Берутся только открытые статусы — остальное отфильтровано в базе, а не в
+ * памяти: закрытая гипотеза решения не ждёт, и тянуть её сюда незачем.
+ * Готовность считает `buildDecisionQueue` тем же кодом, что и карточка
+ * гипотезы (lib/decision-queue.ts), поэтому здесь только выборка полей,
+ * которые этому счёту нужны.
+ *
+ * Инсайты приходят одними `stance` — балансу «за / против» больше ничего не
+ * требуется, а текст инсайта на дашборде не показывается.
+ */
+export async function getDecisionQueue(userId: string): Promise<DecisionItem[]> {
+  const hypotheses = await prisma.hypothesis.findMany({
+    where: { userId, status: { in: OPEN_STATUSES } },
+    select: {
+      id: true,
+      statement: true,
+      status: true,
+      validationCriterion: true,
+      segmentId: true,
+      jtbdId: true,
+      product: { select: { name: true } },
+      insights: { select: { stance: true } },
+      _count: { select: { features: true } },
+    },
+  })
+
+  return buildDecisionQueue(
+    hypotheses.map((h) => ({
+      id: h.id,
+      statement: h.statement,
+      productName: h.product.name,
+      status: h.status,
+      validationCriterion: h.validationCriterion,
+      stances: h.insights.map((i) => i.stance),
+      hasSegment: h.segmentId !== null,
+      hasJtbd: h.jtbdId !== null,
+      featureCount: h._count.features,
+    }))
+  )
 }

@@ -35,7 +35,7 @@ export async function createProductViaUI(page: Page, name: string): Promise<stri
   await page.goto('/products/new')
   await page.getByLabel('Название').fill(name)
   await page.getByRole('button', { name: 'Создать', exact: true }).click()
-  await page.waitForURL(/\/products\/[^/]+$/)
+  await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
   // Next dev-mode has occasionally shown a freshly created record missing
   // from the very next page's server-rendered <select> (looks like a dev-only
   // HMR/fast-refresh timing hiccup, not a real data-consistency bug — the

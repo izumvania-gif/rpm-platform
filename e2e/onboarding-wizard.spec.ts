@@ -43,7 +43,7 @@ test('creating a product in onboarding mode walks through all seven wizard steps
   await expect(teamRow.getByText('1', { exact: true })).toBeVisible()
 
   await page.getByRole('link', { name: 'Перейти к продукту →' }).click()
-  await page.waitForURL(/\/products\/[^/]+$/)
+  await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: productName })).toBeVisible()
 })
 
@@ -55,6 +55,6 @@ test('"Пропустить настройку" leaves the wizard for the produc
   await page.waitForURL(/\/onboarding\/segments$/)
 
   await page.getByRole('link', { name: 'Пропустить настройку →' }).click()
-  await page.waitForURL(/\/products\/[^/]+$/)
+  await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: productName })).toBeVisible()
 })

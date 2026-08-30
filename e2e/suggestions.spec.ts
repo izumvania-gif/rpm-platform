@@ -13,7 +13,7 @@ test('a transcript offers its quotes as insights, and accepting one saves it', a
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel('Транскрипт').fill(`Обсудили сроки. «${quote}» — сказал клиент.`)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/conversations\/[^/]+$/)
+  await page.waitForURL(/\/conversations\/c[a-z0-9]{10,}$/)
 
   // The quote is offered without anything being written yet.
   await expect(page.getByText('Похоже на инсайты')).toBeVisible()
@@ -37,7 +37,7 @@ test('a conversation with no transcript offers nothing', async ({ page }) => {
   await page.getByLabel('Название').fill(uniqueName('Разговор без транскрипта'))
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/conversations\/[^/]+$/)
+  await page.waitForURL(/\/conversations\/c[a-z0-9]{10,}$/)
 
   // Nothing to derive from, so the panel stays away entirely rather than
   // showing an empty box.
@@ -55,7 +55,7 @@ test('a feature with no marketing claim says so and offers the prefilled form', 
   await page.getByLabel('Название').fill(featureName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/features\/[^/]+$/)
+  await page.waitForURL(/\/features\/c[a-z0-9]{10,}$/)
 
   await expect(
     page.getByText('На эту фичу не опирается ни одно маркетинговое обещание — её нечем продавать.')

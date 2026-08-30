@@ -19,7 +19,7 @@ test('дашборд показывает цепочку, слабое звен�
   await page.getByLabel('Название').fill(segmentName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
 
   await page.goto('/')
 

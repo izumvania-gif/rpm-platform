@@ -22,7 +22,7 @@ test('create a department, assign it to a product, then rename and delete it', a
 
   await page.goto('/departments')
   await page.getByRole('link', { name: departmentName }).click()
-  await page.waitForURL(/\/departments\/[^/]+$/)
+  await page.waitForURL(/\/departments\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('link', { name: productName })).toBeVisible()
 
   // Inline-editable field (§2.9.5): click the name to turn it into an input.
@@ -59,7 +59,7 @@ test('bulk-assign several existing products to a department in one submission', 
   await page.getByLabel(productAName).check()
   await page.getByLabel(productBName).check()
   await page.getByRole('button', { name: 'Добавить выбранные' }).click()
-  await page.waitForURL(/\/departments\/[^/]+$/)
+  await page.waitForURL(/\/departments\/c[a-z0-9]{10,}$/)
 
   await expect(page.getByText(`Продукты (2)`)).toBeVisible()
   await expect(page.getByRole('link', { name: productAName })).toBeVisible()

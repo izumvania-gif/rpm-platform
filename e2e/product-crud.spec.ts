@@ -30,7 +30,7 @@ test('create a product via the full edit form and change its stage', async ({ pa
   await page.getByLabel('Slug (eng)').fill(`e2e-${Date.now()}`)
   await selectRadixOption(page, page.getByLabel('Стадия'), 'Рост')
   await page.getByRole('button', { name: 'Создать', exact: true }).click()
-  await page.waitForURL(/\/products\/[^/]+$/)
+  await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
 
   // Not getByText: Radix Select renders a visually-hidden (but not
   // aria-hidden-excluded-from-DOM-text-search) native <select> mirror for

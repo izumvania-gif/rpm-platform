@@ -19,7 +19,7 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
   await page.getByLabel('Название').fill(segmentName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
   // Same dev-mode HMR/fast-refresh timing hiccup documented on
   // createProductViaUI (helpers.ts) — a segment created a moment ago can be
   // missing from the next page's server-rendered data. Confirming it here,
@@ -37,7 +37,7 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
   await page.getByLabel(segmentName).check()
   await page.getByLabel('Подтверждено исследованием').check()
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/jtbd\/[^/]+$/)
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)
 
   // Navigate straight to the matrix for our product via query param rather
   // than clicking through the filter form's product <select> — that
@@ -59,7 +59,7 @@ test('gaps dashboard lists an unconfirmed JTBD', async ({ page }) => {
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   // "Подтверждено исследованием" left unchecked on purpose.
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/jtbd\/[^/]+$/)
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)
 
   await page.goto('/reports/gaps')
   // Since C3 the row's title is plain text and the link is the action that

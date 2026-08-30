@@ -12,7 +12,7 @@ test('create a segment with tags and audience share, then edit it inline', async
   await page.getByLabel('Доля аудитории (%)').fill('35')
   await page.getByLabel('Теги (через запятую)').fill('b2b, key-account')
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
 
   await expect(page.getByRole('heading', { name: segmentName })).toBeVisible()
   await expect(page.getByText('b2b')).toBeVisible()
@@ -35,7 +35,7 @@ test('deleting a segment cascades from the product page', async ({ page }) => {
   await page.getByLabel('Название').fill(segmentName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
 
   await confirmDelete(page)
   await page.waitForURL('/segments')

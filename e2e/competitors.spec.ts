@@ -11,7 +11,7 @@ test('create a competitor and add/remove a news log entry', async ({ page }) => 
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel('Модель ценообразования').fill('Per seat')
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/competitors\/[^/]+$/)
+  await page.waitForURL(/\/competitors\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: competitorName })).toBeVisible()
 
   const newsTitle = uniqueName('Raised a new funding round')

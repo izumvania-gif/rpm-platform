@@ -11,7 +11,7 @@ test('a feature links to a JTBD, and an RTB links to that feature', async ({ pag
   await page.getByLabel('Категория').fill('Интеграции')
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/jtbd\/[^/]+$/)
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)
 
   const featureName = uniqueName('One-click integration setup')
   await page.goto('/features/new')
@@ -19,7 +19,7 @@ test('a feature links to a JTBD, and an RTB links to that feature', async ({ pag
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel(jtbdTitle).check()
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/features\/[^/]+$/)
+  await page.waitForURL(/\/features\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: featureName })).toBeVisible()
   // Scoped to the JTBD card: the chain ribbon at the top of the page names the
   // same job, so an unscoped getByText now matches twice.
@@ -31,7 +31,7 @@ test('a feature links to a JTBD, and an RTB links to that feature', async ({ pag
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel(featureName).check()
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/marketing\/[^/]+$/)
+  await page.waitForURL(/\/marketing\/c[a-z0-9]{10,}$/)
   await expect(page.getByText(rtbStatement)).toBeVisible()
   await expect(page.getByText(featureName)).toBeVisible()
 })

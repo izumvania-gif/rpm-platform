@@ -32,7 +32,7 @@ test('пустой слот ленты связывает с существую�
   await page.getByLabel('Название').fill(segmentName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
 
   // Задача заводится БЕЗ сегмента — разрыв нужен настоящий.
   const jtbdTitle = uniqueName('Когда истекает сертификат, я хочу продлить его')

@@ -15,7 +15,7 @@ test('the dialog counts the cascade before the delete goes through', async ({ pa
     await page.getByLabel('Название').fill(uniqueName(segment))
     await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
     await page.getByRole('button', { name: 'Создать' }).click()
-    await page.waitForURL(/\/segments\/[^/]+$/)
+    await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
   }
 
   const jtbdTitle = uniqueName('Задача')
@@ -24,7 +24,7 @@ test('the dialog counts the cascade before the delete goes through', async ({ pa
   await page.getByLabel('Категория').fill('к')
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/jtbd\/[^/]+$/)
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)
 
   await page.goto(productUrl)
   await page.getByRole('button', { name: 'Удалить' }).click()
@@ -55,7 +55,7 @@ test('a record with nothing hanging off it says so', async ({ page }) => {
   await page.goto('/people/new')
   await page.getByLabel('Имя').fill(personName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/people\/[^/]+$/)
+  await page.waitForURL(/\/people\/c[a-z0-9]{10,}$/)
 
   await page.getByRole('button', { name: 'Удалить' }).click()
   const dialog = page.getByRole('dialog')
@@ -71,7 +71,7 @@ test('the dialog can be closed from the keyboard without deleting', async ({ pag
   await page.goto('/people/new')
   await page.getByLabel('Имя').fill(personName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/people\/[^/]+$/)
+  await page.waitForURL(/\/people\/c[a-z0-9]{10,}$/)
 
   await page.getByRole('button', { name: 'Удалить' }).click()
   // Focus starts on Отмена, not on the destructive button: a stray Enter or

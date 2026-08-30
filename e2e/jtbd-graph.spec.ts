@@ -66,7 +66,7 @@ test('multi-segment JTBD gets an independent graph per segment', async ({ page }
   await page.getByLabel('Название').fill(segmentA)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
 
   const jtbdTitle = uniqueName('Когда я оцениваю риски')
   await page.goto('/jtbd/new')
@@ -75,7 +75,7 @@ test('multi-segment JTBD gets an independent graph per segment', async ({ page }
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel(segmentA).check()
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/jtbd\/[^/]+$/)
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: jtbdTitle })).toBeVisible()
 
   // Navigate straight to the graph for our product via query param rather

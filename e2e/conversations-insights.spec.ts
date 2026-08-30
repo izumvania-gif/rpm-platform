@@ -11,7 +11,7 @@ test('a conversation links to an insight created from it', async ({ page }) => {
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel('Транскрипт / заметки').fill('Customer: it was too slow to set up.')
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/conversations\/[^/]+$/)
+  await page.waitForURL(/\/conversations\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: convTitle })).toBeVisible()
 
   const insightText = uniqueName('"It was too slow to set up"')
@@ -20,7 +20,7 @@ test('a conversation links to an insight created from it', async ({ page }) => {
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await selectRadixOption(page, page.getByLabel('Разговор'), convTitle)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/insights\/[^/]+$/)
+  await page.waitForURL(/\/insights\/c[a-z0-9]{10,}$/)
   await expect(page.getByText(insightText)).toBeVisible()
 
   await page.goto('/insights')

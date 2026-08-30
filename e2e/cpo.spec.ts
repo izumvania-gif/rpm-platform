@@ -31,7 +31,7 @@ test('shows cross-product ecosystem correlations and the multi-product roadmap',
   const roadmapItemTitle = uniqueName('Cross-product feature')
   await page.goto('/products')
   await page.getByRole('link', { name: productAName }).click()
-  await page.waitForURL(/\/products\/[^/]+$/)
+  await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
   const productAId = page.url().split('/').pop()!
   await page.goto(`/pm/roadmap/new?productId=${productAId}`)
   await page.getByLabel('Название').fill(roadmapItemTitle)
@@ -41,8 +41,13 @@ test('shows cross-product ecosystem correlations and the multi-product roadmap',
 
   await page.goto('/cpo')
   await expect(page.getByRole('heading', { name: 'CPO' })).toBeVisible()
-  await expect(page.getByText(productAName).first()).toBeVisible()
-  await expect(page.getByText(productBName).first()).toBeVisible()
+  // В содержимом страницы, а не по всему документу: переключатель активного
+  // продукта в шапке держит скрытое нативное <select>-зеркало, и имя продукта
+  // есть в его <option>. `.first()` брал именно его — шапка идёт раньше main,
+  // — и падал на «hidden». Та же ловушка описана в people.spec.ts.
+  const content = page.getByRole('main')
+  await expect(content.getByText(productAName).first()).toBeVisible()
+  await expect(content.getByText(productBName).first()).toBeVisible()
 
   const segmentGroup = page.locator('li', { hasText: segmentName })
   await expect(segmentGroup).toContainText(productAName)

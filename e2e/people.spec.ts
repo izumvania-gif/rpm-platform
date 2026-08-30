@@ -8,7 +8,7 @@ test('create a person, inline-edit their role, then delete them', async ({ page 
   await page.getByLabel('Роль / должность').fill('Продакт-менеджер')
   await page.getByLabel('Навыки/компетенции (через запятую)').fill('discovery, roadmapping')
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/people\/[^/]+$/)
+  await page.waitForURL(/\/people\/c[a-z0-9]{10,}$/)
 
   await expect(page.getByRole('heading', { name })).toBeVisible()
   await expect(page.getByText('discovery')).toBeVisible()
@@ -34,16 +34,16 @@ test('assigning a person as a product owner shows up on the product page', async
   await page.goto('/people/new')
   await page.getByLabel('Имя').fill(ownerName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/people\/[^/]+$/)
+  await page.waitForURL(/\/people\/c[a-z0-9]{10,}$/)
 
   await page.goto('/products')
   await page.getByRole('link', { name: productName }).click()
-  await page.waitForURL(/\/products\/[^/]+$/)
+  await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
   await page.getByRole('link', { name: 'Редактировать' }).click()
 
   await selectOptionRobust(page, page.getByLabel('Ответственный PM'), ownerName)
   await page.getByRole('button', { name: 'Сохранить' }).click()
-  await page.waitForURL(/\/products\/[^/]+$/)
+  await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
 
   await expect(page.getByText(ownerName)).toBeVisible()
 

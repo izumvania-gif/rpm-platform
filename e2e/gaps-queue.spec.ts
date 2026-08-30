@@ -18,7 +18,7 @@ test('a segment with no JTBD becomes a task whose action opens a prefilled form'
   await page.getByLabel('Название').fill(segmentName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: segmentName })).toBeVisible()
 
   await page.goto('/reports/gaps')
@@ -37,7 +37,10 @@ test('a segment with no JTBD becomes a task whose action opens a prefilled form'
   await page.getByLabel('Формулировка JTBD').fill(uniqueName('Закрывает пробел'))
   await page.getByLabel('Категория').fill('Gap Queue')
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/jtbd\/[^/]+$/)
+  // Именно cuid, а не `[^/]+`: тот совпадал и с `/jtbd/new?productId=…`
+  // (ни `?`, ни `=` не слэши), поэтому ожидание проходило мгновенно, ещё на
+  // форме, и следующий переход случался до того, как запись создавалась.
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)
 
   await page.goto('/reports/gaps')
   await expect(page.locator('li').filter({ hasText: segmentName })).toHaveCount(0)
@@ -51,7 +54,7 @@ test('the most blocking group is ranked first in the queue', async ({ page }) =>
   await page.getByLabel('Название').fill(segmentName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/segments\/[^/]+$/)
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
 
   await page.goto('/reports/gaps')
 
@@ -78,7 +81,7 @@ test('a hypothesis written today is not yet treated as stuck', async ({ page }) 
   await page.getByLabel('Формулировка').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/hypotheses\/[^/]+$/)
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
 
   await page.goto('/reports/gaps')
   await expect(page.locator('li').filter({ hasText: statement })).toHaveCount(0)

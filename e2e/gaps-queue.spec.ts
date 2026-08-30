@@ -81,7 +81,10 @@ test('a hypothesis written today is not yet treated as stuck', async ({ page }) 
   await page.getByLabel('Формулировка').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
+  // createHypothesis ведёт на доску, а не на карточку — в отличие от сегмента
+  // и фичи. Прежнее `[^/]+$` этого не замечало: оно совпадало с `/hypotheses/new`
+  // ещё до отправки формы, и тест шёл дальше, ничего не дождавшись.
+  await page.waitForURL(/\/hypotheses$/)
 
   await page.goto('/reports/gaps')
   await expect(page.locator('li').filter({ hasText: statement })).toHaveCount(0)

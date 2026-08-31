@@ -11,6 +11,15 @@ import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 // sequence edges and per-segment layouts, none of which mean anything for a
 // cross-model view.
 //
+// Фаза 12 редизайна 2.1 подтвердила это решение, а не отменила. План предлагал
+// слить два графа в один; при разборе оказалось, что сливать нечего — общего у
+// них только React Flow. Разные вопросы («как задачи связаны между собой» и
+// «сходится ли цепочка»), разные модели узлов, разные жесты, разные таблицы
+// раскладок. Один холст с фильтром по типу узла отвечал бы на оба вопроса
+// хуже, чем два отвечают на свой. Поэтому из фазы взято то, ради чего она и
+// затевалась: **фильтр по типу узла и слоистая раскладка** — здесь, — плюс
+// взаимные ссылки между графами.
+//
 // Pure: the queries live in the page, the writes in lib/actions/product-canvas.ts.
 // Everything here is unit-testable without a database or a browser.
 
@@ -84,11 +93,101 @@ export function relationFor(source: CanvasKind, target: CanvasKind): CanvasEdge[
   return null
 }
 
-// Fallback layout: one column per kind, in chain order, so an untouched canvas
-// already reads left-to-right as segment -> job -> hypothesis instead of
-// piling every node on the origin.
+/** Порядок типов — он же порядок цепочки, он же порядок колонок. */
+export const CANVAS_KIND_ORDER: CanvasKind[] = ['SEGMENT', 'JTBD', 'HYPOTHESIS']
+
+/** Единственное число — для выбора типа в форме создания. */
+export const canvasKindLabels: Record<CanvasKind, string> = {
+  SEGMENT: 'Сегмент',
+  JTBD: 'Задача клиента',
+  HYPOTHESIS: 'Гипотеза',
+}
+
+/** Множественное — для фильтра, который говорит о наборе, а не об экземпляре. */
+export const canvasKindPluralLabels: Record<CanvasKind, string> = {
+  SEGMENT: 'Сегменты',
+  JTBD: 'Задачи',
+  HYPOTHESIS: 'Гипотезы',
+}
+
+// Колонка на тип, в порядке цепочки: холст читается слева направо как
+// сегмент → задача → гипотеза.
 const COLUMN_X: Record<CanvasKind, number> = { SEGMENT: 0, JTBD: 340, HYPOTHESIS: 680 }
 const ROW_HEIGHT = 130
+
+/**
+ * Слоистая раскладка (фаза 12 редизайна 2.1).
+ *
+ * До неё узлы просто складывались в колонку своего типа по порядку появления:
+ * сегмент мог оказаться в одном конце холста, а его задачи в другом, и связи
+ * шли через весь экран. Здесь порядок задаёт цепочка — тот же приём, что в
+ * `layoutTree` для графа JTBD: самые правые узлы получают строки по очереди, а
+ * родитель встаёт по центру своих детей.
+ *
+ * Задача может принадлежать нескольким сегментам, а узел стоит в одном месте,
+ * поэтому её ставит первый сегмент, который её называет. Выбор произвольный,
+ * но детерминированный — иначе раскладка бы «прыгала» между перезагрузками.
+ *
+ * Чистая функция: её результат — только начальное положение. Всё, что человек
+ * перетащил руками, лежит в `positions` и всегда побеждает (правка 5 плана).
+ */
+export function layoutCanvas(
+  input: Omit<CanvasGraphInput, 'positions'>
+): Record<string, CanvasPosition> {
+  const positions: Record<string, CanvasPosition> = {}
+  let row = 0
+  const nextY = () => row++ * ROW_HEIGHT
+
+  const hypothesesByJtbd = new Map<string, typeof input.hypotheses>()
+  for (const hypothesis of input.hypotheses) {
+    if (!hypothesis.jtbdId) continue
+    const list = hypothesesByJtbd.get(hypothesis.jtbdId) ?? []
+    list.push(hypothesis)
+    hypothesesByJtbd.set(hypothesis.jtbdId, list)
+  }
+
+  const jtbdById = new Map(input.jtbds.map((j) => [j.id, j]))
+  const placedJtbds = new Set<string>()
+  const placedHypotheses = new Set<string>()
+
+  /** Ставит задачу и её гипотезы, возвращает y задачи — по нему центруется сегмент. */
+  function placeJtbd(jtbdId: string): number {
+    const childYs: number[] = []
+    for (const hypothesis of hypothesesByJtbd.get(jtbdId) ?? []) {
+      if (placedHypotheses.has(hypothesis.id)) continue
+      const y = nextY()
+      positions[nodeKey('HYPOTHESIS', hypothesis.id)] = { x: COLUMN_X.HYPOTHESIS, y }
+      placedHypotheses.add(hypothesis.id)
+      childYs.push(y)
+    }
+    const y = childYs.length > 0 ? (childYs[0] + childYs[childYs.length - 1]) / 2 : nextY()
+    positions[nodeKey('JTBD', jtbdId)] = { x: COLUMN_X.JTBD, y }
+    placedJtbds.add(jtbdId)
+    return y
+  }
+
+  for (const segment of input.segments) {
+    const childYs: number[] = []
+    for (const jtbdId of segment.jtbdIds) {
+      if (!jtbdById.has(jtbdId) || placedJtbds.has(jtbdId)) continue
+      childYs.push(placeJtbd(jtbdId))
+    }
+    const y = childYs.length > 0 ? (childYs[0] + childYs[childYs.length - 1]) / 2 : nextY()
+    positions[nodeKey('SEGMENT', segment.id)] = { x: COLUMN_X.SEGMENT, y }
+  }
+
+  // Оставшиеся — те, у кого нет родителя: задача без сегмента, гипотеза без
+  // задачи. Именно они и рисуются пунктиром, и прятать их в раскладке нельзя.
+  for (const jtbd of input.jtbds) {
+    if (!placedJtbds.has(jtbd.id)) placeJtbd(jtbd.id)
+  }
+  for (const hypothesis of input.hypotheses) {
+    if (placedHypotheses.has(hypothesis.id)) continue
+    positions[nodeKey('HYPOTHESIS', hypothesis.id)] = { x: COLUMN_X.HYPOTHESIS, y: nextY() }
+  }
+
+  return positions
+}
 
 export function buildCanvasGraph(input: CanvasGraphInput): {
   nodes: CanvasNode[]
@@ -99,13 +198,14 @@ export function buildCanvasGraph(input: CanvasGraphInput): {
     input.hypotheses.map((h) => h.jtbdId).filter((id): id is string => Boolean(id))
   )
 
-  const perKindCount: Record<CanvasKind, number> = { SEGMENT: 0, JTBD: 0, HYPOTHESIS: 0 }
+  // Ручная расстановка всегда побеждает вычисленную; слоистая раскладка — это
+  // то, что видно до первого перетаскивания (и то, что возвращает кнопка
+  // «Разложить заново»).
+  const computed = layoutCanvas(input)
 
   function place(kind: CanvasKind, id: string): CanvasPosition {
-    const saved = input.positions[nodeKey(kind, id)]
-    if (saved) return saved
-    const row = perKindCount[kind]++
-    return { x: COLUMN_X[kind], y: row * ROW_HEIGHT }
+    const key = nodeKey(kind, id)
+    return input.positions[key] ?? computed[key] ?? { x: COLUMN_X[kind], y: 0 }
   }
 
   const nodes: CanvasNode[] = [

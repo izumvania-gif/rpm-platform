@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createProductViaUI, selectRadixOption, uniqueName } from './helpers'
+import { createProductViaUI, selectOptionRobust, selectRadixOption, uniqueName } from './helpers'
 
 // The product canvas (plans/2.0-product-leap-plan.md, C2) — direct
 // manipulation, so the gestures themselves are what has to be tested.
@@ -124,4 +124,38 @@ test('a link against the chain is refused with an explanation', async ({ page })
 
   await expect(page.getByText('Связь идёт по цепочке: сегмент → задача → гипотеза')).toBeVisible()
   await expect(page.locator('.react-flow__edge')).toHaveCount(0)
+})
+
+// Фильтр по типу узла и слоистая раскладка (фаза 12 редизайна 2.1).
+test('фильтр прячет тип узла, а «Разложить заново» возвращает раскладку', async ({ page }) => {
+  const productName = uniqueName('Canvas Filter Product')
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
+
+  const segmentName = uniqueName('Банки')
+  await page.goto('/segments/new')
+  await page.getByLabel('Название').fill(segmentName)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
+
+  await page.goto(`/products/${productId}/canvas`)
+  await expect(page.getByText(segmentName)).toBeVisible()
+
+  // Кнопка называет и тип, и сколько его на холсте.
+  const toggle = page.getByRole('button', { name: /^Сегменты 1$/ })
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByText(segmentName)).toHaveCount(0)
+
+  await toggle.click()
+  await expect(page.getByText(segmentName)).toBeVisible()
+
+  // Раскладка пересчитывается и сохраняется — узел на месте и после перезагрузки.
+  await page.getByRole('button', { name: 'Разложить заново' }).click()
+  await expect(page.getByText(segmentName)).toBeVisible()
+  await page.reload()
+  await expect(page.getByText(segmentName)).toBeVisible()
 })

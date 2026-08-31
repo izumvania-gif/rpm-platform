@@ -27,8 +27,12 @@ import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { ProductCanvasNode } from './canvas-node'
 import {
+  CANVAS_KIND_ORDER,
   buildCanvasGraph,
   canLink,
+  canvasKindLabels,
+  canvasKindPluralLabels,
+  layoutCanvas,
   parseNodeKey,
   type CanvasGraphInput,
   type CanvasKind,
@@ -52,11 +56,7 @@ const ROUTE_FOR: Record<CanvasKind, string> = {
   JTBD: '/jtbd',
   HYPOTHESIS: '/hypotheses',
 }
-const KIND_OPTIONS: { value: CanvasKind; label: string }[] = [
-  { value: 'SEGMENT', label: 'Сегмент' },
-  { value: 'JTBD', label: 'Задача клиента' },
-  { value: 'HYPOTHESIS', label: 'Гипотеза' },
-]
+const KIND_OPTIONS = CANVAS_KIND_ORDER.map((value) => ({ value, label: canvasKindLabels[value] }))
 
 // Inline creation at the point of the double-click (C2's "двойной клик по
 // пустому месту создаёт узел прямо там"). Positioned absolutely over the
@@ -156,6 +156,15 @@ function CanvasInner({
   } | null>(null)
   const [isPending, startTransition] = useTransition()
 
+  // Фильтр по типу узла (фаза 12). Состояние только клиентское и не
+  // сохраняется: это способ разглядеть один слой прямо сейчас, а не настройка
+  // холста. Признак «цепочка оборвана» при этом считается на ПОЛНЫХ данных на
+  // сервере, поэтому задача без гипотезы остаётся пунктирной и тогда, когда
+  // гипотезы скрыты, — иначе фильтр показывал бы благополучие, которого нет.
+  const [visibleKinds, setVisibleKinds] = useState<Set<CanvasKind>>(
+    () => new Set(CANVAS_KIND_ORDER)
+  )
+
   const built = useMemo(() => {
     const graph = buildCanvasGraph(data)
     const nodes: Node[] = graph.nodes.map((n) => ({
@@ -181,6 +190,52 @@ function CanvasInner({
     setNodes(built.nodes)
     setEdges(built.edges)
   }, [built, setNodes, setEdges])
+
+  const countByKind = useMemo(() => {
+    const counts: Record<CanvasKind, number> = { SEGMENT: 0, JTBD: 0, HYPOTHESIS: 0 }
+    counts.SEGMENT = data.segments.length
+    counts.JTBD = data.jtbds.length
+    counts.HYPOTHESIS = data.hypotheses.length
+    return counts
+  }, [data])
+
+  // Скрытие через `hidden`, а не через выбрасывание из массива: React Flow
+  // сохраняет позиции и выделение узлов, а ребро само прячется вместе со
+  // своим концом.
+  const shownNodes = useMemo(
+    () =>
+      nodes.map((node) => ({
+        ...node,
+        hidden: !visibleKinds.has((node.data as { kind: CanvasKind }).kind),
+      })),
+    [nodes, visibleKinds]
+  )
+  const hiddenNodeIds = useMemo(
+    () => new Set(shownNodes.filter((n) => n.hidden).map((n) => n.id)),
+    [shownNodes]
+  )
+  const shownEdges = useMemo(
+    () =>
+      edges.map((edge) => ({
+        ...edge,
+        hidden: hiddenNodeIds.has(edge.source) || hiddenNodeIds.has(edge.target),
+      })),
+    [edges, hiddenNodeIds]
+  )
+
+  const relayout = useCallback(() => {
+    const computed = layoutCanvas(data)
+    setNodes((current) =>
+      current.map((node) => ({ ...node, position: computed[node.id] ?? node.position }))
+    )
+    startTransition(async () => {
+      const entries = Object.entries(computed).flatMap(([key, position]) => {
+        const parsed = parseNodeKey(key)
+        return parsed ? [{ ...parsed, x: position.x, y: position.y }] : []
+      })
+      await saveCanvasPositions(productId, entries)
+    })
+  }, [data, productId, setNodes])
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
@@ -281,8 +336,8 @@ function CanvasInner({
         }}
       >
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={shownNodes}
+          edges={shownEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -304,11 +359,52 @@ function CanvasInner({
           <Background />
           <Controls />
           <MiniMap pannable zoomable />
-          <Panel position="top-left" className="!m-2">
-            <div className="rounded-md border bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow-sm">
-              Двойной клик по пустому месту — новый узел. Тяните от края узла, чтобы связать:
-              сегмент → задача → гипотеза. Выделите связь и Delete, чтобы разорвать.
+          <Panel position="top-left" className="!m-2 max-w-[22rem]">
+            <div className="space-y-2 rounded-md border bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow-sm">
+              <p>
+                Двойной клик по пустому месту — новый узел. Тяните от края узла, чтобы связать:
+                сегмент → задача → гипотеза. Выделите связь и Delete, чтобы разорвать.
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {CANVAS_KIND_ORDER.map((kind) => {
+                  const on = visibleKinds.has(kind)
+                  return (
+                    <button
+                      key={kind}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() =>
+                        setVisibleKinds((current) => {
+                          const next = new Set(current)
+                          if (next.has(kind)) next.delete(kind)
+                          else next.add(kind)
+                          return next
+                        })
+                      }
+                      className={
+                        'rounded border px-1.5 py-0.5 transition-colors ' +
+                        (on
+                          ? 'border-primary/50 bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent')
+                      }
+                    >
+                      {canvasKindPluralLabels[kind]} {countByKind[kind]}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
+          </Panel>
+          <Panel position="top-right" className="!m-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              onClick={relayout}
+            >
+              Разложить заново
+            </Button>
           </Panel>
         </ReactFlow>
 

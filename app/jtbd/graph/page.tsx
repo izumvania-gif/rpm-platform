@@ -1,10 +1,12 @@
 import type { Product } from '@prisma/client'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { JtbdGraphFilterForm } from '@/components/forms/jtbd-graph-filter-form'
 import { JtbdGraphCanvas } from '@/components/jtbd-graph/canvas'
 import { JtbdViewTabs } from '@/components/shared/jtbd-view-tabs'
 import { SectionHeading } from '@/components/shared/section-heading'
+import { buttonVariants } from '@/components/ui/button'
 import { moduleByHref } from '@/lib/module-meta'
 import { layoutTree, OVERALL_VIEW_KEY, type LayoutPosition } from '@/lib/jtbd-graph-layout'
 
@@ -27,7 +29,22 @@ export default async function JtbdGraphPage({
           title="Граф JTBD"
           description={moduleByHref['/jtbd'].description}
         />
-        <JtbdViewTabs active="graph" />
+        <div className="flex flex-wrap items-center gap-2">
+          <JtbdViewTabs active="graph" />
+          {/* Обратная ссылка на холст продукта (фаза 12). С холста на этот граф
+              ссылка была с самого начала, а обратно — нет, и два графа читались
+              как несвязанные. Они отвечают на разные вопросы («как задачи
+              связаны между собой» и «сходится ли цепочка»), и переход между
+              ними — часть ответа. */}
+          {productId && (
+            <Link
+              href={`/products/${productId}/canvas`}
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            >
+              Холст продукта
+            </Link>
+          )}
+        </div>
       </div>
 
       {!productId ? (

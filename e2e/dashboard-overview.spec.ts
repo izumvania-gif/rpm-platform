@@ -44,6 +44,41 @@ test('дашборд показывает цепочку, слабое звен�
   await expect(panel.getByText('Пробелы')).toHaveCount(0)
 })
 
+// Пресеты сетки виджетов — последний незакрытый пункт фазы 10.
+test('пресет переписывает состав сетки, а правка руками снимает отметку', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Настроить дашборд' }).click()
+  const panel = page.getByRole('dialog', { name: 'Настроить дашборд' })
+
+  const discovery = panel.getByRole('button', { name: 'Состояние дискавери' })
+  await discovery.click()
+  await expect(discovery).toHaveAttribute('aria-pressed', 'true')
+
+  // Пресет прячет личные ленты, но не выбрасывает их из настроек — иначе
+  // спрятанный виджет стало бы нечем вернуть.
+  const pinned = panel.getByRole('checkbox', { name: 'Закреплённое' })
+  await expect(pinned).not.toBeChecked()
+  await expect(panel.getByRole('checkbox', { name: 'Покрытие JTBD' })).toBeChecked()
+
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('heading', { name: 'Покрытие JTBD' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Закреплённое' })).toHaveCount(0)
+
+  // Правка руками — это уже не пресет, и отметка обязана сняться.
+  await page.getByRole('button', { name: 'Настроить дашборд' }).click()
+  await panel.getByRole('checkbox', { name: 'Закреплённое' }).check()
+  await expect(panel.getByRole('button', { name: 'Состояние дискавери' })).toHaveAttribute(
+    'aria-pressed',
+    'false'
+  )
+
+  // Возврат к полному составу, чтобы спек не оставлял за собой суженный
+  // дашборд: раскладка живёт в localStorage и переживает переход на другую
+  // страницу внутри того же контекста браузера.
+  await panel.getByRole('button', { name: 'Всё' }).click()
+  await expect(panel.getByRole('button', { name: 'Всё' })).toHaveAttribute('aria-pressed', 'true')
+})
+
 test('очередь решений молчит, пока гипотеза не собрала полный набор', async ({ page }) => {
   const productName = uniqueName('Decision Queue Product')
   await createProductViaUI(page, productName)

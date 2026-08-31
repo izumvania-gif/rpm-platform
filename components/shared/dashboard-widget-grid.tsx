@@ -9,6 +9,12 @@ import {
   type DashboardWidgetDef,
 } from '@/lib/dashboard-widgets'
 import {
+  activePresetId,
+  applyPreset,
+  DASHBOARD_PRESETS,
+  type DashboardPreset,
+} from '@/lib/dashboard-presets'
+import {
   getDashboardLayout,
   setDashboardLayout,
   type DashboardWidgetLayout,
@@ -59,6 +65,48 @@ export function DashboardWidgetGrid({ widgets }: { widgets: Record<string, React
           onClose={() => setSettingsOpen(false)}
         />
       )}
+    </div>
+  )
+}
+
+// Пресеты — кнопки, а не переключатель режима: нажатие один раз переписывает
+// раскладку и на этом заканчивается, «выбранная роль» нигде не сохраняется
+// (обоснование — в шапке lib/dashboard-presets.ts). Поэтому активный пресет
+// вычисляется из самой раскладки: поправил состав руками — отметка снялась,
+// и это правда, а не сбой.
+function PresetRow({
+  layout,
+  onChange,
+}: {
+  layout: DashboardWidgetLayout[]
+  onChange: (next: DashboardWidgetLayout[]) => void
+}) {
+  const active = activePresetId(layout)
+  return (
+    <div className="mb-4 border-b pb-4">
+      <p className="mb-2 text-xs font-medium text-muted-foreground">Готовые наборы</p>
+      <div className="flex flex-wrap gap-1.5">
+        {DASHBOARD_PRESETS.map((preset: DashboardPreset) => {
+          const isActive = preset.id === active
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              title={preset.description}
+              aria-pressed={isActive}
+              onClick={() => onChange(applyPreset(preset))}
+              className={cn(
+                'rounded-md border px-2.5 py-1 text-xs transition-colors',
+                isActive
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:border-primary/50 hover:text-foreground'
+              )}
+            >
+              {preset.label}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -146,6 +194,9 @@ function DashboardSettingsOverlay({
           Перетащите или используйте стрелки, чтобы изменить порядок. Настройка сохраняется в этом
           браузере.
         </p>
+
+        <PresetRow layout={layout} onChange={onChange} />
+
         <ul className="space-y-1.5">
           {layout.map((w) => (
             <li

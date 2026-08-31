@@ -62,15 +62,3 @@ const STALE_AFTER_MS = 90 * 24 * 60 * 60 * 1000 // 3 месяца
 export function isStale(date: Date): boolean {
   return Date.now() - date.getTime() > STALE_AFTER_MS
 }
-
-// Russian noun pluralization after a count — 1/21/31.. -> singular,
-// 2-4/22-24.. -> "few" form, everything else (0, 5-20, 25-30..) -> "many"
-// form. `forms` is [singular, few, many], e.g. ['продукт', 'продукта', 'продуктов'].
-export function pluralizeRu(count: number, forms: [string, string, string]): string {
-  const mod100 = count % 100
-  const mod10 = count % 10
-  if (mod100 >= 11 && mod100 <= 14) return `${count} ${forms[2]}`
-  if (mod10 === 1) return `${count} ${forms[0]}`
-  if (mod10 >= 2 && mod10 <= 4) return `${count} ${forms[1]}`
-  return `${count} ${forms[2]}`
-}

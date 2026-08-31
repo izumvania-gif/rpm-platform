@@ -97,6 +97,24 @@ function compareWithFallbackLast(a: string, b: string, fallback: string): number
   return a.localeCompare(b, 'ru')
 }
 
+/**
+ * Подпись дат полосы: диапазон — только когда он и правда диапазон (сквозное,
+ * редизайн 2.1).
+ *
+ * У однодневного пункта начало и конец совпадают, и подсказка писала
+ * «1 янв 2026 – 1 янв 2026» — диапазон из точки в неё же. Показывать нулевую
+ * длительность незачем: это не факт о сроках, это артефакт формата.
+ *
+ * Сравниваются УЖЕ отформатированные строки, а не миллисекунды: если обе даты
+ * подписаны одним и тем же днём, диапазон между ними бессмысленен независимо
+ * от того, сколько часов между ними на самом деле.
+ */
+export function barDateRange(start: Date, end: Date, formatDate: (date: Date) => string): string {
+  const from = formatDate(start)
+  const to = formatDate(end)
+  return from === to ? from : `${from} – ${to}`
+}
+
 export function buildGanttLayout(items: GanttSourceItem[]): GanttLayout {
   const milestones: GanttMilestone[] = items
     .filter(

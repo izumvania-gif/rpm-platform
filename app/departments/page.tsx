@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
-import { pluralizeRu } from '@/lib/utils'
+import { pluralizeRu } from '@/lib/plural'
 import { buttonVariants } from '@/components/ui/button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { EmptyState } from '@/components/shared/empty-state'

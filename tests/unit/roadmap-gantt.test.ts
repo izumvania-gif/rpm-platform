@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  barDateRange,
   buildGanttLayout,
   NO_TRACK_GROUP_LABEL,
   NO_TRACK_LABEL,
@@ -171,5 +172,30 @@ describe('buildGanttLayout', () => {
     const result = buildGanttLayout(items)
     expect(result.rangeStart.getTime()).toBeLessThan(new Date('2026-01-10').getTime())
     expect(result.rangeEnd.getTime()).toBeGreaterThan(new Date('2026-01-20').getTime())
+  })
+})
+
+describe('barDateRange', () => {
+  const fmt = (date: Date) => date.toISOString().slice(0, 10)
+
+  it('shows a range when there is one', () => {
+    expect(barDateRange(new Date('2026-09-01'), new Date('2026-09-20'), fmt)).toBe(
+      '2026-09-01 – 2026-09-20'
+    )
+  })
+
+  // Нулевая длительность — не факт о сроках, а артефакт формата: подсказка
+  // писала «1 янв 2026 – 1 янв 2026», диапазон из точки в неё же.
+  it('shows one date when both ends are the same day', () => {
+    expect(barDateRange(new Date('2026-09-01'), new Date('2026-09-01'), fmt)).toBe('2026-09-01')
+  })
+
+  // Сравниваются уже отформатированные строки, а не миллисекунды: если обе
+  // даты подписаны одним днём, диапазон между ними бессмыслен независимо от
+  // того, сколько между ними часов.
+  it('collapses two times on the same day', () => {
+    expect(
+      barDateRange(new Date('2026-09-01T09:00:00Z'), new Date('2026-09-01T18:00:00Z'), fmt)
+    ).toBe('2026-09-01')
   })
 })

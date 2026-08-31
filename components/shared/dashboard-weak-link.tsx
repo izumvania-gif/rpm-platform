@@ -17,6 +17,10 @@ import type { ChainRow } from '@/lib/discovery-chain'
 //
 // Пустое звено сюда не попадает никогда — за это отвечает `weakestStage`:
 // «0 из 0» это то, к чему не приступали, а не порванная связь.
+//
+// Название звена подставляется КАК ЕСТЬ. Автоматический нижний регистр
+// превращал «JTBD» в «jtbd» — поэтому двоеточие вместо тире: оно позволяет
+// оставить слову его регистр, не ломая фразу.
 export function DashboardWeakLink({ weakest }: { weakest: ChainRow }) {
   const unattached = weakest.total - weakest.attached
 
@@ -32,7 +36,7 @@ export function DashboardWeakLink({ weakest }: { weakest: ChainRow }) {
           className="mt-0.5 shrink-0 text-[hsl(var(--signal-amber-border))]"
         />
         <div className="min-w-0">
-          <p className="text-sm font-semibold">Слабое звено — {weakest.label.toLowerCase()}</p>
+          <p className="text-sm font-semibold">Слабое звено: {weakest.label}</p>
           <p className="text-sm text-muted-foreground">
             {unattached} из {weakest.total} ни с чем не связаны. Связано, если {weakest.attachedTo}.
           </p>

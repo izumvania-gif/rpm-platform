@@ -19,7 +19,7 @@ import {
 } from '@/lib/cpo-metrics'
 import { Badge } from '@/components/ui/badge'
 import { signalToneColors } from '@/lib/signal-colors'
-import { pluralizeRu } from '@/lib/utils'
+import { pluralizeRu } from '@/lib/plural'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { MultiRoadmapViewTabs } from '@/components/shared/multi-roadmap-view-tabs'
 import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'

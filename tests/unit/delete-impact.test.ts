@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatImpactCount,
-  pluralRu,
   summarizeImpact,
   totalImpact,
   type ImpactCount,
 } from '@/lib/delete-impact'
+// Плюрализация переехала в lib/plural.ts (сквозное, редизайн 2.1) — вторая
+// копия жила в lib/utils.ts и уже разошлась с этой.
+import { pluralRu } from '@/lib/plural'
 
 // The delete dialog (plans/2.0-hardening-plan.md, B4) exists to put a real
 // number in front of a cascade. A number rendered as «5 сегмента» undercuts

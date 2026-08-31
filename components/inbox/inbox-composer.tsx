@@ -77,7 +77,7 @@ export function InboxComposer({
       }
       setDefaultProductId(productId)
       const parts = INBOX_ENTITIES.filter((t) => response.created[t] > 0).map(
-        (t) => `${bulkEntityLabels[t].toLowerCase()}: ${response.created[t]}`
+        (t) => `${bulkEntityLabels[t]}: ${response.created[t]}`
       )
       setResult(`Добавлено ${response.total} — ${parts.join(', ')}`)
       reset()

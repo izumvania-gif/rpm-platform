@@ -13,7 +13,7 @@
 // Разрыв красится янтарным, наличие связи — нет: цвет означает «здесь чего-то
 // не хватает» (правило цвета, фаза 1), а не «здесь есть данные».
 
-import { pluralizeRu } from '@/lib/utils'
+import { pluralizeRu } from '@/lib/plural'
 
 export interface KnowledgeLinkBadge {
   /** Короткая подпись в строке. */
@@ -115,6 +115,6 @@ export function insightLinkBadge(links: {
   return {
     label: named.join(' · '),
     isGap: false,
-    title: `Привязан: ${named.join(', ').toLowerCase()}`,
+    title: `Привязан: ${named.join(', ')}`,
   }
 }

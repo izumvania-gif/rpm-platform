@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { cn, isStale, pluralizeRu, slugify, transliterate } from '@/lib/utils'
+import { cn, isStale, slugify, transliterate } from '@/lib/utils'
+import { pluralizeRu } from '@/lib/plural'
 
 describe('cn', () => {
   it('merges class names and resolves Tailwind conflicts', () => {

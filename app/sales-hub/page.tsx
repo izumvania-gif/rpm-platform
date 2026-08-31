@@ -176,7 +176,7 @@ export default async function SalesHubPage({
                           )}
                           <span>{item.title}</span>
                           <span className="text-muted-foreground">
-                            — {roadmapStatusLabels[item.status].toLowerCase()}
+                            — {roadmapStatusLabels[item.status]}
                           </span>
                         </div>
                       ))

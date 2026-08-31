@@ -10,7 +10,7 @@ import { AddProcessForm } from '@/components/shared/add-process-form'
 import { ProcessGraph } from '@/components/process-graph/canvas'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PmShell } from '@/components/pm/pm-shell'
-import { pluralizeRu } from '@/lib/utils'
+import { pluralizeRu } from '@/lib/plural'
 
 const STEP_FORMS: [string, string, string] = ['шаг', 'шага', 'шагов']
 

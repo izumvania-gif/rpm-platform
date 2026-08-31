@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { updateRoadmapItemDates } from '@/lib/actions/roadmap'
 import {
   NO_TRACK_GROUP_LABEL,
+  barDateRange,
   type GanttBar,
   type GanttLayout,
   type UnscheduledItem,
@@ -467,7 +468,10 @@ export function GanttChart({
                       const left = pct(startDate)
                       const width = Math.max(pct(endDate) - left, MIN_BAR_WIDTH_PERCENT)
                       const tone = signalToneColors[roadmapStatusTone[bar.status]]
-                      const tooltip = `${bar.title} — ${roadmapStatusLabels[bar.status]} (${format(startDate, 'd MMM yyyy', { locale: ru })} – ${format(endDate, 'd MMM yyyy', { locale: ru })})`
+                      const dates = barDateRange(startDate, endDate, (date: Date) =>
+                        format(date, 'd MMM yyyy', { locale: ru })
+                      )
+                      const tooltip = `${bar.title} — ${roadmapStatusLabels[bar.status]} (${dates})`
                       const showLabel = labelFitsInBar(bar.title, width)
                       const isDraggingThis = drag?.id === bar.id
                       const isSaving = savingIds.has(bar.id)

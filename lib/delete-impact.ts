@@ -10,6 +10,8 @@
 // importable from a client component. Same split as
 // lib/nav-disclosure.ts / lib/nav-stage.ts.
 
+import { pluralizeRu } from '@/lib/plural'
+
 /** Everything a delete can take with it or detach from. */
 export type ImpactKey =
   | 'product'
@@ -73,25 +75,9 @@ export type DeleteImpact = { deleted: ImpactCount[]; unlinked: ImpactCount[] }
 
 export const EMPTY_IMPACT: DeleteImpact = { deleted: [], unlinked: [] }
 
-/**
- * Russian plural form for a count.
- *
- * 1, 21, 131 → form[0]; 2–4, 22–24 → form[1]; 0, 5–20, 25–30 → form[2].
- * The 11–14 exception is why this cannot be `n === 1 ? a : b`.
- */
-export function pluralRu(count: number, forms: [string, string, string]): string {
-  const abs = Math.abs(count)
-  const tens = abs % 100
-  if (tens >= 11 && tens <= 14) return forms[2]
-  const ones = abs % 10
-  if (ones === 1) return forms[0]
-  if (ones >= 2 && ones <= 4) return forms[1]
-  return forms[2]
-}
-
 /** «9 сегментов», «1 гипотеза», «2 разговора». */
 export function formatImpactCount({ key, count }: ImpactCount): string {
-  return `${count} ${pluralRu(count, NOUNS[key])}`
+  return pluralizeRu(count, NOUNS[key])
 }
 
 /**

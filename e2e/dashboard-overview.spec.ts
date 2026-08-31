@@ -23,7 +23,10 @@ test('дашборд показывает цепочку, слабое звен�
 
   await page.goto('/')
 
-  await expect(page.getByText('Слабое звено —')).toBeVisible()
+  // Двоеточие, а не тире: сквозное убрало автоматический нижний регистр, из-за
+  // которого «JTBD» превращалось в «jtbd», и фраза перестроилась под то, чтобы
+  // название звена сохраняло свой регистр.
+  await expect(page.getByText('Слабое звено:')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Что делать' })).toHaveAttribute(
     'href',
     '/reports/gaps'

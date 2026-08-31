@@ -1,5 +1,12 @@
 import Link from 'next/link'
-import { Building2, CalendarClock, ClipboardList, GitMerge } from 'lucide-react'
+import {
+  Building2,
+  CalendarClock,
+  CircleAlert,
+  CircleCheck,
+  ClipboardList,
+  GitMerge,
+} from 'lucide-react'
 import { getCurrentUserId } from '@/lib/current-user'
 import {
   stageLabels,
@@ -18,7 +25,6 @@ import {
   NO_DEPARTMENT_LABEL,
 } from '@/lib/cpo-metrics'
 import { Badge } from '@/components/ui/badge'
-import { signalToneColors } from '@/lib/signal-colors'
 import { pluralizeRu } from '@/lib/plural'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { MultiRoadmapViewTabs } from '@/components/shared/multi-roadmap-view-tabs'
@@ -193,26 +199,40 @@ export default async function CpoViewPage({ searchParams }: { searchParams: { vi
         title="Ключевые направления развития"
         description="Пробелы и статус роадмапа по каждому продукту"
       >
+        {/* Те же четыре числа, что и «Пробелы» на главной, поэтому и выглядят
+            они так же: значок состояния рядом с числом, а само число — в
+            текстовом токене. Раньше здесь стоял `signalToneColors.red` с
+            заливкой — это нарушало сразу два правила фазы 1 редизайна 2.1
+            (красный только за действием, разрыв — янтарный) и правило «янтарный
+            красит рамку и заголовок, но не поверхность»: подписи внутри идут
+            `text-muted-foreground`, чей контраст считался под `--background`. */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {gapsStats.map((stat) => {
-            const hasIssue = stat.count > 0
-            const tone = signalToneColors.red
+            const hasGap = stat.count > 0
             return (
-              <div
+              <Link
                 key={stat.label}
-                className="rounded-md border p-3"
-                style={
-                  hasIssue ? { borderColor: tone.border, backgroundColor: tone.bg } : undefined
-                }
+                href="/reports/gaps"
+                className="rounded-md border p-3 transition-colors hover:border-primary/50"
               >
                 <p className="mb-1.5 truncate text-xs text-muted-foreground">{stat.label}</p>
-                <span
-                  className="font-mono text-2xl font-bold"
-                  style={hasIssue ? { color: tone.text } : undefined}
-                >
-                  {stat.count}
-                </span>
-              </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono text-2xl font-bold">{stat.count}</span>
+                  {hasGap ? (
+                    <CircleAlert
+                      size={14}
+                      className="text-[hsl(var(--signal-amber-border))]"
+                      aria-label="Требует внимания"
+                    />
+                  ) : (
+                    <CircleCheck
+                      size={14}
+                      className="text-[hsl(var(--signal-green-border))]"
+                      aria-label="Нет пробелов"
+                    />
+                  )}
+                </div>
+              </Link>
             )
           })}
         </div>

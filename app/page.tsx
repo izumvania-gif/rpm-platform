@@ -17,6 +17,7 @@ import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-
 import { DashboardHypothesisFunnel } from '@/components/shared/dashboard-hypothesis-funnel'
 import { DashboardResearchCadence } from '@/components/shared/dashboard-research-cadence'
 import { productModule, moduleByHref } from '@/lib/module-meta'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { stageLabels } from '@/lib/labels'
 import {
   getDecisionQueue,
@@ -276,7 +277,21 @@ export default async function Home() {
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 15)
 
-  const featuredProduct = recentProducts[0]
+  // Герой показывает АКТИВНЫЙ продукт, а не последний изменённый. До фаз 4–5
+  // редизайна 2.1 «последний изменённый» был разумным выбором: другого ответа
+  // на «в каком продукте я работаю» в приложении не было. Теперь он есть — и
+  // стоит в шапке переключателем, так что герой с другим именем означал бы два
+  // разных ответа на один вопрос на одном экране.
+  //
+  // Ищем сначала среди уже загруженных (15 последних по дате изменения) и лишь
+  // потом идём в базу: активный продукт чаще всего и есть тот, который недавно
+  // трогали, но полагаться на это нельзя — он может лежать за пределами этих 15.
+  const activeProductId = await getActiveProductId(userId)
+  const featuredProduct = activeProductId
+    ? (recentProducts.find((p) => p.id === activeProductId) ??
+      (await prisma.product.findFirst({ where: { id: activeProductId, userId } })) ??
+      recentProducts[0])
+    : recentProducts[0]
 
   return (
     <main className="container py-12">

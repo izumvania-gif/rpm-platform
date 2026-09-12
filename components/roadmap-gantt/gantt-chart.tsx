@@ -1,4 +1,5 @@
 'use client'
+import { ScrollHint } from '@/components/shared/scroll-hint'
 
 import { useRef, useState, useTransition } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
@@ -402,7 +403,7 @@ export function GanttChart({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-md border">
+      <ScrollHint label="Диаграмма Ганта">
         <div className="flex min-w-[900px] pt-6 pb-6">
           <div className="sticky left-0 z-20 w-40 shrink-0 border-r bg-background">
             <div className="h-8 border-b" />
@@ -588,7 +589,7 @@ export function GanttChart({
             )}
           </div>
         </div>
-      </div>
+      </ScrollHint>
     </div>
   )
 }

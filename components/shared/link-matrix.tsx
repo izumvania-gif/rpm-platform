@@ -1,4 +1,5 @@
 'use client'
+import { ScrollHint } from '@/components/shared/scroll-hint'
 
 import { useState, useTransition } from 'react'
 import { Check } from 'lucide-react'
@@ -84,7 +85,7 @@ export function LinkMatrix({
         )}
       </p>
 
-      <div className="overflow-x-auto rounded-md border">
+      <ScrollHint label="Матрица связей">
         <table className="text-sm">
           <thead>
             <tr className="border-b">
@@ -181,7 +182,7 @@ export function LinkMatrix({
             </tr>
           </tfoot>
         </table>
-      </div>
+      </ScrollHint>
 
       {error && (
         <p role="alert" className="text-xs text-destructive">

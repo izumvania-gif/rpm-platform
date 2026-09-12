@@ -18,8 +18,11 @@ describe('the knowledge tabs', () => {
 
   it('gives every tab a real page', () => {
     for (const tab of KNOWLEDGE_TABS) {
-      const file = join(process.cwd(), 'app', tab.href.replace(/^\//, ''), 'page.tsx')
-      expect(existsSync(file), `${tab.href} → ${file}`).toBe(true)
+      const dir = join(process.cwd(), 'app', tab.href.replace(/^\//, ''))
+      // Список раздела может лежать в route group `(list)` (фаза 16): группа
+      // не участвует в URL, но участвует в пути файла.
+      const candidates = [join(dir, 'page.tsx'), join(dir, '(list)', 'page.tsx')]
+      expect(candidates.some(existsSync), `${tab.href} → ${candidates.join(' | ')}`).toBe(true)
     }
   })
 })

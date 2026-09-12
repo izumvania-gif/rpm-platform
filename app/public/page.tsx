@@ -63,7 +63,14 @@ export default async function PublicDashboardPage() {
         contentClassName="p-0"
       >
         {products.length === 0 ? (
-          <p className="p-5 text-sm text-muted-foreground">Пока нет продуктов.</p>
+          // Это открытая страница: внутренних ссылок «завести продукт» здесь
+          // быть не должно. Но объяснить, почему пусто и что появится, — надо
+          // (фаза 16): «Пока нет продуктов» читалось как ошибка, а не как
+          // состояние.
+          <p className="p-5 text-sm text-muted-foreground">
+            Пока нет ни одного продукта. Как только продукт заведут в системе, здесь появятся его
+            название, стадия и краткое публичное описание — ровно то, что решено показывать открыто.
+          </p>
         ) : (
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             {products.map((product) => {

@@ -1,3 +1,4 @@
+import { ScrollHint } from '@/components/shared/scroll-hint'
 import type { Product } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
@@ -113,7 +114,7 @@ async function MatrixSection({ productId, products }: { productId: string; produ
           каждого типа, чтобы построить матрицу.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-md border">
+        <ScrollHint label="Матрица сегментов и задач клиента">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-muted-foreground">
@@ -189,7 +190,7 @@ async function MatrixSection({ productId, products }: { productId: string; produ
               </tr>
             </tfoot>
           </table>
-        </div>
+        </ScrollHint>
       )}
     </div>
   )

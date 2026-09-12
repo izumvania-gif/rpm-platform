@@ -114,6 +114,29 @@ export default async function GapsPage() {
                 в черновике, исследования свежие. Новые пробелы появятся здесь сами, как только
                 данные разойдутся.
               </p>
+              {/* Пустая очередь — успех, но не конец работы (фаза 16): отсюда
+                  есть куда идти, и страница обязана это показать, а не только
+                  поздравить. */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  href="/reports/segments-jtbd"
+                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                >
+                  Матрица Сегменты × JTBD
+                </Link>
+                <Link
+                  href="/research/new?from=/reports/gaps"
+                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                >
+                  Запланировать исследование
+                </Link>
+                <Link
+                  href="/hypotheses"
+                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                >
+                  К доске гипотез
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>

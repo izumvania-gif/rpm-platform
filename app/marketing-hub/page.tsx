@@ -66,9 +66,20 @@ export default async function MarketingHubPage({
       </div>
 
       {segments.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Пока нет ни одного сегмента ни у одного продукта.
-        </p>
+        // Тупик без единого действия был ошибкой (фаза 16): витрина строится
+        // от сегмента, значит первое, что здесь нужно, — завести сегмент.
+        <div className="rounded-md border bg-muted/30 p-4 text-sm">
+          <p className="mb-3 text-muted-foreground">
+            Пока нет ни одного сегмента ни у одного продукта, а витрина строится от сегмента: его
+            задачи клиента → закрывающие их фичи → обещания. Начните с сегмента.
+          </p>
+          <Link
+            href="/segments/new?from=/marketing-hub"
+            className="inline-flex rounded-md border px-3 py-1.5 transition-colors hover:border-primary/50 hover:bg-accent"
+          >
+            Новый сегмент
+          </Link>
+        </div>
       ) : (
         <>
           <MarketingSegmentFilterForm segments={segments} segmentId={selectedSegment!.id} />

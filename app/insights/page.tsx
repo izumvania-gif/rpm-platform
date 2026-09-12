@@ -115,8 +115,11 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
                       <span className="min-w-0 flex-1 truncate" title={insight.text}>
                         {insightKeyPhrase(insight.text)}
                       </span>
+                      {/* Без `shrink-0`: он спорит с `truncate` — элементу,
+                          которому запрещено сжиматься, обрезать нечего, и
+                          строка уезжала за правый край страницы на 180px. */}
                       {(insight.segment || insight.jtbd) && (
-                        <span className="shrink-0 truncate text-xs text-muted-foreground">
+                        <span className="min-w-0 truncate text-xs text-muted-foreground">
                           {[insight.segment?.name, insight.jtbd?.title].filter(Boolean).join(' · ')}
                         </span>
                       )}

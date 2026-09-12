@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createRoadmapItem } from '@/lib/actions/roadmap'
 import { RoadmapItemForm } from '@/components/forms/roadmap-item-form'
 
@@ -12,7 +13,11 @@ export default async function NewRoadmapItemPage({
   searchParams: { productId?: string; error?: string }
 }) {
   const userId = getCurrentUserId()
-  const productId = searchParams.productId
+  // Продукт из ссылки, иначе активный из шапки (фаза 13). Прежде без
+  // `?productId=` страница отдавала жёсткий 404 — по закладке, по ссылке из
+  // чата или просто по истории браузера человек упирался в «страница не
+  // найдена» там, где приложение прекрасно знает, какой продукт он ведёт.
+  const productId = searchParams.productId ?? (await getActiveProductId(userId))
   if (!productId) notFound()
 
   const [product, people, features, jtbds] = await Promise.all([

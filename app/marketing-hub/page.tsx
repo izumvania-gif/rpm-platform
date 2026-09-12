@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Megaphone, Rocket } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { roadmapStatusLabels, roadmapStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 import { Badge } from '@/components/ui/badge'
@@ -23,8 +24,17 @@ export default async function MarketingHubPage({
     orderBy: [{ product: { name: 'asc' } }, { name: 'asc' }],
   })
 
+  // Сегмент по умолчанию берётся из активного продукта, а не просто первый в
+  // алфавите (фаза 13). Список отсортирован по названию продукта, поэтому
+  // `segments[0]` регулярно показывал сегмент чужого продукта: маркетолог
+  // выбирал в шапке «Рутокен CLM», открывал витрину и видел материалы по
+  // «Рутокен MFA», не понимая, почему.
+  const activeProductId = await getActiveProductId(userId)
   const selectedSegment =
-    segments.find((s) => s.id === searchParams.segmentId) ?? segments[0] ?? null
+    segments.find((s) => s.id === searchParams.segmentId) ??
+    (activeProductId ? segments.find((s) => s.productId === activeProductId) : undefined) ??
+    segments[0] ??
+    null
 
   const [jtbds, upcoming] = selectedSegment
     ? await Promise.all([

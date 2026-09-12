@@ -26,9 +26,22 @@ export function ProductSwitcher({
   const formRef = useRef<HTMLFormElement>(null)
   const pathname = usePathname()
 
-  // Один продукт — переключать не из чего, а лишний контрол в шапке только
-  // отнимает место. Ноль — тем более.
-  if (products.length < 2) return null
+  // Ноль продуктов — показывать нечего.
+  if (products.length === 0) return null
+
+  // Один продукт — переключать не из чего, но назвать его надо (фаза 13).
+  // Раньше здесь был `return null`, и на весь интерфейс не оставалось ни
+  // одного места, где написано, над каким продуктом человек работает: списки
+  // уже отфильтрованы по активному продукту, а чем именно — догадайся сам.
+  // Контрол не нужен, подпись нужна.
+  if (products.length === 1) {
+    return (
+      <span className="hidden min-w-0 items-center gap-1.5 text-sm md:flex">
+        <span className="text-muted-foreground">Продукт</span>
+        <span className="min-w-0 truncate font-medium">{products[0].name}</span>
+      </span>
+    )
+  }
 
   return (
     <form ref={formRef} action={switchActiveProduct} className="min-w-0">

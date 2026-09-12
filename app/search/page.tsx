@@ -151,6 +151,45 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
         {totalCount === 0 ? 'Ничего не найдено.' : `Найдено записей: ${totalCount}`}
       </p>
 
+      {/* Пустой результат поиска был тупиком: строка «Ничего не найдено» и ни
+          одного действия на странице. Человек, который что-то искал, знает,
+          чего хочет, — поэтому отсюда ведём туда, где это можно завести
+          (фаза 13). */}
+      {totalCount === 0 && (
+        <div className="mb-8 rounded-md border bg-muted/30 p-4 text-sm">
+          <p className="mb-3 text-muted-foreground">
+            Записи с таким текстом нет. Её можно завести прямо сейчас — или
+            посмотреть, что вообще собрано.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/segments/new?name=${encodeURIComponent(q)}`}
+              className="rounded-md border px-3 py-1.5 transition-colors hover:border-primary/50 hover:bg-accent"
+            >
+              Новый сегмент
+            </Link>
+            <Link
+              href={`/jtbd/new?title=${encodeURIComponent(q)}`}
+              className="rounded-md border px-3 py-1.5 transition-colors hover:border-primary/50 hover:bg-accent"
+            >
+              Новый JTBD
+            </Link>
+            <Link
+              href={`/hypotheses/new?statement=${encodeURIComponent(q)}`}
+              className="rounded-md border px-3 py-1.5 transition-colors hover:border-primary/50 hover:bg-accent"
+            >
+              Новая гипотеза
+            </Link>
+            <Link
+              href="/"
+              className="rounded-md border px-3 py-1.5 transition-colors hover:border-primary/50 hover:bg-accent"
+            >
+              На обзор
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-8">
         {sections.map((section) => (
           <section key={section.label}>

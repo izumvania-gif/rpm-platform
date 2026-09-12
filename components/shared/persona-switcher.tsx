@@ -51,9 +51,12 @@ export function PersonaSwitcher() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Представления"
       >
         <LayoutGrid size={14} />
-        Представления
+        {/* Ниже `sm` остаётся одна иконка: на 390px подпись растягивала
+            правую группу так, что та наезжала на логотип. */}
+        <span className="hidden sm:inline">Представления</span>
       </Button>
       {open && (
         <div

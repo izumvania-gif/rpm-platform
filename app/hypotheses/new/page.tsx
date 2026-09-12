@@ -53,7 +53,15 @@ export default async function NewHypothesisPage({
                   // hand-off exists to avoid.
                   statement: searchParams.statement ?? duplicateSource.statement,
                 }
-              : { productId: searchParams.productId, jtbdId: searchParams.jtbdId }
+              : {
+                  productId: searchParams.productId,
+                  jtbdId: searchParams.jtbdId,
+                  // `statement` из ссылки работал только в ветке дублирования,
+                  // хотя сегменты и задачи подхватывают его всегда. Из-за
+                  // этого текст, набранный в поиске или в быстром захвате, на
+                  // пустой форме молча терялся (фаза 13).
+                  statement: searchParams.statement,
+                }
           }
           error={searchParams.error}
           submitLabel="Создать"

@@ -1,5 +1,7 @@
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { ACTIVE_PRODUCT_COOKIE, resolveActiveProductId } from '@/lib/product-context'
 import type { Department, Person, Product } from '@prisma/client'
 
 // Общая часть всех вкладок «Доставки» (фаза 9 редизайна 2.1).
@@ -30,8 +32,21 @@ export async function loadPmContext(productIdParam?: string): Promise<PmContext>
   // Проверка «продукт из параметра принадлежит пользователю» по уже
   // загруженному списку, а не отдельным запросом: id приходит из URL, и без
   // неё чужой id молча стал бы «выбранным».
-  const selectedProductId =
+  //
+  // Если параметра нет — берём активный продукт из cookie, тот же, по которому
+  // фильтруется вся цепочка дискавери (фаза 13). До этого «Доставка» была
+  // единственным местом, которое забывало, над каким продуктом человек только
+  // что работал: он выбирал продукт в шапке, проходил сегменты и гипотезы, а
+  // на вкладке роадмапа его встречало пустое «Выберите продукт». Явный
+  // параметр по-прежнему главнее — ссылки вида `/pm/roadmap?productId=…`
+  // должны вести именно туда, куда написано.
+  const explicit =
     productIdParam && products.some((p) => p.id === productIdParam) ? productIdParam : undefined
+  const fromCookie = resolveActiveProductId(
+    cookies().get(ACTIVE_PRODUCT_COOKIE)?.value,
+    products.map((p) => p.id)
+  )
+  const selectedProductId = explicit ?? fromCookie ?? undefined
 
   if (!selectedProductId) {
     return { userId, products, selectedProductId, product: null, people: [], departments: [] }

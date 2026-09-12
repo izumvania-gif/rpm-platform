@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned } from '@/lib/ownership'
 import { safeRedirectPath } from '@/lib/safe-redirect'
+import { redirectAfterProductSwitch } from '@/lib/product-switch-redirect'
 import { setActiveProductCookie } from '@/lib/product-context.server'
 
 // Смена активного продукта.
@@ -26,5 +27,10 @@ export async function switchActiveProduct(formData: FormData) {
   // Возврат туда, откуда переключали: смена продукта — не навигация, человек
   // остаётся на том же экране, просто с другими данными. Путь приходит от
   // клиента, поэтому через тот же guard, что и остальные redirectTo.
-  redirect(safeRedirectPath(formData.get('redirectTo'), '/'))
+  //
+  // Исключение — карточка конкретной записи: она принадлежит прежнему
+  // продукту, и оставить на ней значило бы показывать чужие данные под новой
+  // подписью в шапке. Оттуда уходим в список раздела (фаза 13).
+  const path = safeRedirectPath(formData.get('redirectTo'), '/')
+  redirect(redirectAfterProductSwitch(path, productId))
 }

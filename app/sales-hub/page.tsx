@@ -3,6 +3,7 @@ import { RoadmapStatus } from '@prisma/client'
 import { CircleCheck, CircleDashed, CircleDot, CircleX, Package, Search } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { productResourceKindLabels, roadmapStatusLabels } from '@/lib/labels'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -37,10 +38,14 @@ export default async function SalesHubPage({
   const userId = getCurrentUserId()
   const products = await prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } })
 
+  // Явный параметр главнее, иначе — активный продукт из шапки (фаза 13).
+  // Сейл заходит сюда из чата «есть ли у нас фича X», и заставлять его
+  // выбирать продукт заново, когда приложение уже знает ответ, — лишний шаг
+  // ровно там, где обещана скорость.
   const selectedProductId =
-    searchParams.productId && products.some((p) => p.id === searchParams.productId)
+    (searchParams.productId && products.some((p) => p.id === searchParams.productId)
       ? searchParams.productId
-      : undefined
+      : undefined) ?? (await getActiveProductId(userId)) ?? undefined
 
   const q = (searchParams.q ?? '').trim()
 

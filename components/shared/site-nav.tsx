@@ -14,6 +14,7 @@ import { ProductSwitcher } from '@/components/shared/product-switcher'
 import type { ActiveProduct } from '@/lib/product-context.server'
 import { PublicHeader } from '@/components/shared/public-header'
 import { RutokenLogo } from '@/components/shared/rutoken-logo'
+import { NavSheet } from '@/components/shared/nav-sheet'
 
 // Шапка в два ряда (фаза 6 редизайна 2.1).
 //
@@ -139,7 +140,7 @@ export function SiteNav({
                 RPM<span className="text-primary">.</span>
               </span>
             </Link>
-            {products.length > 1 && (
+            {products.length > 0 && (
               <>
                 <span aria-hidden className="hidden h-5 w-px shrink-0 bg-border md:block" />
                 <ProductSwitcher products={products} activeProductId={activeProductId} />
@@ -172,10 +173,25 @@ export function SiteNav({
         </div>
       </div>
 
-      {/* Ряд 2: куда я иду. */}
+      {/* Ряд 2: куда я иду.
+          Скролла здесь больше нет, и это не косметика. `overflow-x: auto`
+          по спецификации делает `overflow-y` тоже `auto`, поэтому ряд высотой
+          48px обрезал выпадающие подменю: из 170px было видно восемь, и
+          тринадцать маршрутов нельзя было открыть из шапки вообще. Ниже `xl`
+          цепочка целиком не помещается — там её показывает панель «Разделы»,
+          а не полоса, уезжающая за край без единого признака. */}
       <div className="border-b bg-muted/30">
-        <div className="container flex h-12 items-center gap-2 overflow-x-auto">
-          <nav aria-label="Разделы" className="flex min-w-0 items-center gap-1">
+        <div className="container flex h-12 items-center gap-2">
+          <NavSheet
+            overview={OVERVIEW}
+            chain={chain}
+            groups={groups}
+            offerToggle={offerToggle}
+            toggleLabel={toggleLabel}
+            onToggleStage={() => choose(stage === 'basic' ? 'full' : 'basic')}
+          />
+
+          <nav aria-label="Разделы" className="hidden min-w-0 items-center gap-1 xl:flex">
             <NavEntry node={OVERVIEW} pathname={pathname} />
 
             <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-border" />
@@ -220,7 +236,7 @@ export function SiteNav({
                   ? 'Показать все разделы платформы'
                   : 'Оставить в меню только начало цепочки'
               }
-              className="ml-auto hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-foreground lg:flex"
+              className="ml-auto hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-foreground xl:flex"
             >
               <LayoutGrid size={14} strokeWidth={1.75} aria-hidden />
               <span>{toggleLabel}</span>

@@ -32,6 +32,9 @@ test('a feature links to a JTBD, and an RTB links to that feature', async ({ pag
   await page.getByLabel(featureName).check()
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/marketing\/c[a-z0-9]{10,}$/)
-  await expect(page.getByText(rtbStatement)).toBeVisible()
+  // По заголовку, а не по тексту: вкладка теперь называется именем записи
+  // (фаза 15), и Next объявляет новый title через route announcer — второй
+  // элемент с тем же текстом на странице.
+  await expect(page.getByRole('heading', { name: rtbStatement })).toBeVisible()
   await expect(page.getByText(featureName)).toBeVisible()
 })

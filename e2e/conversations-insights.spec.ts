@@ -21,7 +21,9 @@ test('a conversation links to an insight created from it', async ({ page }) => {
   await selectRadixOption(page, page.getByLabel('Разговор'), convTitle)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/insights\/c[a-z0-9]{10,}$/)
-  await expect(page.getByText(insightText)).toBeVisible()
+  // По заголовку: вкладка называется текстом инсайта (фаза 15), и route
+  // announcer Next дублирует его на странице после клиентского перехода.
+  await expect(page.getByRole('heading', { name: insightText })).toBeVisible()
 
   await page.goto('/insights')
   await expect(page.getByText(insightText)).toBeVisible()

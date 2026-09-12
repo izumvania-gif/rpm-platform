@@ -15,6 +15,21 @@ import { setActiveProductCookie } from '@/lib/product-context.server'
 // стал бы «активным продуктом». Вторая: после смены надо перерисовать страницу
 // на сервере, а `document.cookie` с клиента этого не делает — списки остались
 // бы прежними до перезагрузки.
+/**
+ * Сделать продукт активным, никуда не уводя.
+ *
+ * Нужен переключателям внутри витрин («Доставка», «Продажи»): они сами
+ * решают, куда идти дальше, и редирект из действия им бы помешал. До фазы 13
+ * эти переключатели помнили выбор в localStorage, отдельно от cookie, которым
+ * живёт вся остальная платформа — то есть «какой продукт я веду» хранилось в
+ * двух местах и эти места расходились.
+ */
+export async function selectActiveProduct(productId: string) {
+  await assertOwned('product', productId, getCurrentUserId())
+  setActiveProductCookie(productId)
+  revalidatePath('/', 'layout')
+}
+
 export async function switchActiveProduct(formData: FormData) {
   const productId = String(formData.get('activeProductId') ?? '')
   await assertOwned('product', productId, getCurrentUserId())

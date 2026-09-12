@@ -58,16 +58,37 @@ test('assigning a roadmap item owner shows their workload in the Команда 
   await expect(page.getByText('1 активных · 1 всего')).toBeVisible()
 })
 
-test('the PM product switcher remembers the last selected product', async ({ page }) => {
+// Фаза 13: «Доставка» больше не спрашивает продукт заново. Раньше она жила на
+// собственной памяти в localStorage и до первого выбора показывала пустое
+// «Выберите продукт» — даже когда человек только что работал над продуктом в
+// цепочке дискавери. Теперь источник один: cookie активного продукта.
+test('«Доставка» открывается на активном продукте, не спрашивая заново', async ({ page }) => {
   const productName = uniqueName('Switcher Product')
   await createProductViaUI(page, productName)
 
+  // Создание продукта делает его активным, поэтому витрина обязана открыться
+  // уже на нём, без единого клика по переключателю.
   await page.goto('/pm')
-  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
-  await page.waitForURL(/\/pm\/roadmap\?productId=/)
+  await expect(page.getByLabel('Продукт', { exact: true })).toHaveValue(/.+/)
+  await expect(page.getByRole('heading', { name: productName })).toBeVisible()
+})
+
+test('выбор продукта в «Доставке» запоминается и виден остальной платформе', async ({ page }) => {
+  const first = uniqueName('Switcher First')
+  const second = uniqueName('Switcher Second')
+  await createProductViaUI(page, first)
+  await createProductViaUI(page, second) // активным стал второй
 
   await page.goto('/pm')
-  await expect(page).toHaveURL(/\/pm\/roadmap\?productId=/)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), first)
+  await page.waitForURL(/\/pm\/roadmap\?productId=/)
+  await expect(page.getByRole('heading', { name: first })).toBeVisible()
+
+  // Выбор пережил уход на другую вкладку «Доставки» без параметра в адресе —
+  // значит он записан в cookie, а не только в адресной строке.
+  await page.goto('/pm/team')
+  await expect(page.getByLabel('Продукт', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: first })).toBeVisible()
 })
 
 test('"+ Новый продукт" in the PM product switcher goes to the create-product form', async ({

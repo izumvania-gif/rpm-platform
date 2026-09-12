@@ -13,6 +13,8 @@ import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 
+export const metadata = { title: 'Обещания' }
+
 export const dynamic = 'force-dynamic'
 
 const SORT_OPTIONS = [{ value: 'created_desc', label: 'Сначала новые' }]
@@ -50,7 +52,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
         />
         <QuickAddButton
           type="rtb"
-          href="/marketing/new"
+          href="/marketing/new?from=/marketing"
           label="Быстро добавить RTB, не уходя со страницы"
         />
         <Link href="/marketing/new?from=/marketing" className={buttonVariants()}>

@@ -11,6 +11,8 @@ import { stageLabels } from '@/lib/labels'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 
+export const metadata = { title: 'Продукты' }
+
 export const dynamic = 'force-dynamic'
 
 const SORT_OPTIONS = [

@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateActionPlan } from '@/lib/actions/action-plans'
 import { ActionPlanForm } from '@/components/forms/action-plan-form'
 
+export const metadata = { title: 'Редактировать экшн-план' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditActionPlanPage({

@@ -6,6 +6,8 @@ import { groupByQuarter } from '@/lib/roadmap'
 import { Badge } from '@/components/ui/badge'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 
+export const metadata = { title: 'Компания' }
+
 export const dynamic = 'force-dynamic'
 
 // Whitelist, not blocklist — see plans/platform-views-plan.md §4. This is

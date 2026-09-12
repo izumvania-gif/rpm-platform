@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateProductResource } from '@/lib/actions/product-resources'
 import { ProductResourceForm } from '@/components/forms/product-resource-form'
 
+export const metadata = { title: 'Редактировать ресурс' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditProductResourcePage({

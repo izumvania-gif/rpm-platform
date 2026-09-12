@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createProductResource } from '@/lib/actions/product-resources'
 import { ProductResourceForm } from '@/components/forms/product-resource-form'
 
+export const metadata = { title: 'Новый ресурс' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewProductResourcePage({

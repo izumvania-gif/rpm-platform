@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { WizardShell } from '@/components/onboarding/wizard-shell'
 import { SegmentsStepForm } from '@/components/onboarding/segments-step-form'
 
+export const metadata = { title: 'Настройка: сегменты' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function OnboardingSegmentsPage({ params }: { params: { id: string } }) {

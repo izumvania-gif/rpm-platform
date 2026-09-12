@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { WizardShell } from '@/components/onboarding/wizard-shell'
 import { FeaturesStepForm } from '@/components/onboarding/features-step-form'
 
+export const metadata = { title: 'Настройка: фичи' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function OnboardingFeaturesPage({ params }: { params: { id: string } }) {

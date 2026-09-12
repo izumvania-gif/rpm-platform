@@ -11,9 +11,17 @@ import { stageLabels } from '@/lib/labels'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { SubmitButton } from '@/components/shared/submit-button'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
 import { DeleteButton } from '@/components/shared/delete-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('department', params.id, 'Департамент') }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +49,7 @@ export default async function DepartmentDetailPage({ params }: { params: { id: s
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <RecordCrumbs items={[{ href: '/departments', label: 'Департаменты' }]} />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-3">

@@ -7,6 +7,8 @@ import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
 import { PmShell } from '@/components/pm/pm-shell'
 import { buildGanttLayout } from '@/lib/roadmap-gantt'
 
+export const metadata = { title: 'Гант' }
+
 export const dynamic = 'force-dynamic'
 
 // Тот же роадмап, другой вид. Отдельным маршрутом, а не параметром `?view=`:

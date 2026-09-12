@@ -8,6 +8,8 @@ import { ProductCanvas } from '@/components/product-canvas/canvas'
 import { nodeKey, type CanvasKind, type CanvasPosition } from '@/lib/product-canvas'
 import { hypothesisStatusLabels } from '@/lib/labels'
 
+export const metadata = { title: 'Холст продукта' }
+
 export const dynamic = 'force-dynamic'
 
 // The product canvas (plans/2.0-product-leap-plan.md, C2) — the discovery

@@ -12,6 +12,8 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { PmShell } from '@/components/pm/pm-shell'
 import { pluralizeRu } from '@/lib/plural'
 
+export const metadata = { title: 'Процессы' }
+
 const STEP_FORMS: [string, string, string] = ['шаг', 'шага', 'шагов']
 
 export const dynamic = 'force-dynamic'

@@ -11,6 +11,13 @@ import { ChainRibbon } from '@/components/shared/chain-ribbon'
 import { RecordPage, RecordSection } from '@/components/shared/record-page'
 import { recordBlockers } from '@/lib/record-blockers'
 import { jtbdKeyPhrase } from '@/lib/key-phrase'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('feature', params.id, 'Фича') }
+}
 
 export const dynamic = 'force-dynamic'
 

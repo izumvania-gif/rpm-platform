@@ -12,6 +12,8 @@ import { toggleFeaturePinned } from '@/lib/actions/features'
 import { moduleByHref } from '@/lib/module-meta'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 
+export const metadata = { title: 'Фичи' }
+
 export const dynamic = 'force-dynamic'
 
 const SORT_OPTIONS = [
@@ -82,7 +84,7 @@ export default async function FeaturesPage({
         />
         <QuickAddButton
           type="feature"
-          href="/features/new"
+          href="/features/new?from=/features"
           label="Быстро добавить фичу, не уходя со страницы"
         />
         <Link href="/features/new?from=/features" className={buttonVariants()}>

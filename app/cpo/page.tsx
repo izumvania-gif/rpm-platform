@@ -30,6 +30,8 @@ import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { MultiRoadmapViewTabs } from '@/components/shared/multi-roadmap-view-tabs'
 import { GanttChart } from '@/components/roadmap-gantt/gantt-chart'
 
+export const metadata = { title: 'CPO' }
+
 export const dynamic = 'force-dynamic'
 
 const PRODUCT_FORMS: [string, string, string] = ['продукт', 'продукта', 'продуктов']

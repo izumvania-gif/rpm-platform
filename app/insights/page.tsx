@@ -18,6 +18,8 @@ import { insightLinkBadge } from '@/lib/knowledge-links'
 import { insightKeyPhrase } from '@/lib/key-phrase'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 
+export const metadata = { title: 'Инсайты' }
+
 export const dynamic = 'force-dynamic'
 
 const SORT_OPTIONS = [{ value: 'created_desc', label: 'Сначала новые' }]
@@ -59,7 +61,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
         />
         <QuickAddButton
           type="insight"
-          href="/insights/new"
+          href="/insights/new?from=/insights"
           label="Быстро добавить инсайт, не уходя со страницы"
         />
         <Link href="/insights/new?from=/insights" className={buttonVariants()}>

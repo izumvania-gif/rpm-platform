@@ -19,6 +19,8 @@ import { KnowledgeTabs } from '@/components/knowledge/knowledge-tabs'
 import { LinkBadge } from '@/components/knowledge/link-badge'
 import { researchLinkBadge } from '@/lib/knowledge-links'
 
+export const metadata = { title: 'Исследования' }
+
 export const dynamic = 'force-dynamic'
 
 const SORT_OPTIONS = [

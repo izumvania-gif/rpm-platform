@@ -13,6 +13,8 @@ import {
   getUnconfirmedJtbds,
 } from '@/lib/dashboard-metrics'
 
+export const metadata = { title: 'Пробелы' }
+
 export const dynamic = 'force-dynamic'
 
 // Gaps as a work queue (plans/2.0-product-leap-plan.md, C3) rather than a

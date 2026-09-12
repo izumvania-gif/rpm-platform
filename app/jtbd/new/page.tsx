@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createJtbd } from '@/lib/actions/jtbd'
 import { JtbdForm } from '@/components/forms/jtbd-form'
 
+export const metadata = { title: 'Новый JTBD' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewJtbdPage({

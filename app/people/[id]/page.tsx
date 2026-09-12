@@ -5,10 +5,18 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { deletePerson, togglePersonPinned, updatePersonField } from '@/lib/actions/people'
 import { buttonVariants } from '@/components/ui/button'
 import { DeleteButton } from '@/components/shared/delete-button'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
 import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { PersonAvatar } from '@/components/shared/person-avatar'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('person', params.id, 'Человек') }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +33,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
   return (
     <main className="container py-12 max-w-2xl space-y-6">
+      <RecordCrumbs items={[{ href: '/people', label: 'Люди' }]} />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-3">

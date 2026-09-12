@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { InboxComposer } from '@/components/inbox/inbox-composer'
 
+export const metadata = { title: 'Инбокс' }
+
 export const dynamic = 'force-dynamic'
 
 // The Inbox (plans/2.0-product-leap-plan.md, B1) — the single entry point the

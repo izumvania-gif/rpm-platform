@@ -8,6 +8,8 @@ import { PersonAvatar } from '@/components/shared/person-avatar'
 import { togglePersonPinned } from '@/lib/actions/people'
 import { EmptyState } from '@/components/shared/empty-state'
 
+export const metadata = { title: 'Люди' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function PeoplePage() {

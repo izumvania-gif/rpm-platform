@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { ReportsProductFilterForm } from '@/components/forms/reports-product-filter-form'
 
+export const metadata = { title: 'Матрица Сегменты × JTBD' }
+
 export const dynamic = 'force-dynamic'
 
 const NONE_KEY = '__none__'

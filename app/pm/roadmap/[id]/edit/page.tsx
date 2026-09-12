@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateRoadmapItem } from '@/lib/actions/roadmap'
 import { RoadmapItemForm } from '@/components/forms/roadmap-item-form'
 
+export const metadata = { title: 'Редактировать пункт роадмапа' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditRoadmapItemPage({

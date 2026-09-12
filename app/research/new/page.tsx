@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createResearch } from '@/lib/actions/research'
 import { ResearchForm } from '@/components/forms/research-form'
 
+export const metadata = { title: 'Новое исследование' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewResearchPage({

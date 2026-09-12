@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { getActiveProductId } from '@/lib/product-context.server'
 import { OtherProductNotice } from '@/components/shared/other-product-notice'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
 import {
   deleteConversation,
   toggleConversationPinned,
@@ -18,6 +19,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { QuickAddInsight } from '@/components/shared/quick-add-insight'
 import { InsightSuggestions } from '@/components/conversations/insight-suggestions'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('conversation', params.id, 'Разговор') }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -61,6 +69,12 @@ export default async function ConversationDetailPage({ params }: { params: { id:
         href={`/conversations/${conversation.id}`}
         title={conversation.title}
         kind="Разговор"
+      />
+      <RecordCrumbs
+        items={[
+          { href: `/products/${conversation.product.id}`, label: conversation.product.name },
+          { href: '/conversations', label: 'Разговоры' },
+        ]}
       />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

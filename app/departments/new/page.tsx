@@ -1,6 +1,8 @@
 import { createDepartment } from '@/lib/actions/departments'
 import { DepartmentForm } from '@/components/forms/department-form'
 
+export const metadata = { title: 'Новый департамент' }
+
 export const dynamic = 'force-dynamic'
 
 export default function NewDepartmentPage({

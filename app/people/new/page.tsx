@@ -1,6 +1,8 @@
 import { createPerson } from '@/lib/actions/people'
 import { PersonForm } from '@/components/forms/person-form'
 
+export const metadata = { title: 'Новый человек' }
+
 export const dynamic = 'force-dynamic'
 
 export default function NewPersonPage({

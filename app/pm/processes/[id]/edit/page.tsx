@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateProcess } from '@/lib/actions/processes'
 import { ProcessForm } from '@/components/forms/process-form'
 
+export const metadata = { title: 'Редактировать процесс' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditProcessPage({

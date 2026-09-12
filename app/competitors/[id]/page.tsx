@@ -12,6 +12,13 @@ import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { RecordPage } from '@/components/shared/record-page'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { recordBlockers } from '@/lib/record-blockers'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('competitor', params.id, 'Конкурент') }
+}
 
 export const dynamic = 'force-dynamic'
 

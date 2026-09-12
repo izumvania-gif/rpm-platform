@@ -5,6 +5,8 @@ import { getActiveProductId } from '@/lib/product-context.server'
 import { createActionPlan } from '@/lib/actions/action-plans'
 import { ActionPlanForm } from '@/components/forms/action-plan-form'
 
+export const metadata = { title: 'Новый экшн-план' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewActionPlanPage({

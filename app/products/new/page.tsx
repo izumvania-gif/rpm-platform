@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createProduct } from '@/lib/actions/products'
 import { ProductForm } from '@/components/forms/product-form'
 
+export const metadata = { title: 'Новый продукт' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewProductPage({

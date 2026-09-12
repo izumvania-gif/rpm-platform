@@ -12,6 +12,8 @@ import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 
+export const metadata = { title: 'Гипотезы' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function HypothesesPage() {
@@ -34,7 +36,7 @@ export default async function HypothesesPage() {
         />
         <QuickAddButton
           type="hypothesis"
-          href="/hypotheses/new"
+          href="/hypotheses/new?from=/hypotheses"
           label="Быстро добавить гипотезу, не уходя со страницы"
         />
         <Link href="/hypotheses/new?from=/hypotheses" className={buttonVariants()}>

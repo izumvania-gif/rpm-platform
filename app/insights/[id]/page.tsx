@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { getActiveProductId } from '@/lib/product-context.server'
 import { OtherProductNotice } from '@/components/shared/other-product-notice'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
 import { deleteInsight, toggleInsightPinned, updateInsightField } from '@/lib/actions/insights'
 import { buttonVariants } from '@/components/ui/button'
 import { DeleteButton } from '@/components/shared/delete-button'
@@ -12,6 +13,13 @@ import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { JobTypeDot } from '@/components/shared/job-type-dot'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('insight', params.id, 'Инсайт') }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -36,6 +44,12 @@ export default async function InsightDetailPage({ params }: { params: { id: stri
         redirectTo={`/insights/${insight.id}`}
       />
       <RecentlyViewedTracker href={`/insights/${insight.id}`} title={insight.text} kind="Инсайт" />
+      <RecordCrumbs
+        items={[
+          { href: `/products/${insight.product.id}`, label: insight.product.name },
+          { href: '/insights', label: 'Инсайты' },
+        ]}
+      />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">

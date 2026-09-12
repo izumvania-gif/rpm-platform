@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 
+export const metadata = { title: 'Поиск' }
+
 export const dynamic = 'force-dynamic'
 
 const RESULT_LIMIT = 20

@@ -10,6 +10,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { moduleByHref } from '@/lib/module-meta'
 import { layoutTree, OVERALL_VIEW_KEY, type LayoutPosition } from '@/lib/jtbd-graph-layout'
 
+export const metadata = { title: 'Граф JTBD' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function JtbdGraphPage({

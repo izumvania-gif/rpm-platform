@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
+export const metadata = { title: 'Отчёты' }
+
 export default function ReportsPage() {
   return (
     <main className="container py-12">

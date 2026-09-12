@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createRTB } from '@/lib/actions/rtbs'
 import { RTBForm } from '@/components/forms/rtb-form'
 
+export const metadata = { title: 'Новое обещание' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewRTBPage({

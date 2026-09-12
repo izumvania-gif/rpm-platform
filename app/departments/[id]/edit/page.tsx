@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateDepartment } from '@/lib/actions/departments'
 import { DepartmentForm } from '@/components/forms/department-form'
 
+export const metadata = { title: 'Редактировать департамент' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditDepartmentPage({

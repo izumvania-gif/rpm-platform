@@ -12,6 +12,8 @@ import { AddActionPlanForm } from '@/components/shared/add-action-plan-form'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PmShell } from '@/components/pm/pm-shell'
 
+export const metadata = { title: 'Экшн-планы' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function PmActionPlansPage({

@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createHypothesis } from '@/lib/actions/hypotheses'
 import { HypothesisForm } from '@/components/forms/hypothesis-form'
 
+export const metadata = { title: 'Новая гипотеза' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewHypothesisPage({

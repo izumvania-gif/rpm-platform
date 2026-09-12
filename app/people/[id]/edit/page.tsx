@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updatePerson } from '@/lib/actions/people'
 import { PersonForm } from '@/components/forms/person-form'
 
+export const metadata = { title: 'Редактировать человека' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditPersonPage({

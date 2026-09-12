@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { WizardShell } from '@/components/onboarding/wizard-shell'
 import { PeopleStepForm } from '@/components/onboarding/people-step-form'
 
+export const metadata = { title: 'Настройка: люди' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function OnboardingPeoplePage({ params }: { params: { id: string } }) {

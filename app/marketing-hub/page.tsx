@@ -10,6 +10,8 @@ import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { MarketingSegmentFilterForm } from '@/components/forms/marketing-segment-filter-form'
 import { jtbdKeyPhrase } from '@/lib/key-phrase'
 
+export const metadata = { title: 'Маркетинг' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function MarketingHubPage({

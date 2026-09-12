@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createFeature } from '@/lib/actions/features'
 import { FeatureForm } from '@/components/forms/feature-form'
 
+export const metadata = { title: 'Новая фича' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewFeaturePage({

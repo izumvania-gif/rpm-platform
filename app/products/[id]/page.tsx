@@ -11,6 +11,9 @@ import { DeleteButton } from '@/components/shared/delete-button'
 import { PrintButton } from '@/components/shared/print-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
+import { ActivateProductOnOpen } from '@/components/shared/activate-product-on-open'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { WelcomeChecklist } from '@/components/shared/welcome-checklist'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { ProductModuleCard } from '@/components/products/module-card'
@@ -26,6 +29,13 @@ import { BulkAddPanel } from '@/components/shared/bulk-add-panel'
 import { CsvImportPanel } from '@/components/shared/csv-import-panel'
 import { StarterTemplatePanel } from '@/components/shared/starter-template-panel'
 import { templateSummaries } from '@/lib/starter-templates'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('product', params.id, 'Продукт') }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -67,6 +77,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   ])
 
   if (!product) notFound()
+
+  const activeProductId = await getActiveProductId(userId)
 
   const ownerOptions = [
     { value: '', label: 'Не указан' },
@@ -196,6 +208,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   return (
     <main className="container py-12 space-y-10">
       <RecentlyViewedTracker href={`/products/${product.id}`} title={product.name} kind="Продукт" />
+      {/* Открыть карточку продукта — значит, выбрать его. Дальше вся цепочка
+          и витрины идут за этим продуктом (фаза 14). */}
+      <ActivateProductOnOpen productId={product.id} activeProductId={activeProductId} />
+      <RecordCrumbs items={[{ href: '/products', label: 'Продукты' }]} />
       {isNearEmpty && <WelcomeChecklist productId={product.id} items={checklistItems} />}
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

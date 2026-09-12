@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createSegment } from '@/lib/actions/segments'
 import { SegmentForm } from '@/components/forms/segment-form'
 
+export const metadata = { title: 'Новый сегмент' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewSegmentPage({

@@ -19,6 +19,8 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { jtbdKeyPhrase } from '@/lib/key-phrase'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 
+export const metadata = { title: 'JTBD' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function JtbdPage() {
@@ -49,7 +51,7 @@ export default async function JtbdPage() {
           <JtbdViewTabs active="list" />
           <QuickAddButton
             type="jtbd"
-            href="/jtbd/new"
+            href="/jtbd/new?from=/jtbd"
             label="Быстро добавить JTBD, не уходя со страницы"
           />
           <Link href="/jtbd/new?from=/jtbd" className={buttonVariants()}>

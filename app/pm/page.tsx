@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { PM_DEFAULT_TAB, pmTabHref } from '@/lib/pm-nav'
 
+export const metadata = { title: 'Доставка' }
+
 export const dynamic = 'force-dynamic'
 
 // `/pm` больше не страница, а вход в «Доставку» (фаза 9 редизайна 2.1).

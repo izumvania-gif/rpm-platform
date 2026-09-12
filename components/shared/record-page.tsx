@@ -7,6 +7,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { CopyLinkButton } from '@/components/shared/copy-link-button'
 import { RecentlyViewedTracker } from '@/components/shared/recently-viewed-tracker'
 import { OtherProductNotice } from '@/components/shared/other-product-notice'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
 import { RecordBlockers } from '@/components/shared/record-blockers'
 import type { Blocker } from '@/lib/record-blockers'
 import type { OwnedModel } from '@/lib/ownership'
@@ -104,18 +105,15 @@ export function RecordPage({
       <div>
         {/* Крошки, а не одинокая ссылка на продукт: до этого страница
             сообщала, какому продукту запись принадлежит, но не в каком разделе
-            лежит — а с меню-цепочкой (фаза 6) раздел это и есть место. */}
-        <nav aria-label="Хлебные крошки" className="mb-2 text-xs text-muted-foreground">
-          <Link href={`/products/${product.id}`} className="hover:underline">
-            {product.name}
-          </Link>
-          <span aria-hidden className="px-1.5">
-            /
-          </span>
-          <Link href={moduleHref} className="hover:underline">
-            {moduleLabel}
-          </Link>
-        </nav>
+            лежит — а с меню-цепочкой (фаза 6) раздел это и есть место.
+            Разметка вынесена в RecordCrumbs (фаза 15), чтобы карточки без
+            шаблона получили ровно те же крошки. */}
+        <RecordCrumbs
+          items={[
+            { href: `/products/${product.id}`, label: product.name },
+            { href: moduleHref, label: moduleLabel },
+          ]}
+        />
 
         {contextLink && <div className="mb-2">{contextLink}</div>}
 

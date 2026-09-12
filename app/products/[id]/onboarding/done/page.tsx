@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { buttonVariants } from '@/components/ui/button'
 
+export const metadata = { title: 'Настройка завершена' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function OnboardingDonePage({ params }: { params: { id: string } }) {

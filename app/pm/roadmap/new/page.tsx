@@ -5,6 +5,8 @@ import { getActiveProductId } from '@/lib/product-context.server'
 import { createRoadmapItem } from '@/lib/actions/roadmap'
 import { RoadmapItemForm } from '@/components/forms/roadmap-item-form'
 
+export const metadata = { title: 'Новый пункт роадмапа' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewRoadmapItemPage({

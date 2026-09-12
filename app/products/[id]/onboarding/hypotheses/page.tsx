@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { WizardShell } from '@/components/onboarding/wizard-shell'
 import { HypothesesStepForm } from '@/components/onboarding/hypotheses-step-form'
 
+export const metadata = { title: 'Настройка: гипотезы' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function OnboardingHypothesesPage({ params }: { params: { id: string } }) {

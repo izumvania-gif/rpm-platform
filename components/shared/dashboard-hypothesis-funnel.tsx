@@ -29,7 +29,7 @@ export function DashboardHypothesisFunnel({ counts }: { counts: HypothesisStatus
       {total === 0 ? (
         <p className="text-sm text-muted-foreground">
           Пока нет ни одной гипотезы —{' '}
-          <Link href="/hypotheses/new" className="underline hover:no-underline">
+          <Link href="/hypotheses/new?from=/" className="underline hover:no-underline">
             добавьте первую
           </Link>
           .

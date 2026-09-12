@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { WizardShell } from '@/components/onboarding/wizard-shell'
 import { JtbdStepForm } from '@/components/onboarding/jtbd-step-form'
 
+export const metadata = { title: 'Настройка: задачи клиента' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function OnboardingJtbdPage({ params }: { params: { id: string } }) {

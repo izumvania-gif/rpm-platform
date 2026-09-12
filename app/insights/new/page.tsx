@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createInsight } from '@/lib/actions/insights'
 import { InsightForm } from '@/components/forms/insight-form'
 
+export const metadata = { title: 'Новый инсайт' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewInsightPage({

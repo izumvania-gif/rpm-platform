@@ -14,6 +14,8 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { PmShell } from '@/components/pm/pm-shell'
 import { groupByQuarter } from '@/lib/roadmap'
 
+export const metadata = { title: 'Роадмап' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function PmRoadmapPage({

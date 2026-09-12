@@ -25,6 +25,14 @@ export function PmShell({ context, children }: { context: PmContext; children: R
         </p>
       </div>
 
+      {/* Вкладки — карта раздела, и её нельзя прятать за данными (фаза 14).
+          Раньше они рендерились только при выбранном продукте, и на пустой
+          базе все шесть маршрутов «Доставки» выглядели как одна и та же
+          пустая страница: человек не мог даже узнать, из чего раздел состоит.
+          Без продукта ссылки ведут на голые пути — те сами берут активный
+          продукт из cookie, когда он появится. */}
+      <PmTabs productId={product?.id} />
+
       {products.length === 0 ? (
         <Card variant="content" className="border-l-4 border-primary">
           <CardContent className="py-5">
@@ -114,8 +122,6 @@ export function PmShell({ context, children }: { context: PmContext; children: R
                   </p>
                 </CardContent>
               </Card>
-
-              <PmTabs productId={product.id} />
 
               {children}
             </>

@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateInsight } from '@/lib/actions/insights'
 import { InsightForm } from '@/components/forms/insight-form'
 
+export const metadata = { title: 'Редактировать инсайт' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditInsightPage({

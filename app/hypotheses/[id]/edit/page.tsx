@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateHypothesis } from '@/lib/actions/hypotheses'
 import { HypothesisForm } from '@/components/forms/hypothesis-form'
 
+export const metadata = { title: 'Редактировать гипотезу' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditHypothesisPage({

@@ -9,6 +9,8 @@ import { LinkMatrix } from '@/components/shared/link-matrix'
 import { LINK_MATRICES, linkKey, type MatrixAxisItem } from '@/lib/link-matrix'
 import { jtbdKeyPhrase, hypothesisKeyPhrase } from '@/lib/key-phrase'
 
+export const metadata = { title: 'Связи продукта' }
+
 export const dynamic = 'force-dynamic'
 
 // Связи — the four many-to-many relations of one product as four grids.

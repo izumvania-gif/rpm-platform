@@ -3,6 +3,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { createConversation } from '@/lib/actions/conversations'
 import { ConversationForm } from '@/components/forms/conversation-form'
 
+export const metadata = { title: 'Новый разговор' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewConversationPage({

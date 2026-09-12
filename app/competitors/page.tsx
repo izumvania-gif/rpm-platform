@@ -13,6 +13,8 @@ import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 
+export const metadata = { title: 'Конкуренты' }
+
 export const dynamic = 'force-dynamic'
 
 const SORT_OPTIONS = [
@@ -58,7 +60,7 @@ export default async function CompetitorsPage({
         />
         <QuickAddButton
           type="competitor"
-          href="/competitors/new"
+          href="/competitors/new?from=/competitors"
           label="Быстро добавить конкурента, не уходя со страницы"
         />
         <Link href="/competitors/new?from=/competitors" className={buttonVariants()}>

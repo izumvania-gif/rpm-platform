@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { updateProduct } from '@/lib/actions/products'
 import { ProductForm } from '@/components/forms/product-form'
 
+export const metadata = { title: 'Редактировать продукт' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function EditProductPage({

@@ -10,6 +10,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { SalesProductSwitcher } from '@/components/shared/sales-product-switcher'
 
+export const metadata = { title: 'Продажи' }
+
 export const dynamic = 'force-dynamic'
 
 // Sales-relevant order: the sales kit itself first, everything else after —

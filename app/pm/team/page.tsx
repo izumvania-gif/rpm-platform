@@ -10,6 +10,8 @@ import { AddTeamMemberForm } from '@/components/shared/add-team-member-form'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PmShell } from '@/components/pm/pm-shell'
 
+export const metadata = { title: 'Команда продукта' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function PmTeamPage({

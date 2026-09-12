@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { getActiveProductId } from '@/lib/product-context.server'
 import { OtherProductNotice } from '@/components/shared/other-product-notice'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
 import {
   deleteHypothesis,
   toggleHypothesisPinned,
@@ -35,6 +36,13 @@ import { evidenceBalance, hypothesisReadiness } from '@/lib/hypothesis-readiness
 import { EvidenceBalanceBar } from '@/components/hypotheses/evidence-balance'
 import { ReadinessChecklist } from '@/components/hypotheses/readiness-checklist'
 import { Badge } from '@/components/ui/badge'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('hypothesis', params.id, 'Гипотеза') }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -138,6 +146,12 @@ export default async function HypothesisDetailPage({
         href={`/hypotheses/${hypothesis.id}`}
         title={hypothesis.statement}
         kind="Гипотеза"
+      />
+      <RecordCrumbs
+        items={[
+          { href: `/products/${hypothesis.product.id}`, label: hypothesis.product.name },
+          { href: '/hypotheses', label: 'Гипотезы' },
+        ]}
       />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

@@ -13,6 +13,13 @@ import { recordBlockers } from '@/lib/record-blockers'
 import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 import { isStale } from '@/lib/utils'
 import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('jtbd', params.id, 'JTBD') }
+}
 
 export const dynamic = 'force-dynamic'
 

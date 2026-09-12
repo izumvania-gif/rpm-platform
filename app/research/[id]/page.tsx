@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { getActiveProductId } from '@/lib/product-context.server'
 import { OtherProductNotice } from '@/components/shared/other-product-notice'
+import { RecordCrumbs } from '@/components/shared/record-crumbs'
 import { deleteResearch, toggleResearchPinned, updateResearchField } from '@/lib/actions/research'
 import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +18,13 @@ import { QuickAddInsight } from '@/components/shared/quick-add-insight'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { statusLabels, typeLabels } from '@/lib/labels'
 import { isStale } from '@/lib/utils'
+import { recordTitle } from '@/lib/record-title'
+
+// Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
+// полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return { title: await recordTitle('research', params.id, 'Исследование') }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +64,12 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
         href={`/research/${research.id}`}
         title={`#${research.number} ${research.title}`}
         kind="Исследование"
+      />
+      <RecordCrumbs
+        items={[
+          { href: `/products/${research.product.id}`, label: research.product.name },
+          { href: '/research', label: 'Исследования' },
+        ]}
       />
       <div>
         <Eyebrow number={research.number} label="Исследование" className="mb-1" />

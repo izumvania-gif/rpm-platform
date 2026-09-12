@@ -6,6 +6,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { EmptyState } from '@/components/shared/empty-state'
 
+export const metadata = { title: 'Департаменты' }
+
 export const dynamic = 'force-dynamic'
 
 const PRODUCT_FORMS: [string, string, string] = ['продукт', 'продукта', 'продуктов']

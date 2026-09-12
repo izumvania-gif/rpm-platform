@@ -5,6 +5,8 @@ import { getActiveProductId } from '@/lib/product-context.server'
 import { createProcess } from '@/lib/actions/processes'
 import { ProcessForm } from '@/components/forms/process-form'
 
+export const metadata = { title: 'Новый процесс' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function NewProcessPage({

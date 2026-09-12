@@ -4,6 +4,8 @@ import { getCurrentUserId } from '@/lib/current-user'
 import { WizardShell } from '@/components/onboarding/wizard-shell'
 import { CompetitorsStepForm } from '@/components/onboarding/competitors-step-form'
 
+export const metadata = { title: 'Настройка: конкуренты' }
+
 export const dynamic = 'force-dynamic'
 
 export default async function OnboardingCompetitorsPage({ params }: { params: { id: string } }) {

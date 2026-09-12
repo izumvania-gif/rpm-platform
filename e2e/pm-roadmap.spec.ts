@@ -68,9 +68,12 @@ test('«Доставка» открывается на активном прод
 
   // Создание продукта делает его активным, поэтому витрина обязана открыться
   // уже на нём, без единого клика по переключателю.
+  // Заголовок раздела — это имя выбранного продукта. Проверяем по нему, а не
+  // по значению селекта: «Продукт» здесь Radix-триггер, а не нативный
+  // `<select>`, и `toHaveValue` к нему неприменим (см. CLAUDE.md).
   await page.goto('/pm')
-  await expect(page.getByLabel('Продукт', { exact: true })).toHaveValue(/.+/)
   await expect(page.getByRole('heading', { name: productName })).toBeVisible()
+  await expect(page.getByText('Выберите продукт выше')).toHaveCount(0)
 })
 
 test('выбор продукта в «Доставке» запоминается и виден остальной платформе', async ({ page }) => {
@@ -79,9 +82,11 @@ test('выбор продукта в «Доставке» запоминаетс
   await createProductViaUI(page, first)
   await createProductViaUI(page, second) // активным стал второй
 
+  // Переключатель больше не пишет `productId` в адрес: явный параметр главнее
+  // cookie, поэтому на странице `?productId=A` переключение не давало бы
+  // никакого эффекта. Выбор живёт в cookie, адрес остаётся чистым.
   await page.goto('/pm')
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), first)
-  await page.waitForURL(/\/pm\/roadmap\?productId=/)
   await expect(page.getByRole('heading', { name: first })).toBeVisible()
 
   // Выбор пережил уход на другую вкладку «Доставки» без параметра в адресе —

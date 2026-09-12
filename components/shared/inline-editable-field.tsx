@@ -59,6 +59,29 @@ export function InlineEditableField({
   const [saved, setSaved] = useState(value)
   const [draft, setDraft] = useState(value)
   const [error, setError] = useState<string | null>(null)
+
+  // Синхронизация с пропом при смене записи (фаза 13).
+  //
+  // `useState(value)` берёт значение один раз, при первом монтировании. Если
+  // страница перерисовалась на другую запись, а React переиспользовал тот же
+  // экземпляр компонента — поле продолжало показывать прежнее значение. Ловится
+  // это на «Доставке»: переключаешь продукт, переключатель и шапка показывают
+  // новый, а название продукта в заголовке — старое. Так же ведёт себя любой
+  // переход между двумя карточками без размонтирования.
+  //
+  // Правка во время рендера, а не в эффекте: это рекомендованный React способ
+  // подстроить состояние под изменившийся проп — эффект дал бы лишний кадр со
+  // старым значением на экране.
+  const [lastValue, setLastValue] = useState(value)
+  if (value !== lastValue) {
+    setLastValue(value)
+    // Правку человека не трогаем: он сейчас печатает, и его черновик важнее
+    // того, что приехало с сервера.
+    if (!editing) {
+      setSaved(value)
+      setDraft(value)
+    }
+  }
   const [isPending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)

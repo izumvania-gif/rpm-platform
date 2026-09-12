@@ -1,11 +1,12 @@
 'use client'
 
+import { useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Product } from '@prisma/client'
 import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { setDefaultProductId } from '@/lib/client-storage'
-import { selectActiveProduct } from '@/lib/actions/product-context'
+import { switchActiveProduct } from '@/lib/actions/product-context'
 
 const NEW_PRODUCT_SENTINEL = '__new__'
 
@@ -17,7 +18,9 @@ const NEW_PRODUCT_SENTINEL = '__new__'
 //
 // Фаза 13: как и у PmProductSwitcher, восстановление из localStorage убрано —
 // значение по умолчанию приходит с сервера из cookie активного продукта, а
-// выбор здесь этот же cookie и пишет.
+// выбор здесь этот же cookie и пишет. Переход делает серверное действие: push
+// на тот же маршрут с другим `productId` отдавал кэш прежнего продукта, потому
+// что Router Cache не смотрит на строку запроса.
 export function SalesProductSwitcher({
   products,
   selectedProductId,
@@ -26,6 +29,7 @@ export function SalesProductSwitcher({
   selectedProductId?: string
 }) {
   const router = useRouter()
+  const formRef = useRef<HTMLFormElement>(null)
 
   function handleChange(productId: string) {
     if (productId === NEW_PRODUCT_SENTINEL) {
@@ -33,21 +37,18 @@ export function SalesProductSwitcher({
       return
     }
     setDefaultProductId(productId)
-    // Cookie пишем ДО перехода, а не параллельно с ним: иначе следующая
-    // страница успевает отрендериться на старом значении, и выбор виден
-    // только пока в адресе есть `productId`.
-    void selectActiveProduct(productId).then(() => {
-      router.push(`/sales-hub?productId=${productId}`)
-    })
+    formRef.current?.requestSubmit()
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <form ref={formRef} action={switchActiveProduct} className="flex items-center gap-2">
+      <input type="hidden" name="redirectTo" value="/sales-hub" />
       <Label htmlFor="sales-product-switcher" className="shrink-0 text-sm text-muted-foreground">
         Продукт
       </Label>
       <Select
         id="sales-product-switcher"
+        name="activeProductId"
         value={selectedProductId ?? ''}
         onChange={(e) => handleChange(e.target.value)}
         className="h-9 w-auto min-w-[14rem]"
@@ -62,6 +63,6 @@ export function SalesProductSwitcher({
         ))}
         <option value={NEW_PRODUCT_SENTINEL}>+ Новый продукт</option>
       </Select>
-    </div>
+    </form>
   )
 }

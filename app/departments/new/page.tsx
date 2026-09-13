@@ -13,8 +13,12 @@ export default function NewDepartmentPage({
   return (
     <main className="container py-12">
       <h1 className="text-2xl font-bold mb-8">Новый департамент</h1>
-      <DepartmentForm action={createDepartment} error={searchParams.error} submitLabel="Создать" />
-      redirectTo={searchParams.from}
+      <DepartmentForm
+        action={createDepartment}
+        error={searchParams.error}
+        submitLabel="Создать"
+        redirectTo={searchParams.from}
+      />
     </main>
   )
 }

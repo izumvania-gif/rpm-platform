@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createHypothesis } from '@/lib/actions/hypotheses'
 import { HypothesisForm } from '@/components/forms/hypothesis-form'
 
@@ -20,6 +21,10 @@ export default async function NewHypothesisPage({
   }
 }) {
   const userId = getCurrentUserId()
+  // Продукт по умолчанию — активный, тот же, что назван в шапке (фаза 20):
+  // раньше форма читала только cookie, а шапка ещё и подставляла первый
+  // продукт, и в свежем браузере они расходились.
+  const activeProductId = await getActiveProductId(userId)
   const [products, jtbds, segments, researches, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.jTBD.findMany({ where: { userId } }),
@@ -56,7 +61,7 @@ export default async function NewHypothesisPage({
                   statement: searchParams.statement ?? duplicateSource.statement,
                 }
               : {
-                  productId: searchParams.productId,
+                  productId: searchParams.productId ?? activeProductId ?? undefined,
                   jtbdId: searchParams.jtbdId,
                   // `statement` из ссылки работал только в ветке дублирования,
                   // хотя сегменты и задачи подхватывают его всегда. Из-за

@@ -10,7 +10,7 @@ import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { MarketingSegmentFilterForm } from '@/components/forms/marketing-segment-filter-form'
 import { jtbdKeyPhrase } from '@/lib/key-phrase'
 
-export const metadata = { title: 'Маркетинг' }
+export const metadata = { title: 'Маркетинг: что сказать сегменту' }
 
 export const dynamic = 'force-dynamic'
 
@@ -59,7 +59,9 @@ export default async function MarketingHubPage({
   return (
     <main className="container py-12 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-2">Маркетинг</h1>
+        {/* Не просто «Маркетинг»: так назывался бы и список обещаний (`/marketing`),
+            и две разные страницы делили бы один заголовок (фаза 19). */}
+        <h1 className="text-2xl font-bold mb-2">Маркетинг: что сказать сегменту</h1>
         <p className="text-muted-foreground">
           Что уже можно сказать клиентам конкретного сегмента — и что скоро сможем.
         </p>
@@ -87,7 +89,7 @@ export default async function MarketingHubPage({
           <DashboardWidgetCard
             icon={Megaphone}
             title={`Что можно сказать сегменту «${selectedSegment!.name}»`}
-            description="JTBD этого сегмента → закрывающие их фичи → опирающиеся на фичи RTB"
+            description="JTBD этого сегмента → закрывающие их фичи → опирающиеся на фичи обещания"
           >
             {jtbds.length === 0 ? (
               <p className="text-sm text-muted-foreground">У этого сегмента пока нет JTBD.</p>

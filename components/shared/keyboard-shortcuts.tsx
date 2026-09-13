@@ -81,7 +81,9 @@ export function KeyboardShortcuts() {
         )
         if (match) {
           e.preventDefault()
-          router.push(match[1])
+          // С тем же `?from=`, что и кнопка «Новый …» на списке: иначе после
+          // сохранения хоткей уводил на карточку, а кнопка — в список (фаза 20).
+          router.push(`${match[1]}?from=${encodeURIComponent(match[0])}`)
         }
         return
       }

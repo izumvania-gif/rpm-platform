@@ -240,7 +240,7 @@ export default async function HypothesisDetailPage({
                 },
               },
               {
-                title: 'Маркетинг',
+                title: 'Обещание',
                 items: chainRtbs.map((r) => ({ label: r.statement, href: `/marketing/${r.id}` })),
                 emptyLabel: 'нет обещаний',
                 addHref: `/marketing/new?productId=${hypothesis.product.id}`,

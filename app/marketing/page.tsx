@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { pluralizeRu } from '@/lib/plural'
 import { getActiveProductId } from '@/lib/product-context.server'
 import { activeProductFilter } from '@/lib/product-context'
 import { buttonVariants } from '@/components/ui/button'
@@ -47,20 +48,24 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
       <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
         <SectionHeading
           level={1}
-          title="Маркетинг"
+          title="Обещания"
           description={moduleByHref['/marketing'].description}
         />
         <QuickAddButton
           type="rtb"
           href="/marketing/new?from=/marketing"
-          label="Быстро добавить RTB, не уходя со страницы"
+          label="Быстро добавить обещание, не уходя со страницы"
         />
         <Link href="/marketing/new?from=/marketing" className={buttonVariants()}>
-          Новый RTB
+          Новое обещание
         </Link>
       </div>
+      {/* Единственное место, где аббревиатура называется вслух: раздел везде
+          зовётся «Обещания» (фаза 19, plans/2.3-scenario-audit-plan.md), а
+          RTB остаётся пояснением для тех, кто знает термин. */}
       <p className="text-sm text-muted-foreground mb-6">
-        RTB (Reasons To Believe) — маркетинговые обещания, опирающиеся на фичи продукта.
+        Обещание клиенту — в маркетинге это называют RTB, Reasons To Believe — то, что мы утверждаем
+        о продукте и на какие фичи при этом опираемся.
       </p>
 
       {rtbs.length > 0 && (
@@ -104,7 +109,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
                     >
                       <span className="min-w-0 flex-1 truncate">{rtb.statement}</span>
                       <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                        {rtb.features.length} фич
+                        {pluralizeRu(rtb.features.length, ['фича', 'фичи', 'фич'])}
                       </span>
                       <PinButton
                         pinned={rtb.pinned}

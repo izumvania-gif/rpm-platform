@@ -128,7 +128,7 @@ export default async function ResearchPage({
                       href={`/research/${r.id}`}
                       className="font-mono text-xs text-muted-foreground hover:underline"
                     >
-                      #{String(r.number).padStart(3, '0')}
+                      #{r.number}
                     </Link>
                   </td>
                   <td className="py-2 pr-4">

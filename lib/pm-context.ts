@@ -20,6 +20,8 @@ export interface PmContext {
   products: Product[]
   /** undefined, когда продукт не выбран или выбран несуществующий. */
   selectedProductId: string | undefined
+  /** В ссылке был `productId`, но такого продукта нет — показан другой (фаза 20). */
+  requestedProductMissing: boolean
   product: Product | null
   people: Person[]
   departments: Department[]
@@ -47,9 +49,18 @@ export async function loadPmContext(productIdParam?: string): Promise<PmContext>
     products.map((p) => p.id)
   )
   const selectedProductId = explicit ?? fromCookie ?? undefined
+  const requestedProductMissing = Boolean(productIdParam) && !explicit
 
   if (!selectedProductId) {
-    return { userId, products, selectedProductId, product: null, people: [], departments: [] }
+    return {
+      userId,
+      products,
+      selectedProductId,
+      requestedProductMissing,
+      product: null,
+      people: [],
+      departments: [],
+    }
   }
 
   const [product, people, departments] = await Promise.all([
@@ -58,5 +69,13 @@ export async function loadPmContext(productIdParam?: string): Promise<PmContext>
     prisma.department.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
   ])
 
-  return { userId, products, selectedProductId, product, people, departments }
+  return {
+    userId,
+    products,
+    selectedProductId,
+    requestedProductMissing,
+    product,
+    people,
+    departments,
+  }
 }

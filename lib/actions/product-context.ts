@@ -46,6 +46,13 @@ export async function switchActiveProduct(formData: FormData) {
   // Исключение — карточка конкретной записи: она принадлежит прежнему
   // продукту, и оставить на ней значило бы показывать чужие данные под новой
   // подписью в шапке. Оттуда уходим в список раздела (фаза 13).
+  //
+  // Кроме случая, когда переключаются на продукт ЭТОЙ записи (`stay`): плашка
+  // «запись из другого продукта» делает активным именно его, и уводить с
+  // записи незачем — человек хотел остаться на ней и видеть её в списках
+  // (фаза 20). Правило «с карточки — в список» остаётся у переключателя в
+  // шапке, где новый продукт и продукт записи не совпадают.
   const path = safeRedirectPath(formData.get('redirectTo'), '/')
-  redirect(redirectAfterProductSwitch(path, productId))
+  const stay = formData.get('stay') === '1'
+  redirect(stay ? path : redirectAfterProductSwitch(path, productId))
 }

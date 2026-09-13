@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createFeature } from '@/lib/actions/features'
 import { FeatureForm } from '@/components/forms/feature-form'
 
@@ -19,6 +20,10 @@ export default async function NewFeaturePage({
   }
 }) {
   const userId = getCurrentUserId()
+  // Продукт по умолчанию — активный, тот же, что назван в шапке (фаза 20):
+  // раньше форма читала только cookie, а шапка ещё и подставляла первый
+  // продукт, и в свежем браузере они расходились.
+  const activeProductId = await getActiveProductId(userId)
   const [products, jtbds, rtbs, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.jTBD.findMany({ where: { userId } }),
@@ -57,7 +62,10 @@ export default async function NewFeaturePage({
                   jtbdIds: duplicateSource.jtbds.map((j) => j.id),
                   rtbIds: duplicateSource.rtbs.map((r) => r.id),
                 }
-              : { productId: searchParams.productId, name: searchParams.name }
+              : {
+                  productId: searchParams.productId ?? activeProductId ?? undefined,
+                  name: searchParams.name,
+                }
           }
           error={searchParams.error}
           submitLabel="Создать"

@@ -84,7 +84,7 @@ export const CAPTURE_TYPES: CaptureTypeDef[] = [
   },
   {
     value: 'rtb',
-    label: 'Маркетинг',
+    label: 'Обещание',
     placeholder: 'Обещание, опирающееся на фичу',
     href: '/marketing/new',
     textParam: 'statement',

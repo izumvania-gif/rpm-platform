@@ -103,7 +103,9 @@ export function FeatureForm({
         <div className="space-y-2">
           <Label>Какие JTBD закрывает</Label>
           {productJtbds.length === 0 ? (
-            <p className="text-sm text-muted-foreground">У выбранного продукта пока нет JTBD.</p>
+            <p className="text-sm text-muted-foreground">
+              {productId ? 'У выбранного продукта пока нет JTBD.' : 'Сначала выберите продукт.'}
+            </p>
           ) : (
             <div className="space-y-1 max-h-48 overflow-y-auto rounded-md border p-2">
               {productJtbds.map((j) => (
@@ -122,9 +124,11 @@ export function FeatureForm({
           )}
         </div>
         <div className="space-y-2">
-          <Label>Какие RTB опираются на эту фичу</Label>
+          <Label>Какие обещания опираются на эту фичу</Label>
           {productRtbs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">У выбранного продукта пока нет RTB.</p>
+            <p className="text-sm text-muted-foreground">
+              {productId ? 'У выбранного продукта пока нет обещаний.' : 'Сначала выберите продукт.'}
+            </p>
           ) : (
             <div className="space-y-1 max-h-48 overflow-y-auto rounded-md border p-2">
               {productRtbs.map((r) => (

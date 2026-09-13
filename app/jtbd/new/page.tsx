@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createJtbd } from '@/lib/actions/jtbd'
 import { JtbdForm } from '@/components/forms/jtbd-form'
 
@@ -23,6 +24,10 @@ export default async function NewJtbdPage({
   }
 }) {
   const userId = getCurrentUserId()
+  // Продукт по умолчанию — активный, тот же, что назван в шапке (фаза 20):
+  // раньше форма читала только cookie, а шапка ещё и подставляла первый
+  // продукт, и в свежем браузере они расходились.
+  const activeProductId = await getActiveProductId(userId)
   const [products, segments, researches, categoryRows, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.segment.findMany({ where: { userId } }),
@@ -68,7 +73,7 @@ export default async function NewJtbdPage({
                   segmentIds: duplicateSource.segments.map((s) => s.id),
                 }
               : {
-                  productId: searchParams.productId,
+                  productId: searchParams.productId ?? activeProductId ?? undefined,
                   title: searchParams.title,
                   category: searchParams.category,
                   segmentIds: searchParams.segmentId ? [searchParams.segmentId] : undefined,

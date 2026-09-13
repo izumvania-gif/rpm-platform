@@ -12,12 +12,17 @@ import { cn } from '@/lib/utils'
 // URL directly. This is a way to explore the 5-view concept, not a login
 // system. Real per-role access control is a separate, later, larger plan
 // (see §9 "Явно вне рамок" in the same doc).
+//
+// Пункты названы так же, как заголовки страниц, на которые ведут (фаза 19,
+// plans/2.3-scenario-audit-plan.md): «PM» вёл на «Доставку», «Маркетинг» — на
+// витрину, у которой с разделом «Обещания» общий корень. Кому адресована
+// страница — в подсказке, а не в названии.
 const personas = [
-  { href: '/pm', label: 'PM' },
-  { href: '/cpo', label: 'CPO' },
-  { href: '/public', label: 'Компания (открытый доступ)' },
-  { href: '/marketing-hub', label: 'Маркетинг' },
-  { href: '/sales-hub', label: 'Продажи' },
+  { href: '/pm', label: 'Доставка', hint: 'для PM: роадмап, процессы, команда' },
+  { href: '/cpo', label: 'CPO', hint: 'все продукты как экосистема' },
+  { href: '/public', label: 'Компания', hint: 'открытый доступ, без входа' },
+  { href: '/marketing-hub', label: 'Маркетинг: что сказать сегменту', hint: 'для маркетинга' },
+  { href: '/sales-hub', label: 'Продажи', hint: 'материалы и «есть ли у нас фича X»' },
 ]
 
 const HINT_ID = 'persona-switcher-hint'
@@ -101,7 +106,7 @@ export function PersonaSwitcher() {
       {open && (
         <div
           className={cn(
-            'absolute right-0 top-full z-20 mt-1 min-w-[16rem] rounded-md border bg-background py-1 shadow-md'
+            'absolute right-0 top-full z-20 mt-1 min-w-[18rem] rounded-md border bg-background py-1 shadow-md'
           )}
         >
           {/* Подсказка стоит рядом с меню, а не внутри него: у `role="menu"`
@@ -121,10 +126,12 @@ export function PersonaSwitcher() {
                 key={persona.href}
                 href={persona.href}
                 role="menuitem"
+                aria-label={persona.label}
                 onClick={() => setOpen(false)}
-                className="block whitespace-nowrap px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground focus-visible:outline-none"
+                className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground focus-visible:outline-none"
               >
-                {persona.label}
+                <span className="block text-foreground">{persona.label}</span>
+                <span className="block text-xs">{persona.hint}</span>
               </Link>
             ))}
           </div>

@@ -92,7 +92,7 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
               current: true,
             },
             {
-              title: 'Маркетинг',
+              title: 'Обещание',
               items: feature.rtbs.map((r) => ({
                 label: r.statement,
                 href: `/marketing/${r.id}`,
@@ -149,7 +149,7 @@ export default async function FeatureDetailPage({ params }: { params: { id: stri
              before its marketing claim exists. */
           <div className="space-y-2">
             <p className="text-sm text-foreground">
-              На эту фичу не опирается ни одно маркетинговое обещание — её нечем продавать.
+              На эту фичу не опирается ни одно обещание — её нечем продавать.
             </p>
             <Link
               href={`/marketing/new?productId=${feature.productId}&featureId=${feature.id}`}

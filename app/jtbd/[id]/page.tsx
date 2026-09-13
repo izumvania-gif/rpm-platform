@@ -120,7 +120,7 @@ export default async function JtbdDetailPage({
               gap: { kind: 'jtbd-feature', anchorId: jtbd.id, productId: jtbd.product.id },
             },
             {
-              title: 'Маркетинг',
+              title: 'Обещание',
               items: chainRtbs.map((r) => ({ label: r.statement, href: `/marketing/${r.id}` })),
               emptyLabel: 'нет обещаний',
               addHref: `/marketing/new?productId=${jtbd.product.id}`,

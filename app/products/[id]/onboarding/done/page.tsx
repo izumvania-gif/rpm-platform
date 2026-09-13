@@ -53,9 +53,9 @@ export default async function OnboardingDonePage({ params }: { params: { id: str
       count: competitors,
       href: `/products/${product.id}/onboarding/competitors`,
     },
-    { label: 'Команда', count: team, href: `/products/${product.id}/onboarding/people` },
+    { label: 'Команда продукта', count: team, href: `/products/${product.id}/onboarding/people` },
     { label: 'Фичи', count: features, href: `/products/${product.id}/onboarding/features` },
-    { label: 'RTB', count: rtbs, href: `/products/${product.id}/onboarding/features` },
+    { label: 'Обещания', count: rtbs, href: `/products/${product.id}/onboarding/features` },
   ]
 
   return (

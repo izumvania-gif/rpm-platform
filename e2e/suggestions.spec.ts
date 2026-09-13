@@ -58,7 +58,7 @@ test('a feature with no marketing claim says so and offers the prefilled form', 
   await page.waitForURL(/\/features\/c[a-z0-9]{10,}$/)
 
   await expect(
-    page.getByText('На эту фичу не опирается ни одно маркетинговое обещание — её нечем продавать.')
+    page.getByText('На эту фичу не опирается ни одно обещание — её нечем продавать.')
   ).toBeVisible()
 
   await page.getByRole('link', { name: 'Сформулировать обещание' }).click()

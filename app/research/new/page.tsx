@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createResearch } from '@/lib/actions/research'
 import { ResearchForm } from '@/components/forms/research-form'
 
@@ -13,6 +14,10 @@ export default async function NewResearchPage({
   searchParams: { from?: string; error?: string; productId?: string; duplicateFrom?: string }
 }) {
   const userId = getCurrentUserId()
+  // Продукт по умолчанию — активный, тот же, что назван в шапке (фаза 20):
+  // раньше форма читала только cookie, а шапка ещё и подставляла первый
+  // продукт, и в свежем браузере они расходились.
+  const activeProductId = await getActiveProductId(userId)
   const [products, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     searchParams.duplicateFrom
@@ -38,7 +43,7 @@ export default async function NewResearchPage({
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
                 }
-              : { productId: searchParams.productId }
+              : { productId: searchParams.productId ?? activeProductId ?? undefined }
           }
           error={searchParams.error}
           submitLabel="Создать"

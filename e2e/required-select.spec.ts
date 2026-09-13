@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { createProductViaUI, uniqueName } from './helpers'
 
 // A required Select must be able to complain.
 //
@@ -17,15 +18,19 @@ test('a create form with no product chosen reports instead of doing nothing', as
     if (message.type() === 'error') errors.push(message.text())
   })
 
-  // Форма подставляет активный продукт из cookie (фаза 4 редизайна 2.1),
-  // поэтому пустое обязательное поле теперь достижимо только без неё. Это
-  // само по себе улучшение — в обычной работе продукт почти всегда подставлен,
-  // — но проверяемая тут защита никуда не делась: у нового пользователя, у
-  // которого продукт ещё не выбран, форма обязана сказать, чего ей не хватает.
-  await page.context().clearCookies({ name: 'rpm_active_product' })
-
-  // No ?productId= — the state every list page's «Новый JTBD» lands in.
-  await page.goto('/jtbd/new')
+  // Форма подставляет активный продукт — с фазы 20 (2.3) его резолвит сервер
+  // с тем же fallback, что и шапка, так что даже без cookie поле не пустое, а
+  // пункт «Выберите продукт» в списке отключён. Пустое обязательное поле
+  // остаётся достижимым только явным `?productId=` в адресе — этого хватает,
+  // чтобы проверяемая защита никуда не делась: пустой Select обязан сказать,
+  // чего ему не хватает, а не молчать.
+  //
+  // Свой продукт, а не расчёт на соседние спеки: без единого продукта форма
+  // вообще не рендерится («Сначала создайте продукт»).
+  await createProductViaUI(page, uniqueName('Required Select Product'))
+  // И без cookie: клиентский запасной путь формы иначе подставит продукт сам.
+  await page.context().clearCookies()
+  await page.goto('/jtbd/new?productId=')
   await page.getByLabel('Формулировка JTBD').fill('Когда падает сервис, я хочу узнать первым')
   await page.getByLabel('Категория').fill('Наблюдаемость')
   await page.getByRole('button', { name: 'Создать' }).click()
@@ -53,7 +58,8 @@ test('a create form with no product chosen reports instead of doing nothing', as
 test('choosing a product clears the custom message and lets the form submit', async ({ page }) => {
   // setCustomValidity with a non-empty string keeps a control invalid until
   // it is cleared, so forgetting to clear it would break every form instead.
-  await page.goto('/jtbd/new')
+  await createProductViaUI(page, uniqueName('Required Select Product'))
+  await page.goto('/jtbd/new?productId=')
   await page.getByLabel('Формулировка JTBD').fill('Когда истекает срок, я хочу узнать заранее')
   await page.getByLabel('Категория').fill('Наблюдаемость')
 

@@ -28,6 +28,8 @@ import {
   getResearchCadence,
 } from '@/lib/dashboard-metrics'
 
+export const metadata = { title: 'Обзор' }
+
 export const dynamic = 'force-dynamic'
 
 interface FeedItem {
@@ -44,13 +46,21 @@ interface FeedItem {
 export default async function Home() {
   const userId = getCurrentUserId()
 
+  // Все показатели — по активному продукту (фаза 20). До этого карточка
+  // сверху показывала активный продукт, а всё под ней считалось по всей базе:
+  // при двух продуктах человек видел «Сегменты: 4 из 10» под продуктом с
+  // одним сегментом. Списки при этом уже фильтровались по активному, так что
+  // один экран давал два ответа на «где я». «По всем продуктам» — это CPO.
+  const activeProductId = await getActiveProductId(userId)
+  const scope = activeProductId ?? undefined
+
   const dashboardMetrics = Promise.all([
-    getGapsCounts(userId),
-    getJtbdCoverage(userId),
-    getDiscoveryChain(userId),
-    getHypothesisStatusCounts(userId),
-    getResearchCadence(userId),
-    getDecisionQueue(userId),
+    getGapsCounts(userId, scope),
+    getJtbdCoverage(userId, scope),
+    getDiscoveryChain(userId, scope),
+    getHypothesisStatusCounts(userId, scope),
+    getResearchCadence(userId, 6, scope),
+    getDecisionQueue(userId, scope),
   ])
 
   const [
@@ -175,7 +185,7 @@ export default async function Home() {
     ...pinnedRTBs.map((r) => ({
       href: `/marketing/${r.id}`,
       title: r.statement,
-      kind: 'RTB',
+      kind: 'Обещание',
       moduleHref: '/marketing',
       updatedAt: r.updatedAt,
     })),
@@ -259,7 +269,7 @@ export default async function Home() {
     ...recentRTBs.map((r) => ({
       href: `/marketing/${r.id}`,
       title: r.statement,
-      kind: 'RTB',
+      kind: 'Обещание',
       moduleHref: '/marketing',
       updatedAt: r.updatedAt,
       createdAt: r.createdAt,
@@ -286,7 +296,6 @@ export default async function Home() {
   // Ищем сначала среди уже загруженных (15 последних по дате изменения) и лишь
   // потом идём в базу: активный продукт чаще всего и есть тот, который недавно
   // трогали, но полагаться на это нельзя — он может лежать за пределами этих 15.
-  const activeProductId = await getActiveProductId(userId)
   const featuredProduct = activeProductId
     ? (recentProducts.find((p) => p.id === activeProductId) ??
       (await prisma.product.findFirst({ where: { id: activeProductId, userId } })) ??
@@ -295,9 +304,9 @@ export default async function Home() {
 
   return (
     <main className="container py-12">
-      <h1 className="text-3xl font-bold mb-2">RPM Platform</h1>
+      <h1 className="text-3xl font-bold mb-2">Обзор</h1>
       <p className="text-muted-foreground mb-8">
-        Платформа для управления продуктовыми исследованиями и сегментами клиентов
+        Активный продукт, состояние цепочки дискавери и очередь решений.
       </p>
 
       {featuredProduct ? (
@@ -358,6 +367,17 @@ export default async function Home() {
           «Пробелы» ушли из реестра виджетов: иначе они рисовались бы дважды.
           Сохранённые в браузерах раскладки переживают это без миграции —
           `reconcileDashboardLayout` выбрасывает id, которых больше нет. */}
+      {/* Область данных названа вслух, когда продуктов больше одного: иначе
+          числа под карточкой снова читались бы как «про всё». */}
+      {featuredProduct && productCount > 1 && (
+        <p className="mb-6 text-sm text-muted-foreground" data-testid="dashboard-scope">
+          Показатели ниже — по продукту «{featuredProduct.name}».{' '}
+          <Link href="/cpo" className="underline hover:text-foreground">
+            По всем продуктам → CPO
+          </Link>
+        </p>
+      )}
+
       {weakest && (
         <div className="mb-6">
           <DashboardWeakLink weakest={weakest} />

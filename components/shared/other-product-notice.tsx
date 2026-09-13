@@ -34,6 +34,9 @@ export function OtherProductNotice({
       <form action={switchActiveProduct}>
         <input type="hidden" name="activeProductId" value={product.id} />
         <input type="hidden" name="redirectTo" value={redirectTo} />
+        {/* Остаться на записи: продукт становится её собственным, уходить в
+            список незачем (фаза 20). */}
+        <input type="hidden" name="stay" value="1" />
         <SubmitButton variant="outline" size="sm" pendingText="Переключаю…">
           Перейти в «{product.name}»
         </SubmitButton>

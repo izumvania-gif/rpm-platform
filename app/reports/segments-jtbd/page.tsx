@@ -2,6 +2,7 @@ import { ScrollHint } from '@/components/shared/scroll-hint'
 import type { Product } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { ReportsProductFilterForm } from '@/components/forms/reports-product-filter-form'
 
 export const metadata = { title: 'Матрица Сегменты × JTBD' }
@@ -16,8 +17,14 @@ export default async function SegmentsJtbdMatrixPage({
   searchParams: { productId?: string }
 }) {
   const userId = getCurrentUserId()
-  const products = await prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } })
-  const productId = products.find((p) => p.id === searchParams.productId)?.id ?? products[0]?.id
+  const [products, activeProductId] = await Promise.all([
+    prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+    getActiveProductId(userId),
+  ])
+  // По умолчанию — активный продукт, как в списках; «первый по имени» совпадал
+  // с ним только случайно (фаза 20).
+  const productId =
+    products.find((p) => p.id === searchParams.productId)?.id ?? activeProductId ?? products[0]?.id
 
   return (
     <main className="container py-12 space-y-6">

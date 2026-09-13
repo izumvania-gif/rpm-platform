@@ -11,7 +11,7 @@ test('dashboard loads with the chain navigation', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem('rpm:nav-stage', 'full'))
   await page.goto('/')
 
-  await expect(page.getByRole('heading', { name: 'RPM Platform' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Обзор' })).toBeVisible()
 
   // Меню читается как метод, а не как список разделов (фаза 6 редизайна 2.1):
   // Обзор, затем пять звеньев цепочки по порядку, затем группы.
@@ -20,7 +20,7 @@ test('dashboard loads with the chain navigation', async ({ page }) => {
   for (const link of ['Сегменты', 'JTBD', 'Гипотезы', 'Фичи', 'Обещания']) {
     await expect(nav.getByRole('link', { name: link, exact: true })).toBeVisible()
   }
-  for (const group of ['Доставка', 'База знаний', 'Команда']) {
+  for (const group of ['Доставка', 'База знаний', 'Люди']) {
     await expect(nav.getByRole('link', { name: group })).toBeVisible()
   }
 })

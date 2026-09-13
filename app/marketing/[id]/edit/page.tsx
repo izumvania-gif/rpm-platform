@@ -28,7 +28,7 @@ export default async function EditRTBPage({
 
   return (
     <main className="container py-12">
-      <h1 className="text-2xl font-bold mb-8">Редактировать RTB</h1>
+      <h1 className="text-2xl font-bold mb-8">Редактировать обещание</h1>
       <RTBForm
         action={updateRTBWithId}
         products={products}

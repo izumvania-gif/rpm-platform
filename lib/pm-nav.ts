@@ -28,7 +28,7 @@ export const PM_TABS: PmTab[] = [
   { href: '/pm/gantt', label: 'Гант' },
   { href: '/pm/processes', label: 'Процессы' },
   { href: '/pm/action-plans', label: 'Экшн-планы' },
-  { href: '/pm/team', label: 'Команда' },
+  { href: '/pm/team', label: 'Команда продукта' },
 ]
 
 /** Куда ведёт «Доставка» в меню и куда перебрасывает голый `/pm`. */

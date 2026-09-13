@@ -22,7 +22,8 @@ test('n creates a new record in a section that supports it', async ({ page }) =>
   await page.locator('body').click({ position: { x: 5, y: 5 } })
 
   await page.keyboard.press('n')
-  await page.waitForURL('/segments/new')
+  // С фазы 20 хоткей несёт `?from=` списка, как и кнопка «Новый …».
+  await page.waitForURL(/\/segments\/new\?from=%2Fsegments$/)
 })
 
 test('shortcuts are ignored while typing in a text field', async ({ page }) => {

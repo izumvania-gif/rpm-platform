@@ -120,7 +120,7 @@ export function FeaturesStepForm({
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold">RTB (Reasons To Believe)</h2>
+        <h2 className="text-sm font-semibold">Обещания клиенту</h2>
         <div className="space-y-2 rounded-md border p-3">
           <Textarea
             value={rtbStatement}
@@ -158,7 +158,7 @@ export function FeaturesStepForm({
             label: r.statement,
             meta: r.features.map((f) => f.name).join(' · ') || undefined,
           }))}
-          emptyLabel="RTB пока нет."
+          emptyLabel="Обещаний пока нет."
         />
       </section>
     </div>

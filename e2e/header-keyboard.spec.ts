@@ -155,13 +155,13 @@ test('переключатель представлений: стрелки по
       await button.focus()
       await page.keyboard.press('ArrowDown')
     },
-    () => expect(page.getByRole('menuitem', { name: 'PM' })).toBeFocused({ timeout: 500 })
+    () => expect(page.getByRole('menuitem', { name: 'Доставка' })).toBeFocused({ timeout: 500 })
   )
 
   await page.keyboard.press('ArrowDown')
   await expect(page.getByRole('menuitem', { name: 'CPO' })).toBeFocused()
   await page.keyboard.press('ArrowUp')
-  await expect(page.getByRole('menuitem', { name: 'PM' })).toBeFocused()
+  await expect(page.getByRole('menuitem', { name: 'Доставка' })).toBeFocused()
 
   await page.keyboard.press('Escape')
   await expect(button).toBeFocused()

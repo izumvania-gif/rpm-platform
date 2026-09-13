@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createInsight } from '@/lib/actions/insights'
 import { InsightForm } from '@/components/forms/insight-form'
 
@@ -23,6 +24,10 @@ export default async function NewInsightPage({
   }
 }) {
   const userId = getCurrentUserId()
+  // Продукт по умолчанию — активный, тот же, что назван в шапке (фаза 20):
+  // раньше форма читала только cookie, а шапка ещё и подставляла первый
+  // продукт, и в свежем браузере они расходились.
+  const activeProductId = await getActiveProductId(userId)
   const [products, segments, jtbds, researches, conversations, hypotheses, duplicateSource] =
     await Promise.all([
       prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
@@ -65,7 +70,7 @@ export default async function NewInsightPage({
                   text: searchParams.text ?? duplicateSource.text,
                 }
               : {
-                  productId: searchParams.productId,
+                  productId: searchParams.productId ?? activeProductId ?? undefined,
                   text: searchParams.text,
                   hypothesisId: searchParams.hypothesisId,
                 }

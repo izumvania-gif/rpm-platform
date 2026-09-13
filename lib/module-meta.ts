@@ -91,8 +91,8 @@ export const positioningModules: ModuleMeta[] = [
   { href: '/features', label: 'Фичи', description: 'Как продукт закрывает JTBD', icon: Puzzle },
   {
     href: '/marketing',
-    label: 'Маркетинг',
-    description: 'Маркетинговые обещания (RTB) на основе фич',
+    label: 'Обещания',
+    description: 'Что мы обещаем клиенту и на какие фичи это опирается',
     icon: Megaphone,
   },
 ]

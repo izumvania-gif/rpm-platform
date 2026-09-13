@@ -34,7 +34,7 @@ test('вкладки «Доставки» видны как карта разд�
   await page.goto('/pm')
   const tabs = page.getByRole('navigation', { name: 'Разделы доставки' })
   await expect(tabs).toBeVisible()
-  for (const label of ['Роадмап', 'Гант', 'Процессы', 'Экшн-планы', 'Команда']) {
+  for (const label of ['Роадмап', 'Гант', 'Процессы', 'Экшн-планы', 'Команда продукта']) {
     await expect(tabs.getByRole('link', { name: label })).toBeVisible()
   }
 })

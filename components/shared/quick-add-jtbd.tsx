@@ -59,7 +59,7 @@ export function QuickAddJtbd({
     <div className="space-y-3">
       {jtbds.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          У сегмента пока нет задач. Без них он не попадёт ни в матрицу покрытия, ни в «Маркетинг».
+          У сегмента пока нет задач. Без них он не попадёт ни в матрицу покрытия, ни в «Обещания».
         </p>
       ) : (
         <ul className="divide-y text-sm">
@@ -85,7 +85,7 @@ export function QuickAddJtbd({
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Когда ..., я хочу ..., чтобы ..."
+          placeholder="Когда …, я хочу …, чтобы …"
           aria-label="Формулировка JTBD"
         />
         <div className="flex flex-wrap items-center gap-2">

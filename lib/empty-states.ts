@@ -88,9 +88,9 @@ export const emptyStates: Record<string, EmptyStateContent> = {
     actionHref: '/features/new',
   },
   '/marketing': {
-    what: 'RTB (reason to believe) — почему клиент должен поверить обещанию. Опирается на конкретную фичу.',
+    what: 'Обещание — что мы утверждаем о продукте и почему клиент должен в это поверить. Опирается на конкретную фичу.',
     examples: ['Сертификат ФСТЭК на СКЗИ', 'Внедрение за 2 недели в 30 банках'],
-    actionLabel: 'Добавить RTB',
+    actionLabel: 'Добавить обещание',
     actionHref: '/marketing/new',
   },
   '/people': {

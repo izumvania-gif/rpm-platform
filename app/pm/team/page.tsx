@@ -30,7 +30,7 @@ export default async function PmTeamPage({
         <DashboardWidgetCard
           id="team"
           icon={Users2}
-          title="Команда"
+          title="Команда продукта"
           description="Кто в команде этого продукта — явно добавленные плюс те, у кого уже есть дела по роадмапу или процессу"
           contentClassName="p-0"
           action={

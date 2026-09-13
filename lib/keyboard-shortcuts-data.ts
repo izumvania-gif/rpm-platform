@@ -17,7 +17,7 @@ export const gotoShortcuts: GotoShortcut[] = [
   { key: 'h', label: 'Гипотезы', href: '/hypotheses' },
   { key: 'c', label: 'Разговоры', href: '/conversations' },
   { key: 'f', label: 'Фичи', href: '/features' },
-  { key: 'm', label: 'Маркетинг', href: '/marketing' },
+  { key: 'm', label: 'Обещания', href: '/marketing' },
   { key: 'i', label: 'Инсайты', href: '/insights' },
   { key: 'k', label: 'Конкуренты', href: '/competitors' },
 ]

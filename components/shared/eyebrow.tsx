@@ -22,7 +22,9 @@ export function Eyebrow({
     >
       {number != null && (
         <>
-          <span>#{String(number).padStart(3, '0')}</span>
+          {/* `#3`, не `#003`: тот же формат, что на карточке продукта, дашборде
+              и в формах (фаза 19). */}
+          <span>#{number}</span>
           <span aria-hidden className="opacity-40">
             ·
           </span>

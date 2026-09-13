@@ -25,7 +25,7 @@ export const bulkEntityLabels: Record<BulkEntity, string> = {
   insight: 'Инсайты',
   hypothesis: 'Гипотезы',
   feature: 'Фичи',
-  rtb: 'RTB',
+  rtb: 'Обещания',
   competitor: 'Конкуренты',
 }
 

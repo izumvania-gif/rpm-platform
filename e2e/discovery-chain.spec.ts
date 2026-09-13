@@ -14,7 +14,7 @@ test('the dashboard widget names the weakest link', async ({ page }) => {
 
   // Five stages, each its own meter — never a funnel, and never a stage
   // silently dropped because it happens to be empty.
-  for (const label of ['Сегменты', 'JTBD', 'Гипотезы', 'Фичи', 'Маркетинг']) {
+  for (const label of ['Сегменты', 'JTBD', 'Гипотезы', 'Фичи', 'Обещания']) {
     await expect(page.getByRole('meter', { name: new RegExp(`^${label}:`) })).toHaveCount(1)
   }
 })

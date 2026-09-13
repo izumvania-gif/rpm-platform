@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { pluralizeRu } from '@/lib/plural'
 import { deleteProduct, updateProductField } from '@/lib/actions/products'
 import { deleteProductResource } from '@/lib/actions/product-resources'
 import { buttonVariants } from '@/components/ui/button'
@@ -194,14 +195,14 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   const featureRows: OverviewRow[] = product.features.map((f) => ({
     href: `/features/${f.id}`,
     label: f.name,
-    meta: `${f._count.rtbs} RTB`,
-    attentionHint: f._count.rtbs === 0 ? 'Нет маркетингового обещания' : undefined,
+    meta: pluralizeRu(f._count.rtbs, ['обещание', 'обещания', 'обещаний']),
+    attentionHint: f._count.rtbs === 0 ? 'Нет обещания' : undefined,
   }))
 
   const rtbRows: OverviewRow[] = product.rtbs.map((r) => ({
     href: `/marketing/${r.id}`,
     label: r.statement,
-    meta: `${r._count.features} фич`,
+    meta: pluralizeRu(r._count.features, ['фича', 'фичи', 'фич']),
     attentionHint: r._count.features === 0 ? 'Не опирается ни на одну фичу' : undefined,
   }))
 
@@ -425,14 +426,14 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             attentionLabel="без обещаний"
           />
           <ProductModuleCard
-            title="Маркетинг"
+            title="Обещания"
             data={buildModuleRows(rtbRows)}
             addHref={`/marketing/new?productId=${product.id}`}
-            addLabel="Добавить RTB"
+            addLabel="Добавить обещание"
             addType="rtb"
             productId={product.id}
             allHref="/marketing"
-            emptyLabel="Пока нет RTB."
+            emptyLabel="Пока нет обещаний."
             attentionLabel="без опоры на фичу"
           />
         </div>

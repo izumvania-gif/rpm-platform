@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createRTB } from '@/lib/actions/rtbs'
 import { RTBForm } from '@/components/forms/rtb-form'
 
@@ -22,6 +23,10 @@ export default async function NewRTBPage({
   }
 }) {
   const userId = getCurrentUserId()
+  // Продукт по умолчанию — активный, тот же, что назван в шапке (фаза 20):
+  // раньше форма читала только cookie, а шапка ещё и подставляла первый
+  // продукт, и в свежем браузере они расходились.
+  const activeProductId = await getActiveProductId(userId)
   const [products, features, duplicateSource] = await Promise.all([
     prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
     prisma.feature.findMany({ where: { userId } }),
@@ -35,10 +40,10 @@ export default async function NewRTBPage({
 
   return (
     <main className="container py-12">
-      <h1 className="text-2xl font-bold mb-8">Новый RTB</h1>
+      <h1 className="text-2xl font-bold mb-8">Новое обещание</h1>
       {products.length === 0 ? (
         <p className="text-muted-foreground">
-          Сначала создайте продукт — RTB должен быть привязан к продукту.
+          Сначала создайте продукт — обещание должно быть привязано к продукту.
         </p>
       ) : (
         <RTBForm
@@ -55,7 +60,7 @@ export default async function NewRTBPage({
                   featureIds: duplicateSource.features.map((f) => f.id),
                 }
               : {
-                  productId: searchParams.productId,
+                  productId: searchParams.productId ?? activeProductId ?? undefined,
                   statement: searchParams.statement,
                   featureIds: searchParams.featureId ? [searchParams.featureId] : undefined,
                 }

@@ -14,34 +14,39 @@ import { OPEN_STATUSES, buildDecisionQueue, type DecisionItem } from '@/lib/deci
 // written, so a shorter stuck-threshold than isStale()'s 90 days.
 export const DRAFT_STUCK_AFTER_MS = 14 * 24 * 60 * 60 * 1000
 
-export async function getUnconfirmedJtbds(userId: string) {
+// Каждый запрос принимает необязательный `productId` (фаза 20,
+// plans/2.3-scenario-audit-plan.md): дашборд и «Пробелы» считают по активному
+// продукту — тому же, по которому отфильтрованы списки, — а не по всей базе.
+// `undefined` для Prisma значит «без фильтра», так что CPO и режим «все
+// продукты» получают прежние числа тем же кодом.
+export async function getUnconfirmedJtbds(userId: string, productId?: string) {
   return prisma.jTBD.findMany({
-    where: { userId, confirmed: false },
+    where: { userId, productId, confirmed: false },
     include: { product: true },
     orderBy: { createdAt: 'desc' },
   })
 }
 
-export async function getSegmentsWithoutJtbd(userId: string) {
+export async function getSegmentsWithoutJtbd(userId: string, productId?: string) {
   return prisma.segment.findMany({
-    where: { userId, jtbds: { none: {} } },
+    where: { userId, productId, jtbds: { none: {} } },
     include: { product: true },
     orderBy: { name: 'asc' },
   })
 }
 
-export async function getStuckHypotheses(userId: string) {
+export async function getStuckHypotheses(userId: string, productId?: string) {
   const draftCutoff = new Date(Date.now() - DRAFT_STUCK_AFTER_MS)
   return prisma.hypothesis.findMany({
-    where: { userId, status: HypothesisStatus.DRAFT, createdAt: { lt: draftCutoff } },
+    where: { userId, productId, status: HypothesisStatus.DRAFT, createdAt: { lt: draftCutoff } },
     include: { product: true },
     orderBy: { createdAt: 'asc' },
   })
 }
 
-export async function getProductsWithoutRecentResearch(userId: string) {
+export async function getProductsWithoutRecentResearch(userId: string, productId?: string) {
   const products = await prisma.product.findMany({
-    where: { userId },
+    where: { userId, id: productId },
     include: { researches: { select: { date: true } } },
     orderBy: { name: 'asc' },
   })
@@ -141,13 +146,13 @@ export interface GapsCounts {
 
 // Same 4 queries /reports/gaps lists in full — the dashboard's KPI row only
 // needs the counts.
-export async function getGapsCounts(userId: string): Promise<GapsCounts> {
+export async function getGapsCounts(userId: string, productId?: string): Promise<GapsCounts> {
   const [unconfirmedJtbds, segmentsWithoutJtbd, stuckHypotheses, productsWithoutRecentResearch] =
     await Promise.all([
-      getUnconfirmedJtbds(userId),
-      getSegmentsWithoutJtbd(userId),
-      getStuckHypotheses(userId),
-      getProductsWithoutRecentResearch(userId),
+      getUnconfirmedJtbds(userId, productId),
+      getSegmentsWithoutJtbd(userId, productId),
+      getStuckHypotheses(userId, productId),
+      getProductsWithoutRecentResearch(userId, productId),
     ])
   return {
     unconfirmedJtbds: unconfirmedJtbds.length,
@@ -167,7 +172,7 @@ export async function getGapsCounts(userId: string): Promise<GapsCounts> {
  * attached when something hangs off it, which is exactly the
  * "segments without JTBD" gap /reports/gaps already ranks first.
  */
-export async function getDiscoveryChain(userId: string): Promise<ChainCounts> {
+export async function getDiscoveryChain(userId: string, productId?: string): Promise<ChainCounts> {
   const [
     segments,
     segmentsAttached,
@@ -180,16 +185,16 @@ export async function getDiscoveryChain(userId: string): Promise<ChainCounts> {
     rtbs,
     rtbsAttached,
   ] = await Promise.all([
-    prisma.segment.count({ where: { userId } }),
-    prisma.segment.count({ where: { userId, jtbds: { some: {} } } }),
-    prisma.jTBD.count({ where: { userId } }),
-    prisma.jTBD.count({ where: { userId, segments: { some: {} } } }),
-    prisma.hypothesis.count({ where: { userId } }),
-    prisma.hypothesis.count({ where: { userId, jtbdId: { not: null } } }),
-    prisma.feature.count({ where: { userId } }),
-    prisma.feature.count({ where: { userId, jtbds: { some: {} } } }),
-    prisma.rTB.count({ where: { userId } }),
-    prisma.rTB.count({ where: { userId, features: { some: {} } } }),
+    prisma.segment.count({ where: { userId, productId } }),
+    prisma.segment.count({ where: { userId, productId, jtbds: { some: {} } } }),
+    prisma.jTBD.count({ where: { userId, productId } }),
+    prisma.jTBD.count({ where: { userId, productId, segments: { some: {} } } }),
+    prisma.hypothesis.count({ where: { userId, productId } }),
+    prisma.hypothesis.count({ where: { userId, productId, jtbdId: { not: null } } }),
+    prisma.feature.count({ where: { userId, productId } }),
+    prisma.feature.count({ where: { userId, productId, jtbds: { some: {} } } }),
+    prisma.rTB.count({ where: { userId, productId } }),
+    prisma.rTB.count({ where: { userId, productId, features: { some: {} } } }),
   ])
 
   return {
@@ -213,9 +218,12 @@ export async function getDiscoveryChain(userId: string): Promise<ChainCounts> {
  * Инсайты приходят одними `stance` — балансу «за / против» больше ничего не
  * требуется, а текст инсайта на дашборде не показывается.
  */
-export async function getDecisionQueue(userId: string): Promise<DecisionItem[]> {
+export async function getDecisionQueue(
+  userId: string,
+  productId?: string
+): Promise<DecisionItem[]> {
   const hypotheses = await prisma.hypothesis.findMany({
-    where: { userId, status: { in: OPEN_STATUSES } },
+    where: { userId, productId, status: { in: OPEN_STATUSES } },
     select: {
       id: true,
       statement: true,

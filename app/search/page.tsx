@@ -131,7 +131,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       results: features.map((f) => ({ href: `/features/${f.id}`, title: f.name })),
     },
     {
-      label: 'Маркетинг (RTB)',
+      label: 'Обещания',
       results: rtbs.map((r) => ({ href: `/marketing/${r.id}`, title: r.statement })),
     },
     {
@@ -160,8 +160,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       {totalCount === 0 && (
         <div className="mb-8 rounded-md border bg-muted/30 p-4 text-sm">
           <p className="mb-3 text-muted-foreground">
-            Записи с таким текстом нет. Её можно завести прямо сейчас — или
-            посмотреть, что вообще собрано.
+            Записи с таким текстом нет. Её можно завести прямо сейчас — или посмотреть, что вообще
+            собрано.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link

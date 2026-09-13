@@ -35,7 +35,7 @@ export const CHAIN_STAGES: ChainStage[] = [
   { key: 'jtbd', label: 'JTBD', attachedTo: 'привязан к сегменту', href: '/jtbd' },
   { key: 'hypothesis', label: 'Гипотезы', attachedTo: 'привязана к JTBD', href: '/hypotheses' },
   { key: 'feature', label: 'Фичи', attachedTo: 'закрывает хотя бы один JTBD', href: '/features' },
-  { key: 'rtb', label: 'Маркетинг', attachedTo: 'опирается на фичу', href: '/marketing' },
+  { key: 'rtb', label: 'Обещания', attachedTo: 'опирается на фичу', href: '/marketing' },
 ]
 
 export type StageCounts = { total: number; attached: number }

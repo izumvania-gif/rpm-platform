@@ -57,7 +57,7 @@ test('assigning a person as a product owner shows up on the product page', async
 test('the persona switcher links to the 2.0 stub views', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Представления' }).click()
-  await page.getByRole('menuitem', { name: 'PM' }).click()
+  await page.getByRole('menuitem', { name: 'Доставка' }).click()
   await page.waitForURL(/\/pm\/roadmap$/)
   await expect(page.getByRole('heading', { name: 'Доставка' })).toBeVisible()
 })

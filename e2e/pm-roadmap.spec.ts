@@ -49,7 +49,7 @@ test('assigning a roadmap item owner shows their workload in the Команда 
   // С фазы 9 «Команда» — своя вкладка, а не секция под роадмапом.
   await page
     .getByRole('navigation', { name: 'Разделы доставки' })
-    .getByRole('link', { name: 'Команда' })
+    .getByRole('link', { name: 'Команда продукта' })
     .click()
   await page.waitForURL(new RegExp(`/pm/team\\?productId=${productId}`))
 

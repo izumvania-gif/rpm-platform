@@ -32,7 +32,7 @@ export default async function OnboardingFeaturesPage({ params }: { params: { id:
       productId={product.id}
       activeStep="features"
       title="Что вы предлагаете и почему это должны купить?"
-      subtitle="Опишите ключевые фичи и, если хотите, привяжите к ним RTB (Reasons To Believe) — маркетинговые аргументы."
+      subtitle="Опишите ключевые фичи и, если хотите, привяжите к ним обещания клиенту — на что вы опираетесь, когда продаёте."
     >
       <FeaturesStepForm
         productId={product.id}

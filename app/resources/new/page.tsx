@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
 import { createProductResource } from '@/lib/actions/product-resources'
 import { ProductResourceForm } from '@/components/forms/product-resource-form'
 
@@ -12,10 +13,11 @@ export default async function NewProductResourcePage({
 }: {
   searchParams: { error?: string; productId?: string }
 }) {
-  const products = await prisma.product.findMany({
-    where: { userId: getCurrentUserId() },
-    orderBy: { name: 'asc' },
-  })
+  const userId = getCurrentUserId()
+  const [products, activeProductId] = await Promise.all([
+    prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+    getActiveProductId(userId),
+  ])
 
   return (
     <main className="container py-12">
@@ -28,7 +30,7 @@ export default async function NewProductResourcePage({
         <ProductResourceForm
           action={createProductResource}
           products={products}
-          defaultValues={{ productId: searchParams.productId }}
+          defaultValues={{ productId: searchParams.productId ?? activeProductId ?? undefined }}
           error={searchParams.error}
           submitLabel="Добавить"
         />

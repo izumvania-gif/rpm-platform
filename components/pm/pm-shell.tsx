@@ -14,7 +14,8 @@ import type { PmContext } from '@/lib/pm-context'
 // что обязано выглядеть одинаково на всех пяти маршрутах. Данные вкладка грузит
 // сама и передаёт готовую разметку в `children`.
 export function PmShell({ context, children }: { context: PmContext; children: ReactNode }) {
-  const { products, product, people, departments, selectedProductId } = context
+  const { products, product, people, departments, selectedProductId, requestedProductMissing } =
+    context
 
   return (
     <main className="container space-y-6 py-12">
@@ -32,6 +33,15 @@ export function PmShell({ context, children }: { context: PmContext; children: R
           Без продукта ссылки ведут на голые пути — те сами берут активный
           продукт из cookie, когда он появится. */}
       <PmTabs productId={product?.id} />
+
+      {/* Ссылка вела на продукт, которого нет (удалён или чужой id). Молча
+          показать другой — значит выдать его за тот, что просили (фаза 20). */}
+      {requestedProductMissing && (
+        <p className="rounded-md border border-[hsl(var(--signal-amber-border))] bg-[hsl(var(--signal-amber-bg))] px-3 py-2 text-sm text-[hsl(var(--signal-amber-text))]">
+          Продукта из ссылки больше нет — показан {product ? `«${product.name}»` : 'выбор продукта'}
+          .
+        </p>
+      )}
 
       {products.length === 0 ? (
         <Card variant="content" className="border-l-4 border-primary">

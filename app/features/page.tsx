@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { pluralizeRu } from '@/lib/plural'
 import { getActiveProductId } from '@/lib/product-context.server'
 import { activeProductFilter } from '@/lib/product-context'
 import { buttonVariants } from '@/components/ui/button'
@@ -148,7 +149,8 @@ export default async function FeaturesPage({
                     >
                       <span className="min-w-0 flex-1 font-medium">{feature.name}</span>
                       <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                        {feature.jtbds.length} JTBD · {feature.rtbs.length} RTB
+                        {feature.jtbds.length} JTBD ·{' '}
+                        {pluralizeRu(feature.rtbs.length, ['обещание', 'обещания', 'обещаний'])}
                       </span>
                       <PinButton
                         pinned={feature.pinned}

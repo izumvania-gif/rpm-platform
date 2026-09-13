@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
+import { getActiveProductId } from '@/lib/product-context.server'
+import { ALL_PRODUCTS } from '@/lib/report-scope'
+import { ReportsProductFilterForm } from '@/components/forms/reports-product-filter-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
@@ -73,15 +77,30 @@ function GapGroupCard({ group, position }: { group: GapGroup; position: number }
   )
 }
 
-export default async function GapsPage() {
+export default async function GapsPage({ searchParams }: { searchParams: { productId?: string } }) {
   const userId = getCurrentUserId()
+
+  // Область — активный продукт, как у списков и дашборда (фаза 20); «все
+  // продукты» — явный режим, а не умолчание. Раньше очередь считалась по всей
+  // базе, и под шапкой с одним продуктом стояли строки другого.
+  const [products, activeProductId] = await Promise.all([
+    prisma.product.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+    getActiveProductId(userId),
+  ])
+  const scopeProduct =
+    searchParams.productId === ALL_PRODUCTS
+      ? null
+      : (products.find((p) => p.id === searchParams.productId) ??
+        products.find((p) => p.id === activeProductId) ??
+        null)
+  const scope = scopeProduct?.id
 
   const [unconfirmedJtbds, segmentsWithoutJtbd, stuckHypotheses, productsWithoutRecentResearch] =
     await Promise.all([
-      getUnconfirmedJtbds(userId),
-      getSegmentsWithoutJtbd(userId),
-      getStuckHypotheses(userId),
-      getProductsWithoutRecentResearch(userId),
+      getUnconfirmedJtbds(userId, scope),
+      getSegmentsWithoutJtbd(userId, scope),
+      getStuckHypotheses(userId, scope),
+      getProductsWithoutRecentResearch(userId, scope),
     ])
 
   const groups = buildGapTasks({
@@ -102,6 +121,21 @@ export default async function GapsPage() {
             : 'Пробелы ищутся прямым запросом по уже собранным связям, а не по ручному чек-листу.'}
         </p>
       </div>
+
+      {products.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          <ReportsProductFilterForm
+            products={products}
+            productId={scopeProduct?.id ?? ALL_PRODUCTS}
+            allowAll
+          />
+          <span className="text-sm text-muted-foreground">
+            {scopeProduct
+              ? `Очередь по продукту «${scopeProduct.name}»`
+              : 'Очередь по всем продуктам'}
+          </span>
+        </div>
+      )}
 
       {total === 0 ? (
         <Card>

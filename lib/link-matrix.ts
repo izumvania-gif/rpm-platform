@@ -40,7 +40,7 @@ export const LINK_MATRICES: LinkMatrixMeta[] = [
   {
     kind: 'segment-jtbd',
     title: 'JTBD × Сегменты',
-    hint: 'Чья это задача. Без сегмента JTBD не попадёт ни в матрицу покрытия, ни в «Маркетинг».',
+    hint: 'Чья это задача. Без сегмента JTBD не попадёт ни в матрицу покрытия, ни в «Обещания».',
     rowModel: 'jtbd',
     colModel: 'segment',
     rowHeader: 'JTBD',
@@ -59,13 +59,13 @@ export const LINK_MATRICES: LinkMatrixMeta[] = [
   },
   {
     kind: 'feature-rtb',
-    title: 'Фичи × RTB',
-    hint: 'На какую фичу опирается обещание. RTB без фичи — обещание без основания.',
+    title: 'Фичи × Обещания',
+    hint: 'На какую фичу опирается обещание. Обещание без фичи — обещание без основания.',
     rowModel: 'feature',
     colModel: 'rtb',
     rowHeader: 'Фича',
-    colHeader: 'RTB',
-    emptyMessage: 'Нужны и фичи, и RTB — сейчас есть не всё.',
+    colHeader: 'Обещания',
+    emptyMessage: 'Нужны и фичи, и обещания — сейчас есть не всё.',
   },
   {
     kind: 'hypothesis-feature',

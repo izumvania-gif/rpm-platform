@@ -34,7 +34,7 @@ export default async function RTBDetailPage({ params }: { params: { id: string }
       href={`/marketing/${rtb.id}`}
       moduleHref="/marketing"
       moduleLabel="Обещания"
-      kind="RTB"
+      kind="Обещание"
       plainTitle={rtb.statement}
       recordId={rtb.id}
       deleteModel="rtb"

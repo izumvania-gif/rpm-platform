@@ -93,8 +93,10 @@ export const GROUPS: NavNode[] = [
     children: KNOWLEDGE_TABS.map((tab) => ({ href: tab.href, label: tab.label })),
   },
   {
+    // «Люди», как и заголовок самой страницы: «Команда» в меню спорила с
+    // вкладкой «Команда продукта» в «Доставке» (фаза 19).
     href: '/people',
-    label: 'Команда',
+    label: 'Люди',
     children: [{ href: '/departments', label: 'Департаменты' }],
   },
 ]

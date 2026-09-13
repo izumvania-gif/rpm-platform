@@ -89,7 +89,9 @@ export function RTBForm({
       <div className="space-y-2">
         <Label>На каких фичах основано</Label>
         {productFeatures.length === 0 ? (
-          <p className="text-sm text-muted-foreground">У выбранного продукта пока нет фич.</p>
+          <p className="text-sm text-muted-foreground">
+            {productId ? 'У выбранного продукта пока нет фич.' : 'Сначала выберите продукт.'}
+          </p>
         ) : (
           <div className="space-y-1 max-h-48 overflow-y-auto rounded-md border p-2">
             {productFeatures.map((f) => (

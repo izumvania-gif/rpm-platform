@@ -43,7 +43,7 @@ export function PersonForm({
           <Input id="role" name="role" defaultValue={defaultValues?.role ?? ''} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="team">Команда</Label>
+          <Label htmlFor="team">Подразделение</Label>
           <Input id="team" name="team" defaultValue={defaultValues?.team ?? ''} />
         </div>
         <div className="space-y-2">

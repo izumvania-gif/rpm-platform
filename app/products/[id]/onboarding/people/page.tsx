@@ -27,7 +27,7 @@ export default async function OnboardingPeoplePage({ params }: { params: { id: s
       productId={product.id}
       activeStep="people"
       title="С кем вы работаете над этим продуктом?"
-      subtitle="Добавьте команду — выберите уже существующих людей или заведите новых. Появятся в разделе «Команда» на /pm. Можно пропустить и добавить позже."
+      subtitle="Добавьте команду — выберите уже существующих людей или заведите новых. Появятся во вкладке «Команда продукта» раздела «Доставка». Можно пропустить и добавить позже."
     >
       <PeopleStepForm productId={product.id} people={people} initialMembers={members} />
     </WizardShell>

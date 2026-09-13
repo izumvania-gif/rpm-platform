@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { assertOwned, denyUnowned } from '@/lib/ownership'
 import { optionalString, type InlineFieldResult } from '@/lib/validation'
+import { slugify } from '@/lib/utils'
 import { clearActiveProductCookie, setActiveProductCookie } from '@/lib/product-context.server'
 
 const productSchema = z.object({
@@ -32,9 +33,14 @@ const productSchema = z.object({
 })
 
 function parseProductForm(formData: FormData) {
+  // Пустой slug выводится из названия здесь, а не только в браузере (фаза
+  // 22): поле ушло под «Дополнительно», и форма обязана работать, даже если
+  // его никто не открывал.
+  const name = formData.get('name')
+  const slug = String(formData.get('slug') ?? '').trim() || slugify(String(name ?? ''))
   return productSchema.safeParse({
-    name: formData.get('name'),
-    slug: formData.get('slug'),
+    name,
+    slug,
     description: formData.get('description') || undefined,
     stage: formData.get('stage'),
     ownerId: formData.get('ownerId'),

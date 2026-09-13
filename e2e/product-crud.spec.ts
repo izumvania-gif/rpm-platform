@@ -27,6 +27,9 @@ test('create a product via the full edit form and change its stage', async ({ pa
   const name = uniqueName('Full Form Product')
   await page.goto('/products/new')
   await page.getByLabel('Название').fill(name)
+  // Slug живёт под «Дополнительно» (фаза 22 аудита 2.3) — раскрыть, чтобы
+  // задать свой; без этого сервер выведет его из названия сам.
+  await page.getByText('Дополнительно').click()
   await page.getByLabel('Slug (eng)').fill(`e2e-${Date.now()}`)
   await selectRadixOption(page, page.getByLabel('Стадия'), 'Рост')
   await page.getByRole('button', { name: 'Создать', exact: true }).click()

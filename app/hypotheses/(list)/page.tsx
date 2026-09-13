@@ -34,14 +34,18 @@ export default async function HypothesesPage() {
           title="Гипотезы"
           description={moduleByHref['/hypotheses'].description}
         />
-        <QuickAddButton
-          type="hypothesis"
-          href="/hypotheses/new?from=/hypotheses"
-          label="Быстро добавить гипотезу, не уходя со страницы"
-        />
-        <Link href="/hypotheses/new?from=/hypotheses" className={buttonVariants()}>
-          Новая гипотеза
-        </Link>
+        {/* «+» вплотную к «Новый …» (фаза 21): одна точка создания, а не
+            две кнопки, разнесённые по заголовку. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <QuickAddButton
+            type="hypothesis"
+            href="/hypotheses/new?from=/hypotheses"
+            label="Быстро добавить гипотезу — одно поле, не уходя со страницы"
+          />
+          <Link href="/hypotheses/new?from=/hypotheses" className={buttonVariants()}>
+            Новая гипотеза
+          </Link>
+        </div>
       </div>
 
       {hypotheses.length === 0 ? (

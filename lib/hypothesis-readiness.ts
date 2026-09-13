@@ -17,6 +17,15 @@ export const MIN_EVIDENCE = 3
 
 export type ReadinessKey = 'criterion' | 'evidence' | 'addressee' | 'feature'
 
+/**
+ * Якорь пикера доказательств на карточке гипотезы: «К доказательствам» в
+ * чек-листе ведёт сюда, и EvidencePicker по этому хэшу открывает панель.
+ * Лежит в чистом модуле, а не в компоненте пикера: тот — `'use client'`, и
+ * строка, экспортированная оттуда, на сервере превратилась бы в ссылку на
+ * клиентский модуль (та же ловушка, что уже трижды стреляла в кодовой базе).
+ */
+export const ADD_EVIDENCE_HASH = '#add-evidence'
+
 export interface ReadinessInput {
   status: HypothesisStatus
   validationCriterion: string | null

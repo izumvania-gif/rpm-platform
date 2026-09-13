@@ -51,14 +51,18 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
           title="Обещания"
           description={moduleByHref['/marketing'].description}
         />
-        <QuickAddButton
-          type="rtb"
-          href="/marketing/new?from=/marketing"
-          label="Быстро добавить обещание, не уходя со страницы"
-        />
-        <Link href="/marketing/new?from=/marketing" className={buttonVariants()}>
-          Новое обещание
-        </Link>
+        {/* «+» вплотную к «Новый …» (фаза 21): одна точка создания, а не
+            две кнопки, разнесённые по заголовку. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <QuickAddButton
+            type="rtb"
+            href="/marketing/new?from=/marketing"
+            label="Быстро добавить обещание — одно поле, не уходя со страницы"
+          />
+          <Link href="/marketing/new?from=/marketing" className={buttonVariants()}>
+            Новое обещание
+          </Link>
+        </div>
       </div>
       {/* Единственное место, где аббревиатура называется вслух: раздел везде
           зовётся «Обещания» (фаза 19, plans/2.3-scenario-audit-plan.md), а

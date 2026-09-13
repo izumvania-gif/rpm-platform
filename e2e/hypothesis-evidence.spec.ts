@@ -36,6 +36,15 @@ test('an empty hypothesis is honest about having nothing to decide on', async ({
   await expect(page.getByRole('link', { name: 'К доказательствам' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Связать с фичей' })).toBeVisible()
   await expect(page.getByText('Ассистент')).toHaveCount(0)
+
+  // «К доказательствам» ведёт в пикер, а не к пустому списку (фаза 21 аудита
+  // 2.3): по якорю панель открывается сама.
+  await page.getByRole('link', { name: 'К доказательствам' }).click()
+  await expect(page.getByRole('button', { name: '+ Добавить доказательство' })).toHaveAttribute(
+    'aria-expanded',
+    'true'
+  )
+  await expect(page.getByRole('group', { name: 'Добавить доказательство' })).toBeVisible()
 })
 
 test('linking an insight recounts the checklist and moves the balance', async ({ page }) => {
@@ -66,17 +75,24 @@ test('linking an insight recounts the checklist and moves the balance', async ({
   await expect(page.getByText(criterion)).toBeVisible()
   await expect(page.getByText('1 из 4')).toBeVisible()
 
-  // «Добавить доказательство» обязана привести в форму с уже проставленной
-  // гипотезой — иначе кнопка отправляет искать её в списке руками.
-  await page.getByRole('link', { name: '+ Добавить доказательство' }).click()
-  await page.waitForURL(/\/insights\/new/)
-  const quote = uniqueName('«Ждём выпуск неделю, за это время клиент уходит»')
-  await page.getByLabel('Цитата или вывод').fill(quote)
-  await selectOptionRobust(page, page.getByLabel('Подтверждает или опровергает'), 'Подтверждает')
-  await page.getByRole('button', { name: 'Создать' }).click()
+  // «Добавить доказательство» — пикер на месте (фаза 21 аудита 2.3): новый
+  // инсайт создаётся и привязывается, не уходя с карточки. Полная форма
+  // осталась за «Все поля →» — с уже проставленной гипотезой.
+  await page.getByRole('button', { name: '+ Добавить доказательство' }).click()
+  const panel = page.getByRole('group', { name: 'Добавить доказательство' })
+  await expect(panel.getByRole('link', { name: 'Все поля →' })).toHaveAttribute(
+    'href',
+    /insights\/new\?productId=.+&hypothesisId=c[a-z0-9]{10,}/
+  )
+  await selectOptionRobust(page, panel.getByLabel('Сторона доказательства'), 'Подтверждает')
+  await panel.getByRole('button', { name: '+ Новый инсайт' }).click()
+  const quote = uniqueName('Ждём выпуск неделю, за это время клиент уходит')
+  await panel.getByLabel('Текст инсайта').fill(quote)
+  await panel.getByRole('button', { name: 'Создать инсайт' }).click()
 
-  // redirectTo вернул на карточку гипотезы, а не на карточку инсайта.
-  await page.waitForURL(hypothesisUrl)
+  // Никакого перехода: карточка та же, доказательство уже в списке.
+  await expect(page.getByTitle(quote)).toBeVisible()
+  await expect(page).toHaveURL(hypothesisUrl)
 
   await expect(page.getByText('За: 1')).toBeVisible()
   await expect(page.getByText('Против: 0')).toBeVisible()
@@ -109,12 +125,13 @@ test('the evidence filter shows one side at a time', async ({ page }) => {
     [againstQuote, 'Опровергает'],
   ] as const) {
     await page.goto(hypothesisUrl)
-    await page.getByRole('link', { name: '+ Добавить доказательство' }).click()
-    await page.waitForURL(/\/insights\/new/)
-    await page.getByLabel('Цитата или вывод').fill(quote)
-    await selectOptionRobust(page, page.getByLabel('Подтверждает или опровергает'), stance)
-    await page.getByRole('button', { name: 'Создать' }).click()
-    await page.waitForURL(hypothesisUrl)
+    await page.getByRole('button', { name: '+ Добавить доказательство' }).click()
+    const panel = page.getByRole('group', { name: 'Добавить доказательство' })
+    await selectOptionRobust(page, panel.getByLabel('Сторона доказательства'), stance)
+    await panel.getByRole('button', { name: '+ Новый инсайт' }).click()
+    await panel.getByLabel('Текст инсайта').fill(quote)
+    await panel.getByRole('button', { name: 'Создать инсайт' }).click()
+    await expect(page.getByTitle(quote)).toBeVisible()
   }
 
   await expect(page.getByText('За: 1')).toBeVisible()
@@ -138,4 +155,44 @@ test('the evidence filter shows one side at a time', async ({ page }) => {
   await filter.getByRole('link', { name: /^Все/ }).click()
   await expect(page.getByTitle(forQuote)).toBeVisible()
   await expect(page.getByTitle(againstQuote)).toBeVisible()
+})
+
+test('the picker attaches an insight that already exists, and stops offering it', async ({
+  page,
+}) => {
+  const productName = uniqueName('Picker Product')
+  await createProductViaUI(page, productName)
+
+  // Инсайт записан заранее — из разговора, без гипотезы: ровно тот случай,
+  // ради которого пикер и появился (фаза 21 аудита 2.3).
+  const insightText = uniqueName('Клиенты ждут выпуск неделю и уходят к конкуренту')
+  await page.goto('/insights/new')
+  await page.getByLabel('Цитата или вывод').fill(insightText)
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL(/\/insights\/c[a-z0-9]{10,}/)
+
+  const statement = uniqueName('Если ускорить выпуск, отток упадёт')
+  await page.goto('/hypotheses/new')
+  await page.getByLabel('Формулировка гипотезы').fill(statement)
+  await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL('/hypotheses')
+  await page.getByTitle(statement).first().click()
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}/)
+
+  await page.getByRole('button', { name: '+ Добавить доказательство' }).click()
+  const panel = page.getByRole('group', { name: 'Добавить доказательство' })
+  await selectOptionRobust(page, panel.getByLabel('Инсайт'), insightText)
+  await selectOptionRobust(page, panel.getByLabel('Сторона доказательства'), 'Опровергает')
+  await panel.getByRole('button', { name: 'Привязать' }).click()
+
+  await expect(page.getByTitle(insightText)).toBeVisible()
+  await expect(page.getByText('Против: 1')).toBeVisible()
+
+  // Привязанное больше не предлагается: связь одна на инсайт, и второй раз
+  // пикер предлагал бы отобрать её.
+  await page.getByRole('button', { name: '+ Добавить доказательство' }).click()
+  await expect(
+    page.getByRole('group', { name: 'Добавить доказательство' }).getByText(/Свободных инсайтов/)
+  ).toBeVisible()
 })

@@ -16,6 +16,7 @@ export default async function NewHypothesisPage({
     error?: string
     productId?: string
     jtbdId?: string
+    segmentId?: string
     duplicateFrom?: string
     statement?: string
   }
@@ -55,6 +56,7 @@ export default async function NewHypothesisPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  segmentId: searchParams.segmentId ?? duplicateSource.segmentId,
                   // Text handed over from quick capture wins: it is what the
                   // person just typed, and losing it is the whole failure the
                   // hand-off exists to avoid.
@@ -63,6 +65,8 @@ export default async function NewHypothesisPage({
               : {
                   productId: searchParams.productId ?? activeProductId ?? undefined,
                   jtbdId: searchParams.jtbdId,
+                  // С карточки сегмента (секция «Гипотезы», фаза 21).
+                  segmentId: searchParams.segmentId,
                   // `statement` из ссылки работал только в ветке дублирования,
                   // хотя сегменты и задачи подхватывают его всегда. Из-за
                   // этого текст, набранный в поиске или в быстром захвате, на

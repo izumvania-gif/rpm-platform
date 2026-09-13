@@ -35,6 +35,7 @@ import { InsightStance } from '@prisma/client'
 import { evidenceBalance, hypothesisReadiness } from '@/lib/hypothesis-readiness'
 import { EvidenceBalanceBar } from '@/components/hypotheses/evidence-balance'
 import { ReadinessChecklist } from '@/components/hypotheses/readiness-checklist'
+import { EvidencePicker } from '@/components/hypotheses/evidence-picker'
 import { Badge } from '@/components/ui/badge'
 import { recordTitle } from '@/lib/record-title'
 
@@ -312,6 +313,7 @@ export default async function HypothesisDetailPage({
           <InlineEditableField
             value={hypothesis.validationCriterion ?? ''}
             type="textarea"
+            enterSaves
             placeholder="+ при каком результате считаем гипотезу подтверждённой"
             action={updateHypothesisField.bind(null, hypothesis.id, 'validationCriterion')}
           />
@@ -414,12 +416,14 @@ export default async function HypothesisDetailPage({
             </>
           )}
 
-          <Link
-            href={`/insights/new?productId=${hypothesis.product.id}&hypothesisId=${hypothesis.id}&from=/hypotheses/${hypothesis.id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
-          >
-            + Добавить доказательство
-          </Link>
+          {/* Пикер, а не ссылка (фаза 21 аудита 2.3): уже записанный инсайт
+              привязывается здесь, новый — создаётся здесь же; полная форма
+              осталась за «Все поля →» с уже проставленной гипотезой. */}
+          <EvidencePicker
+            hypothesisId={hypothesis.id}
+            productId={hypothesis.product.id}
+            fullFormHref={`/insights/new?productId=${hypothesis.product.id}&hypothesisId=${hypothesis.id}&from=/hypotheses/${hypothesis.id}`}
+          />
         </CardContent>
       </Card>
 
@@ -474,7 +478,13 @@ export default async function HypothesisDetailPage({
                 {hypothesis.statusChanges.map((change) => (
                   <li key={change.id} className="text-sm text-muted-foreground">
                     {hypothesisStatusLabels[change.status]} —{' '}
-                    {change.changedAt.toLocaleString('ru-RU')}
+                    {change.changedAt.toLocaleString('ru-RU', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </li>
                 ))}
               </ul>

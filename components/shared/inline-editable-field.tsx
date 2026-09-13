@@ -42,6 +42,7 @@ export function InlineEditableField({
   prefix = '',
   suffix = '',
   className,
+  enterSaves = false,
 }: {
   value: string
   type?: InlineEditableType
@@ -54,6 +55,12 @@ export function InlineEditableField({
   prefix?: string
   suffix?: string
   className?: string
+  /**
+   * Для textarea: Enter сохраняет, перенос строки — Shift+Enter (фаза 22).
+   * Для полей, которые по смыслу однострочные (критерий проверки), но могут
+   * не влезть в одну строку; у описаний Enter остаётся переносом.
+   */
+  enterSaves?: boolean
 }) {
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(value)
@@ -233,11 +240,17 @@ export function InlineEditableField({
           onBlur={() => save(draft)}
           onKeyDown={(e) => {
             if (e.key === 'Escape') cancel()
+            if (enterSaves && e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              save(draft)
+            }
           }}
-          rows={3}
+          rows={enterSaves ? 2 : 3}
         />
         <span className="text-xs text-muted-foreground">
-          Esc — отмена, клик вне поля — сохранить
+          {enterSaves
+            ? 'Enter — сохранить, Shift+Enter — перенос строки, Esc — отмена'
+            : 'Esc — отмена, клик вне поля — сохранить'}
         </span>
         {error && <span className="text-xs text-destructive">{error}</span>}
       </span>

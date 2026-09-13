@@ -58,14 +58,18 @@ export default async function CompetitorsPage({
           title="Конкуренты"
           description={moduleByHref['/competitors'].description}
         />
-        <QuickAddButton
-          type="competitor"
-          href="/competitors/new?from=/competitors"
-          label="Быстро добавить конкурента, не уходя со страницы"
-        />
-        <Link href="/competitors/new?from=/competitors" className={buttonVariants()}>
-          Новый конкурент
-        </Link>
+        {/* «+» вплотную к «Новый …» (фаза 21): одна точка создания, а не
+            две кнопки, разнесённые по заголовку. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <QuickAddButton
+            type="competitor"
+            href="/competitors/new?from=/competitors"
+            label="Быстро добавить конкурента — одно поле, не уходя со страницы"
+          />
+          <Link href="/competitors/new?from=/competitors" className={buttonVariants()}>
+            Новый конкурент
+          </Link>
+        </div>
       </div>
 
       {competitors.length > 0 && (

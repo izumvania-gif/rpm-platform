@@ -32,6 +32,22 @@ function clean(value: string): string {
 }
 
 /**
+ * Ключ дедупликации (фаза 22 аудита 2.3): без кавычек по краям, без
+ * завершающей пунктуации, без регистра. Одна и та же фраза попадается в
+ * транскрипте дважды — как «прямая речь в кавычках» и как «реплика: Клиент»,
+ * когда реплика записана в кавычках, — и раньше панель предлагала обе, а
+ * принятие одной не гасило вторую. Текст подсказки при этом не меняется: ключ
+ * — только для сравнения.
+ */
+export function suggestionKey(value: string): string {
+  // Хвост — кавычки и пунктуация одним классом: «…».» и «…!» встречаются оба.
+  return clean(value)
+    .replace(/^[«"„“”'\s]+/, '')
+    .replace(/[»"„“”'\s.,;:!?…—–-]+$/, '')
+    .toLowerCase()
+}
+
+/**
  * Candidate insights from a transcript, best first.
  *
  * Deliberately silent when a transcript has neither quotes nor speaker
@@ -48,13 +64,13 @@ export function suggestInsightsFromTranscript(
 ): InsightSuggestion[] {
   if (!transcript || !transcript.trim()) return []
 
-  const seen = new Set(existing.map((text) => clean(text).toLowerCase()))
+  const seen = new Set(existing.map(suggestionKey))
   const out: InsightSuggestion[] = []
 
   function add(raw: string, reason: string) {
     const text = clean(raw)
     if (text.length < MIN_LENGTH) return
-    const key = text.toLowerCase()
+    const key = suggestionKey(text)
     if (seen.has(key)) return
     seen.add(key)
     out.push({ text, reason })

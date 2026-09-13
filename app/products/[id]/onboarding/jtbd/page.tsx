@@ -14,7 +14,12 @@ export default async function OnboardingJtbdPage({ params }: { params: { id: str
   if (!product) notFound()
 
   const [segments, jtbds] = await Promise.all([
-    prisma.segment.findMany({ where: { productId: product.id, userId }, orderBy: { name: 'asc' } }),
+    // По времени создания, а не по имени: форма шага отмечает последний
+    // добавленный сегмент, и «последний» должен быть последним в списке.
+    prisma.segment.findMany({
+      where: { productId: product.id, userId },
+      orderBy: { createdAt: 'asc' },
+    }),
     prisma.jTBD.findMany({
       where: { productId: product.id, userId },
       orderBy: { createdAt: 'asc' },

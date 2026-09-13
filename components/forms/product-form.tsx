@@ -62,19 +62,28 @@ export function ProductForm({
             }}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="slug">Slug (eng)</Label>
-          <Input
-            id="slug"
-            name="slug"
-            required
-            value={slug}
-            onChange={(e) => {
-              setSlugTouched(true)
-              setSlug(e.target.value)
-            }}
-          />
-        </div>
+        {/* Slug — под «Дополнительно» (фаза 22): он выводится из названия,
+            и на форме, которую заполняют раз в жизни продукта, отдельное
+            обязательное поле с латиницей выглядело как второе название.
+            Пустой slug сервер выводит из названия сам, поэтому поле не
+            required — обязательное поле, спрятанное в свёрнутом блоке, браузер
+            не смог бы ни показать, ни сфокусировать. */}
+        <details className="space-y-2 sm:col-span-2">
+          <summary className="cursor-pointer text-sm text-muted-foreground">Дополнительно</summary>
+          <div className="space-y-2 pt-2 sm:max-w-xs">
+            <Label htmlFor="slug">Slug (eng)</Label>
+            <Input
+              id="slug"
+              name="slug"
+              value={slug}
+              placeholder="выводится из названия"
+              onChange={(e) => {
+                setSlugTouched(true)
+                setSlug(e.target.value)
+              }}
+            />
+          </div>
+        </details>
         <div className="space-y-2">
           <Label htmlFor="stage">Стадия</Label>
           <Select id="stage" name="stage" defaultValue={defaultValues?.stage ?? Stage.IDEA}>
@@ -154,7 +163,8 @@ export function ProductForm({
           </div>
           <p className="text-xs text-muted-foreground">
             «{submitLabel} и настроить» проведёт по коротким шагам: сегменты, задачи клиентов,
-            исследования, гипотезы, конкуренты, фичи — удобно для совсем нового продукта.
+            исследования, гипотезы, конкуренты, люди, фичи и обещания — удобно для совсем нового
+            продукта.
           </p>
         </div>
       ) : (

@@ -39,37 +39,38 @@ const COUNTERS: Partial<Record<OwnedModel, Counter>> = {
   product: async (id) => {
     // The direct children come back in one query via _count; the rest are
     // grandchildren, whose cascade is invisible in the parent's relations.
-    const [direct, processSteps, processEdges, competitorNews, statusChanges, sequenceEdges] =
-      await Promise.all([
-        prisma.product.findFirst({
-          where: { id },
-          select: {
-            _count: {
-              select: {
-                segments: true,
-                jtbds: true,
-                hypotheses: true,
-                researches: true,
-                features: true,
-                conversations: true,
-                rtbs: true,
-                insights: true,
-                competitors: true,
-                productResources: true,
-                roadmapItems: true,
-                processes: true,
-                actionPlans: true,
-                teamMembers: true,
-              },
+    // История статусов гипотез не считается — как и раскладки графов (фаза
+    // 22): это служебные строки, которых человек не заводил, и «12 записей
+    // истории» в диалоге только заслоняли то, ради чего он открыт.
+    const [direct, processSteps, processEdges, competitorNews, sequenceEdges] = await Promise.all([
+      prisma.product.findFirst({
+        where: { id },
+        select: {
+          _count: {
+            select: {
+              segments: true,
+              jtbds: true,
+              hypotheses: true,
+              researches: true,
+              features: true,
+              conversations: true,
+              rtbs: true,
+              insights: true,
+              competitors: true,
+              productResources: true,
+              roadmapItems: true,
+              processes: true,
+              actionPlans: true,
+              teamMembers: true,
             },
           },
-        }),
-        prisma.processStep.count({ where: { process: { productId: id } } }),
-        prisma.processEdge.count({ where: { fromStep: { process: { productId: id } } } }),
-        prisma.competitorNewsItem.count({ where: { competitor: { productId: id } } }),
-        prisma.hypothesisStatusChange.count({ where: { hypothesis: { productId: id } } }),
-        prisma.jtbdSequenceEdge.count({ where: { fromJtbd: { productId: id } } }),
-      ])
+        },
+      }),
+      prisma.processStep.count({ where: { process: { productId: id } } }),
+      prisma.processEdge.count({ where: { fromStep: { process: { productId: id } } } }),
+      prisma.competitorNewsItem.count({ where: { competitor: { productId: id } } }),
+      prisma.jtbdSequenceEdge.count({ where: { fromJtbd: { productId: id } } }),
+    ])
 
     const c = direct?._count
     if (!c) return EMPTY_IMPACT
@@ -93,7 +94,6 @@ const COUNTERS: Partial<Record<OwnedModel, Counter>> = {
         count('processStep', processSteps),
         count('processEdge', processEdges),
         count('competitorNews', competitorNews),
-        count('statusChange', statusChanges),
         count('sequenceEdge', sequenceEdges),
       ],
       unlinked: [],
@@ -174,12 +174,18 @@ const COUNTERS: Partial<Record<OwnedModel, Counter>> = {
   },
 
   hypothesis: async (id) => {
+    // Считается то, что человек заводил и что потеряет связь: доказательства
+    // (Insight.hypothesisId — SetNull) и фичи (многие-ко-многим). История
+    // статусов уходит вместе с гипотезой, но она служебная — см. выше.
     const row = await prisma.hypothesis.findFirst({
       where: { id },
-      select: { _count: { select: { statusChanges: true } } },
+      select: { _count: { select: { insights: true, features: true } } },
     })
     if (!row) return EMPTY_IMPACT
-    return { deleted: [count('statusChange', row._count.statusChanges)], unlinked: [] }
+    return {
+      deleted: [],
+      unlinked: [count('insight', row._count.insights), count('feature', row._count.features)],
+    }
   },
 
   conversation: async (id) => {

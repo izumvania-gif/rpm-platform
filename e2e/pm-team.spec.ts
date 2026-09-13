@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { confirmDelete, createProductViaUI, selectRadixOption, uniqueName } from './helpers'
 
-test('the product block on /pm inline-edits name, stage, and description', async ({ page }) => {
+test('the product row on /pm inline-edits the name and opens the full card', async ({ page }) => {
   const productName = uniqueName('Team Hub Product')
   const productUrl = await createProductViaUI(page, productName)
   const productId = productUrl.split('/').pop()!

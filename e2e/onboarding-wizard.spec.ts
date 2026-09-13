@@ -20,6 +20,11 @@ test('creating a product in onboarding mode walks through all seven wizard steps
   for (const step of stepOrder) {
     await page.getByRole('link', { name: 'Далее →' }).click()
     await page.waitForURL(new RegExp(`/onboarding/${step}$`))
+    if (step === 'jtbd') {
+      // Единственный сегмент отмечен заранее (фаза 22 аудита 2.3): задача
+      // без сегмента — первый же пробел, который потом покажет /reports/gaps.
+      await expect(page.getByLabel(segmentName)).toBeChecked()
+    }
   }
 
   // On the new "Люди" step, create a person on the spot and confirm they

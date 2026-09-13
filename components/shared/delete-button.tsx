@@ -34,6 +34,7 @@ export function DeleteButton({
   name,
   label = 'Удалить',
   size,
+  appearance = 'button',
 }: {
   action: () => void
   confirmMessage?: string
@@ -45,22 +46,44 @@ export function DeleteButton({
    * button there outshouts the content it belongs to. The dialog's own
    * confirm button stays full size: that one is the decision. */
   size?: 'sm'
+  /**
+   * `icon` for a row in a list (фаза 22): a red «Удалить» on every resource
+   * line was the loudest thing on the product page. The accessible name stays
+   * the label, so tests and screen readers see the same button.
+   */
+  appearance?: 'button' | 'icon'
 }) {
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
   return (
     <>
-      <Button
-        ref={triggerRef}
-        type="button"
-        variant="destructive"
-        size={size}
-        onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-      >
-        {label}
-      </Button>
+      {appearance === 'icon' ? (
+        <Button
+          ref={triggerRef}
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 px-0 text-muted-foreground hover:text-destructive"
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={label}
+          title={label}
+        >
+          <Trash2 size={15} aria-hidden />
+        </Button>
+      ) : (
+        <Button
+          ref={triggerRef}
+          type="button"
+          variant="destructive"
+          size={size}
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+        >
+          {label}
+        </Button>
+      )}
       {open && (
         <ConfirmDeleteDialog
           action={action}

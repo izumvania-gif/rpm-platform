@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { suggestInsightsFromTranscript } from '@/lib/suggestions'
+import { suggestInsightsFromTranscript, suggestionKey } from '@/lib/suggestions'
 
 describe('suggestInsightsFromTranscript', () => {
   it('offers quoted fragments as the strongest candidates', () => {
@@ -87,5 +87,38 @@ describe('suggestInsightsFromTranscript', () => {
       'В целом всё прошло по плану и мы обсудили довольно много важных деталей: сроки и бюджет'
     )
     expect(result).toEqual([])
+  })
+})
+
+describe('suggestionKey (фаза 22 аудита 2.3)', () => {
+  it('offers a quoted speaker line once, not as quote and as reply', () => {
+    // «Клиент: «…»» matches both rules; the panel used to show the fragment
+    // twice, and accepting one left the other standing.
+    const result = suggestInsightsFromTranscript(
+      'Клиент: «Мы не можем ждать неделю выпуска сертификата».'
+    )
+    expect(result).toHaveLength(1)
+    expect(result[0].text).toBe('Мы не можем ждать неделю выпуска сертификата')
+  })
+
+  it('treats trailing punctuation and quotes as the same fragment', () => {
+    const transcript = [
+      '— Мы не можем ждать неделю выпуска сертификата!',
+      '«Мы не можем ждать неделю выпуска сертификата»',
+    ].join('\n')
+    expect(suggestInsightsFromTranscript(transcript)).toHaveLength(1)
+  })
+
+  it('suppresses every variant once one of them is saved', () => {
+    const transcript = 'Клиент: «Решение принимает служба безопасности».'
+    expect(
+      suggestInsightsFromTranscript(transcript, ['«Решение принимает служба безопасности»'])
+    ).toEqual([])
+  })
+
+  it('keeps the offered text untouched — the key is for comparison only', () => {
+    expect(suggestionKey('«Мы не можем ждать неделю!»')).toBe('мы не можем ждать неделю')
+    const result = suggestInsightsFromTranscript('— Мы не можем ждать неделю выпуска!')
+    expect(result[0].text).toBe('Мы не можем ждать неделю выпуска!')
   })
 })

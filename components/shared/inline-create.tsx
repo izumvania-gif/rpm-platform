@@ -5,6 +5,7 @@ import {
   ResearchType,
   type Feature,
   type Hypothesis,
+  type Insight,
   type JTBD,
   type Person,
   type RTB,
@@ -22,6 +23,7 @@ import { createPersonQuick } from '@/lib/actions/people'
 import { createFeatureQuick } from '@/lib/actions/features'
 import { createHypothesisQuick } from '@/lib/actions/hypotheses'
 import { createRTBQuick } from '@/lib/actions/rtbs'
+import { createInsightQuick } from '@/lib/actions/insights'
 
 // "+ Новый …" inside a relation picker (plans/2.0-round-trip-audit.md).
 //
@@ -366,6 +368,44 @@ export function InlineCreateRTB({
         onChange={(e) => setStatement(e.target.value)}
         placeholder="Формулировка обещания"
         className="h-8 w-64 text-sm"
+      />
+    </InlineCreateShell>
+  )
+}
+
+export function InlineCreateInsight({
+  productId,
+  onCreated,
+}: {
+  productId: string
+  onCreated: (insight: Insight) => void
+}) {
+  const [text, setText] = useState('')
+
+  return (
+    // Только текст: связи (гипотеза, сторона) ставит тот, кто вызвал, — пикер
+    // доказательств делает это тем же attachEvidence, что и для существующего
+    // инсайта, так что один путь записи проверяется одними тестами.
+    <InlineCreateShell
+      label="+ Новый инсайт"
+      submitLabel="Создать инсайт"
+      disabled={!productId}
+      canSubmit={text.trim() !== ''}
+      onReset={() => setText('')}
+      onSubmit={async () => {
+        const result = await createInsightQuick(productId, text)
+        if (!result.ok) return result.error
+        onCreated(result.insight)
+        return null
+      }}
+    >
+      <Input
+        autoFocus
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Цитата или вывод"
+        aria-label="Текст инсайта"
+        className="h-8 w-72 text-sm"
       />
     </InlineCreateShell>
   )

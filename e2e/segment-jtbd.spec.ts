@@ -39,6 +39,14 @@ test('a segment page lists its jobs and adds one already attached', async ({ pag
   await expect(byFullText(page, title)).toBeVisible()
   await expect(page.getByText('У сегмента пока нет задач.')).toHaveCount(0)
 
+  // Enter тоже отправляет (фаза 22 аудита 2.3): это настоящая форма, а не
+  // div с кнопкой — единственная в приложении, где Enter не делал ничего.
+  const second = uniqueName('Когда сертификат отозван, я хочу узнать об этом первым')
+  await page.getByLabel('Формулировка JTBD').fill(second)
+  await page.getByLabel('Категория JTBD').fill('Наблюдаемость')
+  await page.getByLabel('Категория JTBD').press('Enter')
+  await expect(byFullText(page, second)).toBeVisible()
+
   // And it is really attached to this segment, not just to the product —
   // an unattached job is exactly what the gaps report complains about.
   await page.goto(`/reports/segments-jtbd?productId=${productId}`)

@@ -389,14 +389,11 @@ export default async function Home() {
         <DashboardDecisionQueue items={decisionQueue} />
       </div>
 
+      {/* Ссылка на отчёты — в заголовке виджета «Пробелы», а не отдельным
+          блоком под ним (фаза 21): отчёты — это те же пробелы и матрица,
+          развёрнутые в очередь, и стоять им рядом с тем, что они разворачивают. */}
       <div className="mb-8">
         <DashboardGapsSummary counts={gapsCounts} />
-      </div>
-
-      <div className="mb-8">
-        <Link href="/reports" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-          Отчёты: матрица Сегменты × JTBD, пробелы →
-        </Link>
       </div>
 
       <DashboardWidgetGrid

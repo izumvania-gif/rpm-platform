@@ -11,7 +11,14 @@ export const dynamic = 'force-dynamic'
 export default async function NewConversationPage({
   searchParams,
 }: {
-  searchParams: { from?: string; error?: string; productId?: string; duplicateFrom?: string }
+  searchParams: {
+    from?: string
+    error?: string
+    productId?: string
+    duplicateFrom?: string
+    // С карточки сегмента (секция «Разговоры», фаза 21): связь уже проставлена.
+    segmentId?: string
+  }
 }) {
   const userId = getCurrentUserId()
   // Продукт по умолчанию — активный, тот же, что назван в шапке (фаза 20):
@@ -46,8 +53,12 @@ export default async function NewConversationPage({
               ? {
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
+                  segmentId: searchParams.segmentId ?? duplicateSource.segmentId,
                 }
-              : { productId: searchParams.productId ?? activeProductId ?? undefined }
+              : {
+                  productId: searchParams.productId ?? activeProductId ?? undefined,
+                  segmentId: searchParams.segmentId,
+                }
           }
           error={searchParams.error}
           submitLabel="Создать"

@@ -33,7 +33,6 @@ export type ImpactKey =
   | 'processEdge'
   | 'actionPlan'
   | 'teamMember'
-  | 'statusChange'
   | 'sequenceEdge'
 
 /** [1 штука, 2–4 штуки, 5 штук] — the three Russian plural forms. */
@@ -57,7 +56,6 @@ const NOUNS: Record<ImpactKey, [string, string, string]> = {
   processEdge: ['связь между шагами', 'связи между шагами', 'связей между шагами'],
   actionPlan: ['экшн-план', 'экшн-плана', 'экшн-планов'],
   teamMember: ['участник команды', 'участника команды', 'участников команды'],
-  statusChange: ['запись истории статусов', 'записи истории статусов', 'записей истории статусов'],
   sequenceEdge: ['связь в графе JTBD', 'связи в графе JTBD', 'связей в графе JTBD'],
 }
 
@@ -81,14 +79,18 @@ export function formatImpactCount({ key, count }: ImpactCount): string {
 }
 
 /**
- * Bookkeeping rows the user never created by hand — status history, graph
- * edges. They are honest to show (they really are deleted) but they are not
- * what makes someone stop: for the seeded product the status history is the
- * single biggest number, and sorting by size alone pushed «9 сегментов» below
- * it. Same reasoning as GROUP_ORDER in lib/gap-tasks.ts — rank by weight,
- * then by size, never by size alone.
+ * Bookkeeping rows the user never created by hand — graph edges. They are
+ * honest to show (they really are deleted) but they are not what makes
+ * someone stop, so they sink below real records regardless of size. Same
+ * reasoning as GROUP_ORDER in lib/gap-tasks.ts — rank by weight, then by
+ * size, never by size alone.
+ *
+ * Status history (HypothesisStatusChange) is not listed at all since фаза 22
+ * of the 2.3 audit: like node layouts, it is a byproduct of using the app,
+ * and on the seeded product it was the single biggest number in the dialog —
+ * the one line nobody would act on, in front of the ones they would.
  */
-const DERIVED: ReadonlySet<ImpactKey> = new Set(['statusChange', 'sequenceEdge', 'processEdge'])
+const DERIVED: ReadonlySet<ImpactKey> = new Set(['sequenceEdge', 'processEdge'])
 
 /** Drops zero rows, then puts the rows worth reading first. */
 export function summarizeImpact(counts: ImpactCount[]): ImpactCount[] {

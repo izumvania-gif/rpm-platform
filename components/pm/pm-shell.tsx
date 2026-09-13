@@ -14,8 +14,7 @@ import type { PmContext } from '@/lib/pm-context'
 // что обязано выглядеть одинаково на всех пяти маршрутах. Данные вкладка грузит
 // сама и передаёт готовую разметку в `children`.
 export function PmShell({ context, children }: { context: PmContext; children: ReactNode }) {
-  const { products, product, people, departments, selectedProductId, requestedProductMissing } =
-    context
+  const { products, product, people, selectedProductId, requestedProductMissing } = context
 
   return (
     <main className="container space-y-6 py-12">
@@ -65,23 +64,20 @@ export function PmShell({ context, children }: { context: PmContext; children: R
             </p>
           ) : (
             <>
+              {/* Одна строка, а не вторая карточка продукта (фаза 21 аудита
+                  2.3): здесь человек пришёл за роадмапом, а не за описанием и
+                  департаментом — те живут на полной карточке, куда ведёт
+                  ссылка справа. Название, стадия и ответственный остались
+                  редактируемыми: это то, что на «Доставке» правят по ходу. */}
               <Card variant="content">
-                <CardContent className="space-y-3 py-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="text-xl font-bold">
+                <CardContent className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                    <h2 className="text-lg font-bold">
                       <InlineEditableField
                         value={product.name}
                         action={updateProductField.bind(null, product.id, 'name')}
                       />
                     </h2>
-                    <Link
-                      href={`/products/${product.id}`}
-                      className="shrink-0 text-sm text-muted-foreground hover:underline"
-                    >
-                      Открыть карточку продукта →
-                    </Link>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
                     <InlineEditableField
                       value={product.stage}
                       type="select"
@@ -107,29 +103,13 @@ export function PmShell({ context, children }: { context: PmContext; children: R
                         action={updateProductField.bind(null, product.id, 'ownerId')}
                       />
                     </span>
-                    <span className="text-sm text-muted-foreground">
-                      Департамент:{' '}
-                      <InlineEditableField
-                        value={product.departmentId ?? ''}
-                        type="select"
-                        options={[
-                          { value: '', label: 'Без департамента' },
-                          ...departments.map((d) => ({ value: d.id, label: d.name })),
-                        ]}
-                        labels={Object.fromEntries(departments.map((d) => [d.id, d.name]))}
-                        placeholder="+ назначить"
-                        action={updateProductField.bind(null, product.id, 'departmentId')}
-                      />
-                    </span>
                   </div>
-                  <p className="max-w-2xl text-sm text-muted-foreground">
-                    <InlineEditableField
-                      value={product.description ?? ''}
-                      type="textarea"
-                      placeholder="+ добавить описание"
-                      action={updateProductField.bind(null, product.id, 'description')}
-                    />
-                  </p>
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="shrink-0 text-sm text-muted-foreground hover:underline"
+                  >
+                    Открыть карточку продукта →
+                  </Link>
                 </CardContent>
               </Card>
 

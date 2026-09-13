@@ -83,14 +83,18 @@ export default async function FeaturesPage({
           title="Фичи"
           description={moduleByHref['/features'].description}
         />
-        <QuickAddButton
-          type="feature"
-          href="/features/new?from=/features"
-          label="Быстро добавить фичу, не уходя со страницы"
-        />
-        <Link href="/features/new?from=/features" className={buttonVariants()}>
-          Новая фича
-        </Link>
+        {/* «+» вплотную к «Новый …» (фаза 21): одна точка создания, а не
+            две кнопки, разнесённые по заголовку. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <QuickAddButton
+            type="feature"
+            href="/features/new?from=/features"
+            label="Быстро добавить фичу — одно поле, не уходя со страницы"
+          />
+          <Link href="/features/new?from=/features" className={buttonVariants()}>
+            Новая фича
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

@@ -21,6 +21,9 @@ export default async function NewInsightPage({
     // приводить в форму, где связь уже проставлена, иначе она отправляет
     // искать нужный пункт в списке руками.
     hypothesisId?: string
+    // С карточек задачи и сегмента (секции «Инсайты», фаза 21) — та же логика.
+    jtbdId?: string
+    segmentId?: string
   }
 }) {
   const userId = getCurrentUserId()
@@ -64,6 +67,8 @@ export default async function NewInsightPage({
                   ...duplicateSource,
                   productId: searchParams.productId ?? duplicateSource.productId,
                   hypothesisId: searchParams.hypothesisId ?? duplicateSource.hypothesisId,
+                  jtbdId: searchParams.jtbdId ?? duplicateSource.jtbdId,
+                  segmentId: searchParams.segmentId ?? duplicateSource.segmentId,
                   // Text handed over from quick capture wins: it is what the
                   // person just typed, and losing it is the whole failure the
                   // hand-off exists to avoid.
@@ -73,6 +78,8 @@ export default async function NewInsightPage({
                   productId: searchParams.productId ?? activeProductId ?? undefined,
                   text: searchParams.text,
                   hypothesisId: searchParams.hypothesisId,
+                  jtbdId: searchParams.jtbdId,
+                  segmentId: searchParams.segmentId,
                 }
           }
           error={searchParams.error}

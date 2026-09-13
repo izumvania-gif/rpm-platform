@@ -70,17 +70,18 @@ describe('summarizeImpact', () => {
   })
 
   it('sinks bookkeeping rows below real records regardless of size', () => {
-    // Measured on the seeded product: 10 status-history rows outnumbered every
-    // content row, so size-only sorting opened the dialog with the one line
-    // nobody would act on.
+    // Graph edges are a byproduct of drawing, not records anyone typed in:
+    // size-only sorting would open the dialog with the one line nobody would
+    // act on. (Status history used to be the worst offender here and is no
+    // longer counted at all — фаза 22 of the 2.3 audit.)
     expect(
       summarizeImpact([
-        { key: 'statusChange', count: 10 },
+        { key: 'processEdge', count: 10 },
         { key: 'segment', count: 9 },
         { key: 'sequenceEdge', count: 3 },
         { key: 'jtbd', count: 6 },
       ]).map((c) => c.key)
-    ).toEqual(['segment', 'jtbd', 'statusChange', 'sequenceEdge'])
+    ).toEqual(['segment', 'jtbd', 'processEdge', 'sequenceEdge'])
   })
 
   it('returns an empty list rather than throwing on nothing at all', () => {

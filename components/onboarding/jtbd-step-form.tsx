@@ -27,7 +27,15 @@ export function JtbdStepForm({
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
   const [jobType, setJobType] = useState<JtbdJobType>(JtbdJobType.SMALL_JOB)
-  const [segmentIds, setSegmentIds] = useState<string[]>([])
+  // Последний добавленный сегмент отмечен заранее (фаза 22 аудита 2.3): в
+  // мастере шаг «Задачи» идёт сразу после «Сегментов», и задача без сегмента —
+  // ровно тот пробел, который потом покажет /reports/gaps. Один сегмент —
+  // выбор без альтернативы; несколько — вероятнее всего, задача про тот, что
+  // только что заведён. Выбор не сбрасывается после добавления: несколько
+  // задач подряд обычно про один сегмент.
+  const [segmentIds, setSegmentIds] = useState<string[]>(() =>
+    segments.length > 0 ? [segments[segments.length - 1].id] : []
+  )
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 

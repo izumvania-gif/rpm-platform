@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Check, Circle, Minus } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
-import type { Readiness, ReadinessKey } from '@/lib/hypothesis-readiness'
+import { ADD_EVIDENCE_HASH, type Readiness, type ReadinessKey } from '@/lib/hypothesis-readiness'
 
 // Чек-лист готовности к решению — вместе с кнопками «что с этим делать».
 //
@@ -40,7 +40,9 @@ export function ReadinessChecklist({
 }) {
   const hrefs: Record<ReadinessKey, string> = {
     criterion: '#criterion',
-    evidence: '#evidence',
+    // В пикер, а не к пустому списку (фаза 21): якорь открывает панель
+    // «Добавить доказательство» — см. EvidencePicker.
+    evidence: ADD_EVIDENCE_HASH,
     addressee: `/hypotheses/${hypothesisId}/edit`,
     // Матрица «Фичи × Гипотезы» (фаза 2) — там связь ставится одним кликом.
     feature: `/products/${productId}/links`,

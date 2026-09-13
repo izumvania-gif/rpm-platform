@@ -3,6 +3,7 @@ import { CircleAlert, CircleCheck, ClipboardList, type LucideIcon } from 'lucide
 import type { GapsCounts } from '@/lib/dashboard-metrics'
 import { moduleByHref } from '@/lib/module-meta'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
+import { buttonVariants } from '@/components/ui/button'
 
 interface GapStat {
   href: string
@@ -50,6 +51,14 @@ export function DashboardGapsSummary({ counts }: { counts: GapsCounts }) {
       icon={ClipboardList}
       title="Пробелы"
       description="Автоматически найденные пробелы в уже собранных данных"
+      action={
+        <Link
+          href="/reports"
+          className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' shrink-0'}
+        >
+          Отчёты →
+        </Link>
+      }
     >
       {totalGaps === 0 ? (
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">

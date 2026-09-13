@@ -31,9 +31,14 @@ const segmentSchema = z.object({
 })
 
 function parseSegmentForm(formData: FormData) {
+  // Пустой slug выводится из названия здесь, а не только в браузере (фаза
+  // 22): поле ушло под «Дополнительно», и форма обязана работать, даже если
+  // его никто не открывал.
+  const name = formData.get('name')
+  const slug = String(formData.get('slug') ?? '').trim() || slugify(String(name ?? ''))
   return segmentSchema.safeParse({
-    name: formData.get('name'),
-    slug: formData.get('slug'),
+    name,
+    slug,
     audienceShare: formData.get('audienceShare'),
     color: formData.get('color') || '#3B82F6',
     description: formData.get('description'),

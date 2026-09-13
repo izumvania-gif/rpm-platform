@@ -31,6 +31,11 @@ import { CsvImportPanel } from '@/components/shared/csv-import-panel'
 import { StarterTemplatePanel } from '@/components/shared/starter-template-panel'
 import { templateSummaries } from '@/lib/starter-templates'
 import { recordTitle } from '@/lib/record-title'
+import { getProductTeam } from '@/lib/team-workload'
+import { pmTabHref } from '@/lib/pm-nav'
+import { nextMilestone, roadmapStatusCounts } from '@/lib/product-delivery'
+import { roadmapStatusLabels, roadmapStatusOrder } from '@/lib/labels'
+import { PersonAvatar } from '@/components/shared/person-avatar'
 
 // Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
 // полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
@@ -71,6 +76,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           include: { _count: { select: { features: true } } },
         },
         insights: { orderBy: { createdAt: 'desc' } },
+        // Блок «Доставка» (фаза 21): те же факты, что на вкладках /pm, но в
+        // одну строку каждый — статусы роадмапа, ближайшая веха, счётчики.
+        roadmapItems: {
+          select: { id: true, title: true, status: true, startDate: true, isMilestone: true },
+        },
+        _count: { select: { processes: true, actionPlans: true } },
       },
     }),
     prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
@@ -79,7 +90,15 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
   if (!product) notFound()
 
-  const activeProductId = await getActiveProductId(userId)
+  const [activeProductId, team] = await Promise.all([
+    getActiveProductId(userId),
+    // Та же команда, что на /pm/team: явный состав плюс те, у кого есть работа.
+    getProductTeam(userId, product.id),
+  ])
+
+  const statusCounts = roadmapStatusCounts(product.roadmapItems)
+  const milestone = nextMilestone(product.roadmapItems, new Date())
+  const MAX_TEAM_SHOWN = 5
 
   const ownerOptions = [
     { value: '', label: 'Не указан' },
@@ -439,6 +458,186 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
         </div>
       </div>
 
+      {/* Доставка и витрины (фаза 21 аудита 2.3). Карточка продукта была
+          хабом только дискавери — всё, что происходит с продуктом дальше, жило
+          на /pm и в отчётах, и отсюда туда не вело ничего, кроме меню. */}
+      <div className="space-y-5">
+        <SectionHeading
+          title="Доставка и витрины"
+          description="Что с продуктом происходит после дискавери — и где на него смотрят другие"
+        />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader className="flex flex-row items-baseline justify-between gap-2 space-y-0 pb-3">
+              <CardTitle className="text-base font-semibold">Доставка</CardTitle>
+              <Link
+                href={pmTabHref('/pm/roadmap', product.id)}
+                className="shrink-0 text-sm text-muted-foreground hover:underline print:hidden"
+              >
+                Открыть →
+              </Link>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
+                <dt className="text-muted-foreground">Роадмап</dt>
+                <dd>
+                  {product.roadmapItems.length === 0 ? (
+                    <Link
+                      href={pmTabHref('/pm/roadmap', product.id)}
+                      className="text-muted-foreground hover:underline"
+                    >
+                      пока пусто — добавить пункт
+                    </Link>
+                  ) : (
+                    <span className="flex flex-wrap gap-x-3 gap-y-1">
+                      {roadmapStatusOrder
+                        .filter((status) => statusCounts[status] > 0)
+                        .map((status) => (
+                          <span key={status}>
+                            <span className="font-mono tabular-nums">{statusCounts[status]}</span>{' '}
+                            <span className="text-muted-foreground">
+                              {roadmapStatusLabels[status].toLowerCase()}
+                            </span>
+                          </span>
+                        ))}
+                    </span>
+                  )}
+                </dd>
+                <dt className="text-muted-foreground">Ближайшая веха</dt>
+                <dd>
+                  {milestone ? (
+                    <Link
+                      href={pmTabHref('/pm/gantt', product.id)}
+                      className="hover:underline"
+                      title={milestone.title}
+                    >
+                      {milestone.title} ·{' '}
+                      {milestone.startDate!.toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                    </Link>
+                  ) : (
+                    <span className="text-muted-foreground">не назначена</span>
+                  )}
+                </dd>
+                <dt className="text-muted-foreground">Процессы</dt>
+                <dd>
+                  <Link href={pmTabHref('/pm/processes', product.id)} className="hover:underline">
+                    {pluralizeRu(product._count.processes, ['процесс', 'процесса', 'процессов'])}
+                  </Link>
+                  <span className="text-muted-foreground"> · </span>
+                  <Link
+                    href={pmTabHref('/pm/action-plans', product.id)}
+                    className="hover:underline"
+                  >
+                    {pluralizeRu(product._count.actionPlans, [
+                      'экшн-план',
+                      'экшн-плана',
+                      'экшн-планов',
+                    ])}
+                  </Link>
+                </dd>
+                <dt className="text-muted-foreground">Команда</dt>
+                <dd>
+                  {team.length === 0 ? (
+                    <Link
+                      href={pmTabHref('/pm/team', product.id)}
+                      className="text-muted-foreground hover:underline"
+                    >
+                      никого — собрать команду
+                    </Link>
+                  ) : (
+                    <Link
+                      href={pmTabHref('/pm/team', product.id)}
+                      className="flex flex-wrap items-center gap-1.5 hover:underline"
+                    >
+                      <span className="flex -space-x-1.5">
+                        {team.slice(0, MAX_TEAM_SHOWN).map(({ person }) => (
+                          <PersonAvatar
+                            key={person.id}
+                            name={person.name}
+                            avatarUrl={person.avatarUrl}
+                            size="sm"
+                            className="ring-2 ring-background"
+                          />
+                        ))}
+                      </span>
+                      <span>
+                        {team
+                          .slice(0, MAX_TEAM_SHOWN)
+                          .map(({ person }) => person.name)
+                          .join(', ')}
+                        {team.length > MAX_TEAM_SHOWN && (
+                          <span className="text-muted-foreground">
+                            {' '}
+                            и ещё {team.length - MAX_TEAM_SHOWN}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  )}
+                </dd>
+              </dl>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Отчёты и витрины</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Отчёты — по этому продукту, а не по активному: карточка
+                  открыта на конкретной записи, и ссылка обязана вести к ней
+                  же. Витрина маркетинга принимает сегмент, поэтому берётся
+                  первый сегмент продукта; без сегментов — общий вход. */}
+              <ul className="divide-y text-sm">
+                <li className="flex flex-wrap items-baseline justify-between gap-2 py-1.5 first:pt-0">
+                  <Link
+                    href={`/reports/segments-jtbd?productId=${product.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    Матрица Сегменты × JTBD
+                  </Link>
+                  <span className="text-xs text-muted-foreground">покрытие задачами</span>
+                </li>
+                <li className="flex flex-wrap items-baseline justify-between gap-2 py-1.5">
+                  <Link
+                    href={`/reports/gaps?productId=${product.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    Пробелы
+                  </Link>
+                  <span className="text-xs text-muted-foreground">что делать дальше</span>
+                </li>
+                <li className="flex flex-wrap items-baseline justify-between gap-2 py-1.5">
+                  <Link
+                    href={
+                      product.segments[0]
+                        ? `/marketing-hub?segmentId=${product.segments[0].id}`
+                        : '/marketing-hub'
+                    }
+                    className="font-medium hover:underline"
+                  >
+                    Маркетинг: что сказать сегменту
+                  </Link>
+                  <span className="text-xs text-muted-foreground">витрина для маркетинга</span>
+                </li>
+                <li className="flex flex-wrap items-baseline justify-between gap-2 py-1.5 last:pb-0">
+                  <Link
+                    href={`/sales-hub?productId=${product.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    Продажи
+                  </Link>
+                  <span className="text-xs text-muted-foreground">ресурсы и «есть ли фича X»</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       <div className="space-y-5">
         <SectionHeading
           title="Ресурсы"
@@ -501,7 +700,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                         action={deleteProductResource.bind(null, resource.id)}
                         impact={{ model: 'productResource', id: resource.id }}
                         name={resource.title}
-                        size="sm"
+                        appearance="icon"
                       />
                     </span>
                   </li>

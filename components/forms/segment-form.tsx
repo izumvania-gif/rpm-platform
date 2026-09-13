@@ -72,19 +72,6 @@ export function SegmentForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug (eng)</Label>
-          <Input
-            id="slug"
-            name="slug"
-            required
-            value={slug}
-            onChange={(e) => {
-              setSlugTouched(true)
-              setSlug(e.target.value)
-            }}
-          />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="productId">Продукт</Label>
           <Select
             id="productId"
@@ -137,6 +124,26 @@ export function SegmentForm({
             defaultValue={defaultValues?.description ?? ''}
           />
         </div>
+        {/* Slug — под «Дополнительно» (фаза 22), как на форме продукта: он
+            выводится из названия, а пустой сервер выводит сам, поэтому поле
+            не required — обязательное поле в свёрнутом блоке браузер не смог
+            бы ни показать, ни сфокусировать. */}
+        <details className="space-y-2 sm:col-span-2">
+          <summary className="cursor-pointer text-sm text-muted-foreground">Дополнительно</summary>
+          <div className="space-y-2 pt-2 sm:max-w-xs">
+            <Label htmlFor="slug">Slug (eng)</Label>
+            <Input
+              id="slug"
+              name="slug"
+              value={slug}
+              placeholder="выводится из названия"
+              onChange={(e) => {
+                setSlugTouched(true)
+                setSlug(e.target.value)
+              }}
+            />
+          </div>
+        </details>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

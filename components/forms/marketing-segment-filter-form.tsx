@@ -2,6 +2,7 @@
 
 import type { Product, Segment } from '@prisma/client'
 import { Select } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 
 // Segment names repeat across products (see lib/cpo-metrics.ts's ecosystem
 // correlations, which rely on exactly that) — grouped by product via
@@ -33,10 +34,15 @@ export function MarketingSegmentFilterForm({
 
   return (
     <form method="get" className="flex flex-wrap items-center gap-2">
+      {/* Видимая подпись, а не только aria-label (фаза 22): без неё селект с
+          названием сегмента читался как заголовок страницы, а не как фильтр. */}
+      <Label htmlFor="marketing-segment" className="text-sm text-muted-foreground">
+        Сегмент
+      </Label>
       <Select
+        id="marketing-segment"
         name="segmentId"
         defaultValue={segmentId}
-        aria-label="Сегмент"
         className="w-auto"
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >

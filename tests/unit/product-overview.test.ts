@@ -77,4 +77,13 @@ describe('attentionSummary', () => {
     // A verdict that always renders stops being a signal.
     expect(attentionSummary(buildModuleRows([row('a'), row('b')]), 'без задач')).toBeNull()
   })
+
+  it('stays quiet while the module has fewer than two records', () => {
+    // «1 из 1 не подтверждён» over a product's very first JTBD is not a
+    // pattern — it restates the row's own mark and reads as a reproach.
+    expect(attentionSummary(buildModuleRows([row('a', 'нет задач')]), 'без задач')).toBeNull()
+    expect(
+      attentionSummary(buildModuleRows([row('a', 'нет задач'), row('b', 'нет задач')]), 'без задач')
+    ).toBe('2 без задач')
+  })
 })

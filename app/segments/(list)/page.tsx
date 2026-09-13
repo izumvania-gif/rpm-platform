@@ -53,7 +53,7 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
           <QuickAddButton
             type="segment"
             href="/segments/new?from=/segments"
-            label="Быстро добавить сегмент, не уходя со страницы"
+            label="Быстро добавить сегмент — одно поле, не уходя со страницы"
           />
           <Link href="/segments/new?from=/segments" className={buttonVariants()}>
             Новый сегмент

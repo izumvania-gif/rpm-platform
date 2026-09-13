@@ -62,8 +62,10 @@ describe('getDeleteImpact — product', () => {
     expect(get(impact.deleted, 'processStep')).toBe(2)
     expect(get(impact.deleted, 'processEdge')).toBe(1)
     expect(get(impact.deleted, 'competitorNews')).toBe(1)
-    expect(get(impact.deleted, 'statusChange')).toBe(1)
     expect(get(impact.deleted, 'sequenceEdge')).toBe(1)
+    // История статусов удаляется каскадом, но в диалоге не показывается —
+    // служебная строка, как и раскладки (фаза 22 аудита 2.3).
+    expect(impact.deleted.map((c) => String(c.key))).not.toContain('statusChange')
     // Nothing outside the product survives it, so there is no "unlinked" half.
     expect(impact.unlinked).toEqual([])
 

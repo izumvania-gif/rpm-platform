@@ -42,6 +42,7 @@ export function QuickAddJtbd({
 
   function submit() {
     if (!canSubmit) return
+    if (isPending) return
     startTransition(async () => {
       const result = await createJtbdQuick(productId, title, category, 'SMALL_JOB', [segmentId])
       if (!result.ok) {
@@ -81,7 +82,17 @@ export function QuickAddJtbd({
         </ul>
       )}
 
-      <div className="space-y-2 rounded-md border p-3">
+      {/* Настоящая <form>, а не div с кнопкой (фаза 22): Enter в любом из двух
+          полей отправляет — как в каждой другой форме приложения. Раньше Enter
+          здесь не делал ничего, и это была единственная форма с таким
+          поведением. */}
+      <form
+        className="space-y-2 rounded-md border p-3"
+        onSubmit={(event) => {
+          event.preventDefault()
+          submit()
+        }}
+      >
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -96,14 +107,14 @@ export function QuickAddJtbd({
             aria-label="Категория JTBD"
             className="w-48"
           />
-          <Button type="button" disabled={isPending || !canSubmit} onClick={submit}>
+          <Button type="submit" disabled={isPending || !canSubmit}>
             Добавить JTBD
           </Button>
           <span className="text-xs text-muted-foreground">
             масштаб задачи и остальные поля — на её карточке
           </span>
         </div>
-      </div>
+      </form>
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )

@@ -2,7 +2,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/current-user'
 import { ACTIVE_PRODUCT_COOKIE, resolveActiveProductId } from '@/lib/product-context'
-import type { Department, Person, Product } from '@prisma/client'
+import type { Person, Product } from '@prisma/client'
 
 // Общая часть всех вкладок «Доставки» (фаза 9 редизайна 2.1).
 //
@@ -24,7 +24,6 @@ export interface PmContext {
   requestedProductMissing: boolean
   product: Product | null
   people: Person[]
-  departments: Department[]
 }
 
 export async function loadPmContext(productIdParam?: string): Promise<PmContext> {
@@ -59,14 +58,15 @@ export async function loadPmContext(productIdParam?: string): Promise<PmContext>
       requestedProductMissing,
       product: null,
       people: [],
-      departments: [],
     }
   }
 
-  const [product, people, departments] = await Promise.all([
+  // Департаменты здесь больше не грузятся (фаза 21): карточка продукта на
+  // «Доставке» свёрнута до одной строки — название, стадия, ответственный, —
+  // а департамент и описание правятся на полной карточке.
+  const [product, people] = await Promise.all([
     prisma.product.findFirst({ where: { id: selectedProductId, userId } }),
     prisma.person.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
-    prisma.department.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
   ])
 
   return {
@@ -76,6 +76,5 @@ export async function loadPmContext(productIdParam?: string): Promise<PmContext>
     requestedProductMissing,
     product,
     people,
-    departments,
   }
 }

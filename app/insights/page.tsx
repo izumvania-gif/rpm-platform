@@ -59,14 +59,18 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
           title="Инсайты"
           description={moduleByHref['/insights'].description}
         />
-        <QuickAddButton
-          type="insight"
-          href="/insights/new?from=/insights"
-          label="Быстро добавить инсайт, не уходя со страницы"
-        />
-        <Link href="/insights/new?from=/insights" className={buttonVariants()}>
-          Новый инсайт
-        </Link>
+        {/* «+» вплотную к «Новый …» (фаза 21): одна точка создания, а не
+            две кнопки, разнесённые по заголовку. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <QuickAddButton
+            type="insight"
+            href="/insights/new?from=/insights"
+            label="Быстро добавить инсайт — одно поле, не уходя со страницы"
+          />
+          <Link href="/insights/new?from=/insights" className={buttonVariants()}>
+            Новый инсайт
+          </Link>
+        </div>
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         Атомарные цитаты и выводы из исследований и разговоров — с привязкой к сегменту и JTBD,

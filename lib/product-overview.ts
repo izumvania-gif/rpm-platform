@@ -56,12 +56,20 @@ export function buildModuleRows(rows: OverviewRow[], limit = MAX_ROWS): ModuleRo
   }
 }
 
+/** Below this many records a verdict is noise: «1 из 1 не подтверждён». */
+export const MIN_ROWS_FOR_VERDICT = 2
+
 /**
  * The card header's one-phrase verdict, e.g. «3 без задач».
  *
  * Returns null when nothing needs attention — a card with nothing wrong says
- * nothing, so the phrase stays a signal instead of decoration.
+ * nothing, so the phrase stays a signal instead of decoration. Also null while
+ * the module holds fewer than two records (фаза 22 of the 2.3 audit): a
+ * product with its single first JTBD was greeted with «1 не подтверждены»
+ * before the person had a chance to do anything about it, and a verdict about
+ * one row is not a pattern, it is a restatement of that row's own mark.
  */
 export function attentionSummary(data: ModuleRows, label: string): string | null {
+  if (data.total < MIN_ROWS_FOR_VERDICT) return null
   return data.attentionCount > 0 ? `${data.attentionCount} ${label}` : null
 }

@@ -52,7 +52,7 @@ export default async function JtbdPage() {
           <QuickAddButton
             type="jtbd"
             href="/jtbd/new?from=/jtbd"
-            label="Быстро добавить JTBD, не уходя со страницы"
+            label="Быстро добавить JTBD — одно поле, не уходя со страницы"
           />
           <Link href="/jtbd/new?from=/jtbd" className={buttonVariants()}>
             Новый JTBD

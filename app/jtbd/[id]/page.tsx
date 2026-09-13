@@ -12,7 +12,7 @@ import { RecordPage, RecordSection } from '@/components/shared/record-page'
 import { recordBlockers } from '@/lib/record-blockers'
 import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 import { isStale } from '@/lib/utils'
-import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
+import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 import { recordTitle } from '@/lib/record-title'
 
 // Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
@@ -41,6 +41,10 @@ export default async function JtbdDetailPage({
       // ultimately rest on this job, one join further than the page itself
       // needs.
       features: { include: { rtbs: true } },
+      // Инсайты, привязанные к задаче (фаза 21 аудита 2.3). Форма инсайта
+      // предлагает эту связь, гайд обещал её на карточке — а карточка молчала,
+      // и проверить, что задача на чём-то основана, было негде.
+      insights: { orderBy: { createdAt: 'desc' } },
     },
   })
 
@@ -227,6 +231,34 @@ export default async function JtbdDetailPage({
             <li key={f.id}>
               <Link href={`/features/${f.id}`} className="text-sm hover:underline">
                 {f.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </RecordSection>
+
+      <RecordSection
+        title="Инсайты"
+        count={jtbd.insights.length}
+        action={
+          <Link
+            href={`/insights/new?productId=${jtbd.product.id}&jtbdId=${jtbd.id}&from=/jtbd/${jtbd.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Добавить инсайт
+          </Link>
+        }
+        empty="Ни одного инсайта не привязано — на чём основана эта задача, пока не записано."
+      >
+        <ul className="space-y-2">
+          {jtbd.insights.map((insight) => (
+            <li key={insight.id}>
+              <Link
+                href={`/insights/${insight.id}`}
+                title={insight.text}
+                className="text-sm hover:underline"
+              >
+                {insightKeyPhrase(insight.text)}
               </Link>
             </li>
           ))}

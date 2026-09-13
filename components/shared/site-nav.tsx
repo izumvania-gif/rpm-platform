@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronDown, ChevronRight, Inbox as InboxIcon, LayoutGrid } from 'lucide-react'
@@ -44,15 +45,77 @@ function SearchBox() {
   )
 }
 
-/** Один пункт меню со своим (необязательным) вторым уровнем. */
+/**
+ * Один пункт меню со своим (необязательным) вторым уровнем.
+ *
+ * Подменю раскрывается от наведения или от фокуса внутри пункта — как раньше
+ * делали `group-hover`/`group-focus-within`, — но состояние теперь живёт в
+ * React, а не только в CSS (фаза 18). Причина одна: CSS не знает про Escape.
+ * Пока фокус стоял на дочерней ссылке, подменю нельзя было закрыть иначе как
+ * уйдя Tab'ом до конца списка, а `aria-expanded` сказать было нечего.
+ *
+ * Клавиатура: Escape закрывает подменю и возвращает фокус на родителя;
+ * стрелка вниз на родителе открывает его и ставит фокус на первый подпункт.
+ * Закрытое по Escape подменю не откроется от того, что фокус остался на
+ * родителе, — иначе Escape ничего бы не менял; оно снова доступно, когда
+ * фокус уйдёт из пункта, придёт мышь или нажмут стрелку вниз.
+ */
 function NavEntry({ node, pathname }: { node: NavNode; pathname: string }) {
   const active = isNodeActive(node, pathname)
   const children = node.children ?? []
+  const rootRef = useRef<HTMLDivElement>(null)
+  const linkRef = useRef<HTMLAnchorElement>(null)
+  const submenuRef = useRef<HTMLDivElement>(null)
+  const [hover, setHover] = useState(false)
+  const [focusWithin, setFocusWithin] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
+  const focusFirstChild = useRef(false)
+
+  const open = children.length > 0 && !dismissed && (hover || focusWithin)
+  const submenuId = `nav-sub-${node.href.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root'}`
+
+  useEffect(() => {
+    if (!open || !focusFirstChild.current) return
+    focusFirstChild.current = false
+    submenuRef.current?.querySelector<HTMLAnchorElement>('a[href]')?.focus()
+  }, [open])
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (children.length === 0) return
+    if (e.key === 'Escape' && open) {
+      e.preventDefault()
+      setDismissed(true)
+      linkRef.current?.focus()
+    } else if (e.key === 'ArrowDown' && e.target === linkRef.current) {
+      e.preventDefault()
+      focusFirstChild.current = true
+      setDismissed(false)
+      setFocusWithin(true)
+    }
+  }
 
   return (
-    <div className="group relative flex shrink-0 items-stretch">
+    <div
+      ref={rootRef}
+      className="relative flex shrink-0 items-stretch"
+      onMouseEnter={() => {
+        setHover(true)
+        setDismissed(false)
+      }}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setFocusWithin(true)}
+      onBlur={(e) => {
+        if (rootRef.current?.contains(e.relatedTarget as Node | null)) return
+        setFocusWithin(false)
+        setDismissed(false)
+      }}
+      onKeyDown={onKeyDown}
+    >
       <Link
+        ref={linkRef}
         href={node.href}
+        aria-expanded={children.length > 0 ? open : undefined}
+        aria-controls={children.length > 0 ? submenuId : undefined}
         className={cn(
           'flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground',
           active &&
@@ -60,13 +123,17 @@ function NavEntry({ node, pathname }: { node: NavNode; pathname: string }) {
         )}
       >
         {node.label}
-        {children.length > 0 && <ChevronDown size={14} className="text-muted-foreground" />}
+        {children.length > 0 && (
+          <ChevronDown size={14} aria-hidden className="text-muted-foreground" />
+        )}
       </Link>
       {children.length > 0 && (
         <div
+          ref={submenuRef}
+          id={submenuId}
           className={cn(
-            'invisible absolute left-0 top-full z-20 min-w-[10rem] rounded-md border bg-background py-1 opacity-0 shadow-md transition-opacity',
-            'group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'
+            'absolute left-0 top-full z-20 min-w-[10rem] rounded-md border bg-background py-1 shadow-md transition-opacity',
+            open ? 'visible opacity-100' : 'invisible opacity-0'
           )}
         >
           {children.map((child) => {

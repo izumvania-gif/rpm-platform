@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { gotoShortcuts } from '@/lib/keyboard-shortcuts-data'
 import { isTypingTarget } from '@/components/shared/keyboard-shortcuts'
+import { useDialogFocus } from '@/components/shared/use-dialog-focus'
 
 // Фаза 3 (plans/archive/visual-redesign-plan.md §4) — the "g then <letter>"/"n"
 // shortcut layer (KeyboardShortcuts) already worked, but nothing in the UI
@@ -20,6 +21,10 @@ function Kbd({ children }: { children: ReactNode }) {
 
 export function KeyboardShortcutsOverlay() {
   const [open, setOpen] = useState(false)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  // Фокус внутрь при открытии, по кругу внутри, назад на кнопку при закрытии
+  // (фаза 18) — см. use-dialog-focus.ts.
+  useDialogFocus(open, dialogRef)
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -53,6 +58,7 @@ export function KeyboardShortcutsOverlay() {
           onClick={() => setOpen(false)}
         >
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label="Клавиатурные сокращения"

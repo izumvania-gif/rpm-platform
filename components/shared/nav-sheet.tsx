@@ -39,13 +39,22 @@ export function NavSheet({
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const containerRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Закрыть с клавиатуры — значит вернуть фокус на кнопку (фаза 18). Раньше
+  // после Escape он оставался на исчезнувшей ссылке, то есть на `<body>`, и
+  // следующий Tab начинал страницу с самого начала.
+  const closeToButton = () => {
+    setOpen(false)
+    buttonRef.current?.focus()
+  }
 
   // Закрытие по Escape и по клику мимо — те же правила, что у переключателя
   // представлений, чтобы панели вели себя одинаково.
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') closeToButton()
     }
     const onClick = (e: MouseEvent) => {
       if (!containerRef.current?.contains(e.target as Node)) setOpen(false)
@@ -94,8 +103,7 @@ export function NavSheet({
               <span className="min-w-0 flex-1 truncate">{node.label}</span>
             </Link>
             {(node.children ?? []).map((child) => {
-              const childActive =
-                pathname === child.href || pathname.startsWith(`${child.href}/`)
+              const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`)
               return (
                 <Link
                   key={child.href}
@@ -117,11 +125,14 @@ export function NavSheet({
 
   return (
     <div ref={containerRef} className="relative xl:hidden">
+      {/* Не `aria-haspopup="menu"`: панель — не меню в смысле ARIA (внутри
+          поиск, ссылки и кнопка), а раскрывающийся блок с навигацией. */}
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-haspopup="menu"
+        aria-controls="nav-sheet-panel"
         aria-label="Разделы"
         className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-accent"
       >
@@ -130,8 +141,9 @@ export function NavSheet({
       </button>
 
       {open && (
-        <div
-          role="menu"
+        <nav
+          id="nav-sheet-panel"
+          aria-label="Разделы"
           className="absolute left-0 top-full z-40 mt-1 max-h-[75vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-md border bg-background p-1 shadow-lg"
         >
           {/* Поиск и инбокс ниже `sm` из шапки скрыты — здесь они есть всегда,
@@ -163,7 +175,7 @@ export function NavSheet({
                 type="button"
                 onClick={() => {
                   onToggleStage()
-                  setOpen(false)
+                  closeToButton()
                 }}
                 className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
@@ -172,7 +184,7 @@ export function NavSheet({
               </button>
             </div>
           )}
-        </div>
+        </nav>
       )}
     </div>
   )

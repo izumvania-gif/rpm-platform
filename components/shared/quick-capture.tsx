@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 import { QUICK_CAPTURE_EVENT } from '@/components/shared/keyboard-shortcuts'
+import { useDialogFocus } from '@/components/shared/use-dialog-focus'
 import { listProductsForCapture } from '@/lib/actions/products'
 import { createInsightQuick } from '@/lib/actions/insights'
 import { createHypothesisQuick } from '@/lib/actions/hypotheses'
@@ -87,6 +88,7 @@ export function QuickCapture() {
   const [saved, setSaved] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   const activeType = captureTypeByValue(type)
 
@@ -101,9 +103,9 @@ export function QuickCapture() {
     })
   }, [open, products, presetProductId])
 
-  useEffect(() => {
-    if (open) textareaRef.current?.focus()
-  }, [open])
+  // Фокус на поле при открытии, по кругу внутри окна, назад туда, откуда
+  // вызвали, при закрытии (фаза 18) — см. use-dialog-focus.ts.
+  useDialogFocus(open, panelRef, textareaRef)
 
   // The open shortcut lives in KeyboardShortcuts (it owns the "g …" sequence
   // state that "c" would otherwise collide with) and reaches us as an event.
@@ -182,7 +184,10 @@ export function QuickCapture() {
         if (e.target === e.currentTarget) setOpen(false)
       }}
     >
-      <div className="w-full max-w-xl space-y-3 rounded-lg border bg-background p-4 shadow-lg">
+      <div
+        ref={panelRef}
+        className="w-full max-w-xl space-y-3 rounded-lg border bg-background p-4 shadow-lg"
+      >
         <div className="flex flex-wrap items-center gap-1.5">
           {CAPTURE_TYPES.map((t) => (
             <button

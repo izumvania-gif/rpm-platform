@@ -8,6 +8,7 @@ import { SubmitButton } from '@/components/shared/submit-button'
 import { getDeleteImpact } from '@/lib/actions/delete-impact'
 import { formatImpactCount, type DeleteImpact } from '@/lib/delete-impact'
 import type { OwnedModel } from '@/lib/ownership'
+import { useDialogFocus } from '@/components/shared/use-dialog-focus'
 
 // Delete confirmation (plans/2.0-hardening-plan.md, B4).
 //
@@ -105,10 +106,10 @@ export function ConfirmDeleteDialog({
   const [counts, setCounts] = useState<DeleteImpact | null>(null)
   const [error, setError] = useState<string | null>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    cancelRef.current?.focus()
-  }, [])
+  const dialogRef = useRef<HTMLDivElement>(null)
+  // Фокус на «Отмена» при открытии (безопасный выбор для необратимого
+  // действия), по кругу внутри окна, назад на кнопку при закрытии (фаза 18).
+  useDialogFocus(true, dialogRef, cancelRef)
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -151,6 +152,7 @@ export function ConfirmDeleteDialog({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={confirmMessage}

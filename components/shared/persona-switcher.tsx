@@ -20,9 +20,17 @@ const personas = [
   { href: '/sales-hub', label: 'Продажи' },
 ]
 
+const HINT_ID = 'persona-switcher-hint'
+
 export function PersonaSwitcher() {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  // Стрелка вниз на кнопке открывает меню и сразу ставит фокус на первый
+  // пункт (фаза 18) — так ведёт себя меню по APG; эффект нужен потому, что
+  // пункты появляются только после рендера.
+  const focusFirst = useRef(false)
 
   useEffect(() => {
     if (!open) return
@@ -32,7 +40,11 @@ export function PersonaSwitcher() {
       }
     }
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key !== 'Escape') return
+      setOpen(false)
+      // Меню закрылось — фокус возвращается на кнопку, а не пропадает на
+      // `<body>`, откуда следующий Tab начинал бы страницу заново.
+      buttonRef.current?.focus()
     }
     document.addEventListener('mousedown', handleClick)
     document.addEventListener('keydown', handleKeyDown)
@@ -42,13 +54,41 @@ export function PersonaSwitcher() {
     }
   }, [open])
 
+  useEffect(() => {
+    if (!open || !focusFirst.current) return
+    focusFirst.current = false
+    items()[0]?.focus()
+  }, [open])
+
+  const items = () =>
+    Array.from(menuRef.current?.querySelectorAll<HTMLAnchorElement>('[role="menuitem"]') ?? [])
+
+  // Стрелки ходят по пунктам по кругу; Tab меню не перехватывает — это
+  // выпадающий список, а не модальное окно.
+  const onMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    const list = items()
+    if (list.length === 0) return
+    e.preventDefault()
+    const index = list.findIndex((el) => el === document.activeElement)
+    const step = e.key === 'ArrowDown' ? 1 : -1
+    list[(index + step + list.length) % list.length].focus()
+  }
+
   return (
     <div ref={containerRef} className="relative">
       <Button
+        ref={buttonRef}
         type="button"
         variant="outline"
         size="sm"
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key !== 'ArrowDown') return
+          e.preventDefault()
+          focusFirst.current = true
+          setOpen(true)
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Представления"
@@ -60,25 +100,34 @@ export function PersonaSwitcher() {
       </Button>
       {open && (
         <div
-          role="menu"
           className={cn(
             'absolute right-0 top-full z-20 mt-1 min-w-[16rem] rounded-md border bg-background py-1 shadow-md'
           )}
         >
-          <p className="px-3 py-1.5 text-xs text-muted-foreground">
+          {/* Подсказка стоит рядом с меню, а не внутри него: у `role="menu"`
+              дети — только пункты, и абзац там был бы ошибкой разметки. */}
+          <p id={HINT_ID} className="px-3 py-1.5 text-xs text-muted-foreground">
             2.0-представления — не граница доступа
           </p>
-          {personas.map((persona) => (
-            <Link
-              key={persona.href}
-              href={persona.href}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="block whitespace-nowrap px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-            >
-              {persona.label}
-            </Link>
-          ))}
+          <div
+            ref={menuRef}
+            role="menu"
+            aria-label="Представления"
+            aria-describedby={HINT_ID}
+            onKeyDown={onMenuKeyDown}
+          >
+            {personas.map((persona) => (
+              <Link
+                key={persona.href}
+                href={persona.href}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="block whitespace-nowrap px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground focus-visible:outline-none"
+              >
+                {persona.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

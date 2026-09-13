@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp, GripVertical, Settings2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useDialogFocus } from '@/components/shared/use-dialog-focus'
 import {
   dashboardWidgetDefs,
   reconcileDashboardLayout,
@@ -121,6 +122,10 @@ function DashboardSettingsOverlay({
   onClose: () => void
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  // Фокус внутрь при открытии, по кругу внутри, назад на «Настроить дашборд»
+  // при закрытии (фаза 18) — см. use-dialog-focus.ts.
+  useDialogFocus(true, dialogRef)
 
   // Reordering was drag-only, which no link can fix (unlike opening a record —
   // see the kanban): dragging IS the action. So it gets real buttons, and the
@@ -173,6 +178,7 @@ function DashboardSettingsOverlay({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Настроить дашборд"

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { GapQuickAction } from '@/components/reports/gap-quick-action'
+import { ConfirmWithResearch } from '@/components/jtbd/confirm-with-research'
 import { buildGapTasks, totalGapTasks, type GapGroup } from '@/lib/gap-tasks'
 import {
   getProductsWithoutRecentResearch,
@@ -58,9 +59,14 @@ function GapGroupCard({ group, position }: { group: GapGroup; position: number }
                   <p className="truncate text-xs text-muted-foreground">{task.productName}</p>
                 )}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
                 {task.quickAction === 'hypothesis-to-review' && (
                   <GapQuickAction hypothesisId={task.recordId} label="На проверку" />
+                )}
+                {/* Пикер, а не кнопка «Подтвердить» (фаза 25 плана 2.4): строка
+                    спрашивает, каким исследованием, и только тогда ставит флаг. */}
+                {task.quickAction === 'jtbd-confirm' && (
+                  <ConfirmWithResearch jtbdId={task.recordId} productId={task.productId} compact />
                 )}
                 <Link
                   href={task.href}
@@ -103,12 +109,22 @@ export default async function GapsPage({ searchParams }: { searchParams: { produ
       getProductsWithoutRecentResearch(userId, scope),
     ])
 
-  const groups = buildGapTasks({
-    segmentsWithoutJtbd,
-    productsWithoutRecentResearch,
-    stuckHypotheses,
-    unconfirmedJtbds,
-  })
+  // Адрес очереди с её областью — чтобы форма, открытая из строки, вернула
+  // сюда, а карточка показала «← К очереди» (фаза 25 плана 2.4). Область
+  // пишется явно даже для активного продукта: cookie может смениться, пока
+  // форма открыта, а вернуться нужно в ту очередь, из которой ушли.
+  const returnTo = scopeProduct
+    ? `/reports/gaps?productId=${scopeProduct.id}`
+    : `/reports/gaps?productId=${ALL_PRODUCTS}`
+  const groups = buildGapTasks(
+    {
+      segmentsWithoutJtbd,
+      productsWithoutRecentResearch,
+      stuckHypotheses,
+      unconfirmedJtbds,
+    },
+    { returnTo }
+  )
   const total = totalGapTasks(groups)
 
   return (

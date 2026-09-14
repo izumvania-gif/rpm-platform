@@ -6,6 +6,7 @@ import {
   toggleRoadmapItemPinned,
   updateRoadmapItem,
   updateRoadmapItemDates,
+  updateRoadmapItemField,
 } from '@/lib/actions/roadmap'
 import { prisma } from '@/lib/prisma'
 import { buildFormData, captureRedirect, createTestProduct, ensureTestUser } from '../helpers'
@@ -312,5 +313,68 @@ describe('updateRoadmapItemDates', () => {
 
     const unchanged = await prisma.roadmapItem.findUnique({ where: { id: item.id } })
     expect(unchanged?.startDate?.toISOString().slice(0, 10)).toBe('2026-09-10')
+  })
+})
+
+describe('roadmap item ↔ feature inline (фаза 25 плана 2.4)', () => {
+  it('createRoadmapItemQuick links a feature of the same product', async () => {
+    const product = await createTestProduct()
+    const feature = await prisma.feature.create({
+      data: { name: 'Экспорт в PDF', productId: product.id, userId: DEFAULT_USER_ID },
+    })
+    const result = await createRoadmapItemQuick(
+      product.id,
+      'Экспорт',
+      'PLANNED',
+      '',
+      '',
+      feature.id
+    )
+    expect(result.ok && result.item.featureId).toBe(feature.id)
+  })
+
+  it('createRoadmapItemQuick refuses a feature from another product', async () => {
+    const product = await createTestProduct()
+    const other = await createTestProduct({ slug: `other-${Date.now()}` })
+    const foreign = await prisma.feature.create({
+      data: { name: 'Чужая', productId: other.id, userId: DEFAULT_USER_ID },
+    })
+    const result = await createRoadmapItemQuick(
+      product.id,
+      'Экспорт',
+      'PLANNED',
+      '',
+      '',
+      foreign.id
+    )
+    expect(result.ok).toBe(false)
+    expect(await prisma.roadmapItem.count({ where: { productId: product.id } })).toBe(0)
+  })
+
+  it('updateRoadmapItemField sets and clears the feature, same-product only', async () => {
+    const product = await createTestProduct()
+    const [feature, item] = await Promise.all([
+      prisma.feature.create({
+        data: { name: 'Экспорт в PDF', productId: product.id, userId: DEFAULT_USER_ID },
+      }),
+      prisma.roadmapItem.create({
+        data: { title: 'Экспорт', productId: product.id, userId: DEFAULT_USER_ID },
+      }),
+    ])
+    expect(await updateRoadmapItemField(item.id, 'featureId', feature.id)).toEqual({ ok: true })
+    expect((await prisma.roadmapItem.findUniqueOrThrow({ where: { id: item.id } })).featureId).toBe(
+      feature.id
+    )
+
+    const other = await createTestProduct({ slug: `other-${Date.now()}` })
+    const foreign = await prisma.feature.create({
+      data: { name: 'Чужая', productId: other.id, userId: DEFAULT_USER_ID },
+    })
+    expect((await updateRoadmapItemField(item.id, 'featureId', foreign.id)).ok).toBe(false)
+
+    expect(await updateRoadmapItemField(item.id, 'featureId', '')).toEqual({ ok: true })
+    expect(
+      (await prisma.roadmapItem.findUniqueOrThrow({ where: { id: item.id } })).featureId
+    ).toBeNull()
   })
 })

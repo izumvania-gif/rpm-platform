@@ -1,12 +1,14 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createProductViaUI, selectRadixOption, uniqueName } from './helpers'
+import { byFullText, createProductViaUI, selectRadixOption, uniqueName } from './helpers'
 
-// Цена ежедневных сценариев в переходах между страницами (фаза 24 плана 2.4).
+// Цена ежедневных и еженедельных сценариев в переходах между страницами
+// (фазы 24–25 плана 2.4).
 //
 // Замер 14.09: «после звонка» (разговор → инсайт → привязать к задаче) стоил
-// 11 переходов, «мысль на ходу» (`c` → инсайт → привязать к сегменту) — 8.
-// Эти спеки — тест-правило того же рода, что nav-chain и new-form-return: они
-// считают переходы и падают, если ежедневный сценарий снова уведёт на форму.
+// 11 переходов, «мысль на ходу» (`c` → инсайт → привязать к сегменту) — 8,
+// строка очереди «Пробелов» — 3–4 без дороги назад. Эти спеки — тест-правило
+// того же рода, что nav-chain и new-form-return: они считают переходы и
+// падают, если сценарий снова уведёт на форму или потеряет дорогу обратно.
 
 /** Переходы главного фрейма; подряд идущие одинаковые адреса — один переход. */
 function trackTransitions(page: Page) {
@@ -84,4 +86,75 @@ test('мысль на ходу: захват → карточка → сегме
   await expect(page.getByRole('button', { name: segmentName, exact: true })).toBeVisible()
 
   expect(transitions()).toBeLessThanOrEqual(1)
+})
+
+test('очередь пробелов: строка с формой закрывается за два перехода и возвращает в очередь', async ({
+  page,
+}) => {
+  await createProductViaUI(page, uniqueName('Flow Queue Product'))
+  const segmentName = uniqueName('Страховые')
+  await page.goto('/segments/new')
+  await page.getByLabel('Название').fill(segmentName)
+  await page.getByRole('button', { name: 'Создать', exact: true }).click()
+  await page.waitForURL(/\/segments\/c[a-z0-9]{10,}$/)
+
+  const transitions = trackTransitions(page)
+  await page.goto('/reports/gaps')
+  const row = page.locator('li').filter({ hasText: segmentName })
+  await row.getByRole('link', { name: 'Добавить JTBD' }).click()
+  await page.waitForURL(/\/jtbd\/new\?/)
+  await page
+    .getByLabel('Формулировка JTBD')
+    .fill(uniqueName('Когда полис истекает, я хочу продлить его онлайн'))
+  await page.getByLabel('Категория').fill('Продление')
+  await page.getByRole('button', { name: 'Создать' }).click()
+
+  // Сохранение возвращает в очередь с её областью, а не на карточку задачи —
+  // и строки, ради которой уходили, в очереди больше нет.
+  await page.waitForURL(/\/reports\/gaps\?productId=/)
+  await expect(page.locator('li').filter({ hasText: segmentName })).toHaveCount(0)
+
+  expect(transitions()).toBeLessThanOrEqual(2)
+})
+
+test('очередь пробелов: карточка и назад — два перехода, подтвердить из строки — ни одного', async ({
+  page,
+}) => {
+  await createProductViaUI(page, uniqueName('Flow Confirm Product'))
+  const researchTitle = uniqueName('Интервью с банками')
+  await page.goto('/research/new')
+  await page.getByLabel('Название').fill(researchTitle)
+  await page.getByRole('button', { name: 'Создать', exact: true }).click()
+  await page.waitForURL(/\/research\/c[a-z0-9]{10,}/)
+  const jtbdTitle = uniqueName('Когда меняется ключ, я хочу перевыпустить сертификат')
+  await page.goto('/jtbd/new')
+  await page.getByLabel('Формулировка JTBD').fill(jtbdTitle)
+  await page.getByLabel('Категория').fill('Выпуск')
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}/)
+
+  const transitions = trackTransitions(page)
+  await page.goto('/reports/gaps')
+  // Строка несёт полный текст в title — ключевая фраза в строке его обрезает.
+  const row = () => page.locator('li').filter({ has: byFullText(page, jtbdTitle) })
+  await expect(row()).toBeVisible()
+
+  // В карточку и назад: карточка знает, откуда её открыли.
+  await row().getByRole('link', { name: 'Открыть' }).click()
+  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}\?from=/)
+  await page.getByRole('link', { name: '← К очереди' }).click()
+  await page.waitForURL(/\/reports\/gaps\?productId=/)
+  expect(transitions()).toBeLessThanOrEqual(2)
+
+  // Подтвердить — из строки, выбрав исследование: флаг ставится только вместе
+  // с ним, и страница при этом никуда не уходит.
+  const beforeConfirm = transitions()
+  await row().getByRole('button', { name: 'Подтвердить исследованием' }).click()
+  const picker = row().getByRole('group', { name: 'Подтвердить исследованием' })
+  await picker.getByLabel('Исследование').click()
+  await page.getByRole('option', { name: researchTitle }).click()
+  await picker.getByRole('button', { name: 'Подтвердить', exact: true }).click()
+  await expect(row()).toHaveCount(0)
+
+  expect(transitions()).toBe(beforeConfirm)
 })

@@ -28,15 +28,53 @@ export interface GapTask {
   /** The record's own name exactly as the PM wrote it, for the row's tooltip. */
   fullTitle: string
   productName: string
+  productId: string
   /** Where the resolving action starts — prefilled wherever the data allows. */
   href: string
   actionLabel: string
   /**
-   * A single unambiguous next state that can be applied straight from the
-   * queue. Only stuck hypotheses have one — see the note on the ordering
-   * below for why unconfirmed JTBD deliberately does not.
+   * Resolution straight from the queue, without leaving it (фаза 25 плана
+   * 2.4). `hypothesis-to-review` is a single unambiguous next state and a
+   * button; `jtbd-confirm` is a research picker, never a bare button —
+   * confirming claims research backing, and the row asks for that research
+   * before it will confirm anything (see the ordering note below).
    */
-  quickAction?: 'hypothesis-to-review'
+  quickAction?: 'hypothesis-to-review' | 'jtbd-confirm'
+}
+
+/**
+ * Where the queue lives, for the links that leave it (фаза 25 плана 2.4).
+ *
+ * Every row's action used to be a one-way trip: the form saved onto the new
+ * record, the card had no way back, and a review of ten rows meant finding the
+ * queue ten times. Form actions now carry the queue as `from` so saving
+ * returns here; card actions carry it so the card can show «← К очереди».
+ */
+export interface GapTasksOptions {
+  /** The queue's own path with its scope, e.g. `/reports/gaps?productId=…`. */
+  returnTo?: string
+}
+
+const GAPS_PATH = '/reports/gaps'
+
+/**
+ * The queue path a card was opened from, or null.
+ *
+ * The value comes from the address bar, so it is accepted only when it is the
+ * queue itself — a same-origin path is not enough, since the link is rendered
+ * as «← К очереди» and must lead to the queue, not anywhere a link could point.
+ */
+export function gapsQueuePath(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  if (value !== GAPS_PATH && !value.startsWith(`${GAPS_PATH}?`)) return null
+  if (/[\s\\]/.test(value)) return null
+  return value
+}
+
+function withReturn(href: string, returnTo: string | undefined): string {
+  if (!returnTo) return href
+  const separator = href.includes('?') ? '&' : '?'
+  return `${href}${separator}from=${encodeURIComponent(returnTo)}`
 }
 
 export interface GapGroup {
@@ -104,7 +142,7 @@ export interface GapTasksInput {
   unconfirmedJtbds: (WithProduct & { title: string })[]
 }
 
-function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
+function buildTasks(input: GapTasksInput, kind: GapKind, returnTo?: string): GapTask[] {
   switch (kind) {
     case 'segment-without-jtbd':
       return input.segmentsWithoutJtbd.map((segment) => ({
@@ -114,10 +152,14 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         title: segment.name,
         fullTitle: segment.name,
         productName: segment.product.name,
+        productId: segment.product.id,
         // Both the product and the segment are known here, so the form opens
         // already pointed at them — the gap names the missing link, the link
         // should not have to be re-entered by hand.
-        href: `/jtbd/new?productId=${segment.product.id}&segmentId=${segment.id}`,
+        href: withReturn(
+          `/jtbd/new?productId=${segment.product.id}&segmentId=${segment.id}`,
+          returnTo
+        ),
         actionLabel: 'Добавить JTBD',
       }))
     case 'product-without-research':
@@ -128,7 +170,8 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         title: product.name,
         fullTitle: product.name,
         productName: product.name,
-        href: `/research/new?productId=${product.id}`,
+        productId: product.id,
+        href: withReturn(`/research/new?productId=${product.id}`, returnTo),
         actionLabel: 'Запланировать исследование',
       }))
     case 'stuck-hypothesis':
@@ -139,7 +182,8 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         title: hypothesisKeyPhrase(hypothesis.statement),
         fullTitle: hypothesis.statement,
         productName: hypothesis.product.name,
-        href: `/hypotheses/${hypothesis.id}`,
+        productId: hypothesis.product.id,
+        href: withReturn(`/hypotheses/${hypothesis.id}`, returnTo),
         actionLabel: 'Открыть',
         // Status is a workflow field, not a claim about evidence, so moving a
         // frozen draft forward one step straight from the queue is honest.
@@ -153,20 +197,23 @@ function buildTasks(input: GapTasksInput, kind: GapKind): GapTask[] {
         title: jtbdKeyPhrase(jtbd.title),
         fullTitle: jtbd.title,
         productName: jtbd.product.name,
-        // Deliberately a link, not a one-click "Подтвердить": confirming means
-        // "backed by research", and a button here would invite rubber-stamping
-        // the exact metric this gap exists to measure. Same reasoning that
-        // keeps JTBD out of bulk entry (A1) and the Inbox (B1).
-        href: `/jtbd/${jtbd.id}`,
-        actionLabel: 'Привязать исследование',
+        productId: jtbd.product.id,
+        href: withReturn(`/jtbd/${jtbd.id}`, returnTo),
+        actionLabel: 'Открыть',
+        // A picker, not a one-click "Подтвердить": confirming means "backed by
+        // research", and a bare button would invite rubber-stamping the exact
+        // metric this gap exists to measure. The row asks which research —
+        // and only then confirms — so the claim is made, not skipped. Same
+        // reasoning keeps JTBD out of bulk entry (A1) and the Inbox (B1).
+        quickAction: 'jtbd-confirm',
       }))
   }
 }
 
 /** Non-empty groups only, most blocking first. */
-export function buildGapTasks(input: GapTasksInput): GapGroup[] {
+export function buildGapTasks(input: GapTasksInput, options: GapTasksOptions = {}): GapGroup[] {
   return GROUP_ORDER.map((kind) => {
-    const tasks = buildTasks(input, kind)
+    const tasks = buildTasks(input, kind, options.returnTo)
     return { kind, ...GROUP_COPY[kind], count: tasks.length, tasks }
   }).filter((group) => group.count > 0)
 }

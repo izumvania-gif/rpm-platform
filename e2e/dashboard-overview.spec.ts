@@ -93,6 +93,14 @@ test('очередь решений молчит, пока гипотеза не
   await page.goto('/')
   // Гипотеза есть, но у неё нет ни критерия, ни доказательств, ни адресата —
   // решать по ней нечего, и очередь обязана это признать, а не показать её.
-  await expect(page.getByText('Решать пока нечего')).toBeVisible()
-  await expect(page.getByText(statement)).toHaveCount(0)
+  // Проверка — внутри карточки очереди, а не по всей странице: с фазы 24
+  // плана 2.4 «Создать» открывает карточку гипотезы, и та попадает в
+  // «Недавно просмотренное» на этом же дашборде — полным текстом, законно.
+  const queue = page
+    .locator('div')
+    .filter({ has: page.getByRole('heading', { name: 'Требуют решения', exact: true }) })
+    .filter({ has: page.getByText('Решать пока нечего') })
+    .last()
+  await expect(queue).toBeVisible()
+  await expect(queue.getByText(statement)).toHaveCount(0)
 })

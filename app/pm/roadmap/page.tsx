@@ -2,7 +2,12 @@ import Link from 'next/link'
 import { CalendarClock } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { loadPmContext } from '@/lib/pm-context'
-import { deleteRoadmapItem, toggleRoadmapItemPinned } from '@/lib/actions/roadmap'
+import {
+  deleteRoadmapItem,
+  toggleRoadmapItemPinned,
+  updateRoadmapItemField,
+} from '@/lib/actions/roadmap'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { roadmapStatusIcon, roadmapStatusLabels, roadmapStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 import { buttonVariants } from '@/components/ui/button'
@@ -26,13 +31,27 @@ export default async function PmRoadmapPage({
   const context = await loadPmContext(searchParams.productId)
   const { product, people, userId } = context
 
-  const roadmapItems = product
-    ? await prisma.roadmapItem.findMany({
-        where: { productId: product.id, userId },
-        orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
-        include: { owner: true, feature: true, jtbd: true },
-      })
-    : []
+  const [roadmapItems, features] = product
+    ? await Promise.all([
+        prisma.roadmapItem.findMany({
+          where: { productId: product.id, userId },
+          orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
+          include: { owner: true, feature: true, jtbd: true },
+        }),
+        // Фичи продукта — для селекта в инлайн-форме и в строке пункта (фаза 25
+        // плана 2.4): связь «пункт ↔ фича» была единственной, ради которой
+        // приходилось идти в форму редактирования.
+        prisma.feature.findMany({
+          where: { productId: product.id, userId },
+          orderBy: { name: 'asc' },
+        }),
+      ])
+    : [[], []]
+  const featureOptions = [
+    { value: '', label: '— без фичи' },
+    ...features.map((f) => ({ value: f.id, label: f.name })),
+  ]
+  const featureLabels = Object.fromEntries(features.map((f) => [f.id, f.name]))
 
   return (
     <PmShell context={context}>
@@ -43,7 +62,7 @@ export default async function PmRoadmapPage({
               <CalendarClock size={15} strokeWidth={1.75} className="text-primary" />
               Роадмап
             </CardTitle>
-            <AddRoadmapItemForm productId={product.id} people={people} />
+            <AddRoadmapItemForm productId={product.id} people={people} features={features} />
           </CardHeader>
           <CardContent className="p-0">
             {roadmapItems.length === 0 ? (
@@ -80,9 +99,21 @@ export default async function PmRoadmapPage({
                                   </span>
                                 )}
                               </div>
-                              <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                              <p className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
                                 {item.owner && <span>Ответственный: {item.owner.name}</span>}
-                                {item.feature && <span>Фича: {item.feature.name}</span>}
+                                {/* Фича правится в строке тем же инлайн-селектом,
+                                    что связи инсайта на его карточке. */}
+                                <span>
+                                  Фича:{' '}
+                                  <InlineEditableField
+                                    value={item.featureId ?? ''}
+                                    type="select"
+                                    options={featureOptions}
+                                    labels={featureLabels}
+                                    placeholder="+ фича"
+                                    action={updateRoadmapItemField.bind(null, item.id, 'featureId')}
+                                  />
+                                </span>
                                 {item.jtbd && <span>JTBD: {item.jtbd.title}</span>}
                               </p>
                               {item.description && (

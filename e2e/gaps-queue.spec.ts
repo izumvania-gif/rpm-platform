@@ -33,16 +33,13 @@ test('a segment with no JTBD becomes a task whose action opens a prefilled form'
   await page.waitForURL(/\/jtbd\/new\?/)
   await expect(page.getByLabel(segmentName)).toBeChecked()
 
-  // Creating the JTBD closes the gap, so the task leaves the queue.
+  // Creating the JTBD closes the gap, so the task leaves the queue — and since
+  // фаза 25 плана 2.4 «Создать» lands back in the queue itself (the row
+  // carried the queue as `from`), scoped to the product it was opened for.
   await page.getByLabel('Формулировка JTBD').fill(uniqueName('Закрывает пробел'))
   await page.getByLabel('Категория').fill('Gap Queue')
   await page.getByRole('button', { name: 'Создать' }).click()
-  // Именно cuid, а не `[^/]+`: тот совпадал и с `/jtbd/new?productId=…`
-  // (ни `?`, ни `=` не слэши), поэтому ожидание проходило мгновенно, ещё на
-  // форме, и следующий переход случался до того, как запись создавалась.
-  await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)
-
-  await page.goto('/reports/gaps')
+  await page.waitForURL(/\/reports\/gaps\?productId=c[a-z0-9]{10,}$/)
   await expect(page.locator('li').filter({ hasText: segmentName })).toHaveCount(0)
 })
 

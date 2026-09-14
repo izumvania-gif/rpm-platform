@@ -22,13 +22,20 @@ export default async function PmGanttPage({
   const context = await loadPmContext(searchParams.productId)
   const { product, people, userId } = context
 
-  const roadmapItems = product
-    ? await prisma.roadmapItem.findMany({
-        where: { productId: product.id, userId },
-        orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
-        include: { owner: true, feature: true, jtbd: true },
-      })
-    : []
+  const [roadmapItems, features] = product
+    ? await Promise.all([
+        prisma.roadmapItem.findMany({
+          where: { productId: product.id, userId },
+          orderBy: [{ quarter: 'asc' }, { createdAt: 'asc' }],
+          include: { owner: true, feature: true, jtbd: true },
+        }),
+        // Для селекта фичи в инлайн-форме (фаза 25 плана 2.4).
+        prisma.feature.findMany({
+          where: { productId: product.id, userId },
+          orderBy: { name: 'asc' },
+        }),
+      ])
+    : [[], []]
 
   return (
     <PmShell context={context}>
@@ -39,7 +46,7 @@ export default async function PmGanttPage({
               <CalendarClock size={15} strokeWidth={1.75} className="text-primary" />
               Гант
             </CardTitle>
-            <AddRoadmapItemForm productId={product.id} people={people} />
+            <AddRoadmapItemForm productId={product.id} people={people} features={features} />
           </CardHeader>
           <CardContent className="p-5">
             <GanttChart layout={buildGanttLayout(roadmapItems)} allowTrackChange />

@@ -169,13 +169,24 @@ export async function createRoadmapItemQuick(
   title: string,
   status: RoadmapStatus,
   quarter: string,
-  ownerId: string
+  ownerId: string,
+  // Фича — в инлайн-форме (фаза 25 плана 2.4): связь пункта с фичей раньше
+  // ставилась только в форме редактирования, то есть «вкладка → форма →
+  // вкладка» на каждый пункт. Необязательно: пункт не всегда уже существующая
+  // фича (см. platform-views-plan §1).
+  featureId = ''
 ): Promise<{ ok: true; item: RoadmapItemQuick } | { ok: false; error: string }> {
-  const denied = await denyUnowned('product', productId, getCurrentUserId())
+  const userId = getCurrentUserId()
+  const denied = await denyUnowned('product', productId, userId)
   if (denied) return denied
 
   const trimmedTitle = title.trim()
   if (!trimmedTitle) return { ok: false, error: 'Название обязательно' }
+
+  if (featureId) {
+    const featureDenied = await featureBelongsTo(featureId, productId, userId)
+    if (featureDenied) return featureDenied
+  }
 
   const item = await prisma.roadmapItem.create({
     data: {
@@ -183,13 +194,61 @@ export async function createRoadmapItemQuick(
       status,
       quarter: quarter.trim() || null,
       ownerId: ownerId || null,
+      featureId: featureId || null,
       visibility: RoadmapVisibility.INTERNAL,
       productId,
-      userId: getCurrentUserId(),
+      userId,
     },
     include: { owner: true, feature: true, jtbd: true },
   })
   revalidatePath('/pm/roadmap')
   revalidatePath('/pm/gantt')
   return { ok: true, item }
+}
+
+/** Фича — того же арендатора и того же продукта, что и пункт роадмапа. */
+async function featureBelongsTo(
+  featureId: string,
+  productId: string,
+  userId: string
+): Promise<{ ok: false; error: string } | null> {
+  const denied = await denyUnowned('feature', featureId, userId)
+  if (denied) return denied
+  const feature = await prisma.feature.findUnique({
+    where: { id: featureId },
+    select: { productId: true },
+  })
+  if (!feature || feature.productId !== productId) {
+    return { ok: false, error: 'Фича из другого продукта' }
+  }
+  return null
+}
+
+/**
+ * Инлайн-правка одного поля пункта роадмапа в строке списка (фаза 25 плана
+ * 2.4). Пока одно поле — фича: ровно то, ради чего приходилось ходить в форму.
+ * Пустое значение снимает связь.
+ */
+export async function updateRoadmapItemField(
+  id: string,
+  field: 'featureId',
+  value: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const userId = getCurrentUserId()
+  const denied = await denyUnowned('roadmapItem', id, userId)
+  if (denied) return denied
+
+  const item = await prisma.roadmapItem.findUnique({ where: { id }, select: { productId: true } })
+  if (!item) return { ok: false, error: 'Запись не найдена' }
+
+  if (value) {
+    const featureDenied = await featureBelongsTo(value, item.productId, userId)
+    if (featureDenied) return featureDenied
+  }
+
+  await prisma.roadmapItem.update({ where: { id }, data: { [field]: value || null } })
+  revalidatePath('/pm/roadmap')
+  revalidatePath('/pm/gantt')
+  revalidatePath('/cpo')
+  return { ok: true }
 }

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { RoadmapStatus, type Person } from '@prisma/client'
+import { RoadmapStatus, type Feature, type Person } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
@@ -14,16 +14,26 @@ import { InlineCreatePerson } from '@/components/shared/inline-create'
 // Inline "Добавить пункт" (plans/2.0-ux-improvement-plan.md, Фаза 5) — same
 // toggle-button-then-form shape as AddStepForm on the process canvas and
 // AddTeamMemberForm's roster picker. Trimmed to the fields a PM types most
-// often (title/status/quarter/owner); Gantt scheduling, feature/JTBD links,
-// visibility and description stay on the full page (still linked below),
-// reached via "Редактировать" on the item this creates.
-export function AddRoadmapItemForm({ productId, people }: { productId: string; people: Person[] }) {
+// often (title/status/quarter/owner, and since фаза 25 плана 2.4 the feature —
+// measured as the one link people went to the edit form for); Gantt
+// scheduling, the JTBD link, visibility and description stay on the full page
+// (still linked below), reached via "Редактировать" on the item this creates.
+export function AddRoadmapItemForm({
+  productId,
+  people,
+  features,
+}: {
+  productId: string
+  people: Person[]
+  features: Feature[]
+}) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState<RoadmapStatus>(RoadmapStatus.PLANNED)
   const [quarter, setQuarter] = useState('')
   const [ownerId, setOwnerId] = useState('')
+  const [featureId, setFeatureId] = useState('')
   const [localPeople, setLocalPeople] = useState(people)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -34,12 +44,20 @@ export function AddRoadmapItemForm({ productId, people }: { productId: string; p
     setStatus(RoadmapStatus.PLANNED)
     setQuarter('')
     setOwnerId('')
+    setFeatureId('')
     setError(null)
   }
 
   function submit() {
     startTransition(async () => {
-      const result = await createRoadmapItemQuick(productId, title, status, quarter, ownerId)
+      const result = await createRoadmapItemQuick(
+        productId,
+        title,
+        status,
+        quarter,
+        ownerId,
+        featureId
+      )
       if (!result.ok) {
         setError(result.error)
         return
@@ -101,6 +119,15 @@ export function AddRoadmapItemForm({ productId, people }: { productId: string; p
           setOwnerId(person.id)
         }}
       />
+      {/* Необязательно: пункт роадмапа — не всегда уже существующая фича. */}
+      <Select aria-label="Фича" value={featureId} onChange={(e) => setFeatureId(e.target.value)}>
+        <option value="">Без фичи</option>
+        {features.map((f) => (
+          <option key={f.id} value={f.id}>
+            {f.name}
+          </option>
+        ))}
+      </Select>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 

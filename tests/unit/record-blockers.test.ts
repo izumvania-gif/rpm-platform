@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { recordBlockers } from '@/lib/record-blockers'
+import { CONFIRM_RESEARCH_HASH, recordBlockers } from '@/lib/record-blockers'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -66,7 +66,24 @@ describe('jtbd', () => {
     })
     expect(blocker.key).toBe('unconfirmed')
     expect(blocker.label).toContain('не отмечена подтверждённой')
-    expect(blocker.actionLabel).toBe('Отметить подтверждённой')
+    expect(blocker.actionLabel).toBe('Подтвердить исследованием')
+  })
+
+  // Фаза 25 плана 2.4: подтверждение чинится на самой карточке — пикером
+  // исследования, а не двумя полями в форме редактирования, — и по правилу
+  // фазы 3 «чинится здесь → якорь» кнопка ведёт якорем к пикеру, не на /edit.
+  it('sends both wordings to the on-page research picker, never to the edit form', () => {
+    for (const hasResearch of [false, true]) {
+      const [blocker] = recordBlockers({
+        kind: 'jtbd',
+        id: 'j1',
+        productId: 'p1',
+        confirmed: false,
+        hasResearch,
+      })
+      expect(blocker.actionHref).toBe(CONFIRM_RESEARCH_HASH)
+      expect(blocker.actionHref).not.toContain('/edit')
+    }
   })
 
   it('is silent on a confirmed job', () => {

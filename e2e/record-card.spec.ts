@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import { createProductViaUI, selectOptionRobust, selectRadixOption, uniqueName } from './helpers'
 
 // Единый шаблон карточки (фаза 8 редизайна 2.1).
 //
@@ -77,13 +77,22 @@ test('карточка JTBD тоже правится кликом — и гов
 
   const blockers = page.getByRole('region', { name: 'Что мешает' })
   await expect(blockers).toContainText('Не подтверждён исследованием')
-  // Кнопка ведёт к привязке исследования, а не к галочке «подтверждён»:
-  // подтверждение означает «есть исследование», и ставить его одним кликом
-  // значило бы обманывать самого себя.
-  await expect(blockers.getByRole('link', { name: 'Привязать исследование' })).toHaveAttribute(
-    'href',
-    /\/edit$/
-  )
+  // Кнопка ведёт к пикеру исследования на этой же карточке (фаза 25 плана
+  // 2.4), а не к галочке «подтверждён» и не в форму: подтверждение означает
+  // «есть исследование», и ставить флаг одним кликом значило бы обманывать
+  // самого себя — пикер подтверждает только вместе с выбранным исследованием.
+  await blockers.getByRole('link', { name: 'Подтвердить исследованием' }).click()
+  const picker = page.getByRole('group', { name: 'Подтвердить исследованием' })
+  await expect(picker).toContainText('У продукта пока нет исследований')
+
+  // Исследования нет — создаём в пикере; создание и есть подтверждение.
+  await picker.getByRole('button', { name: '+ Новое исследование' }).click()
+  await picker.getByPlaceholder('Название исследования').fill(uniqueName('Интервью'))
+  await selectRadixOption(page, picker.getByLabel('Тип исследования'), 'Качественное')
+  await picker.getByRole('button', { name: 'Создать исследование' }).click()
+
+  await expect(page.getByText('Подтверждён', { exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Что мешает' })).toHaveCount(0)
 
   const renamed = `${title} (правлено)`
   await editInline(page, title, renamed)

@@ -23,6 +23,14 @@
 
 import { isStale } from '@/lib/utils'
 
+/**
+ * Якорь пикера «Подтвердить исследованием» на карточке задачи (фаза 25 плана
+ * 2.4): условие «не подтверждён» чинится на этой же странице, и кнопка ведёт
+ * якорем к пикеру, который по этому хэшу открывается сам. Лежит здесь, в
+ * чистом модуле, а не в компоненте пикера — тот `'use client'`.
+ */
+export const CONFIRM_RESEARCH_HASH = '#confirm-research'
+
 export type RecordKind = 'segment' | 'jtbd' | 'feature' | 'rtb' | 'competitor'
 
 export interface Blocker {
@@ -113,15 +121,17 @@ export function recordBlockers(input: BlockerInput): Blocker[] {
                 key: 'unconfirmed',
                 label: 'Исследование привязано, но задача не отмечена подтверждённой',
                 hint: 'Пока флага нет, отчёт «Пробелы» считает задачу догадкой.',
-                actionLabel: 'Отметить подтверждённой',
-                actionHref: `/jtbd/${input.id}/edit`,
+                actionLabel: 'Подтвердить исследованием',
+                // Чинится здесь же (фаза 25): пикер на карточке, а не два поля
+                // в форме редактирования ради одного намерения.
+                actionHref: CONFIRM_RESEARCH_HASH,
               }
             : {
                 key: 'unconfirmed',
                 label: 'Не подтверждён исследованием',
                 hint: 'К задаче не привязано ни одного исследования — она записана, но не проверена.',
-                actionLabel: 'Привязать исследование',
-                actionHref: `/jtbd/${input.id}/edit`,
+                actionLabel: 'Подтвердить исследованием',
+                actionHref: CONFIRM_RESEARCH_HASH,
               }
         )
       }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildGapTasks, totalGapTasks, type GapTasksInput } from '@/lib/gap-tasks'
+import { buildGapTasks, gapsQueuePath, totalGapTasks, type GapTasksInput } from '@/lib/gap-tasks'
 
 const product = { id: 'p1', name: 'Продукт А' }
 
@@ -58,7 +58,7 @@ describe('buildGapTasks', () => {
     expect(group.tasks[0].href).toBe('/research/new?productId=p1')
   })
 
-  it('offers a one-click move only for a stuck hypothesis', () => {
+  it('offers quick actions only where one click resolves the gap without inventing a fact', () => {
     const groups = buildGapTasks(
       input({
         stuckHypotheses: [{ id: 'h1', statement: 'Гипотеза', product }],
@@ -66,20 +66,57 @@ describe('buildGapTasks', () => {
         segmentsWithoutJtbd: [{ id: 's1', name: 'Банки', product }],
       })
     )
+    // A stuck hypothesis moves to review; an unconfirmed JTBD gets a research
+    // picker (the research is chosen, never invented). A segment without a JTBD
+    // needs a new record and therefore a form, so it has no quick action.
     const quick = groups.flatMap((g) => g.tasks).filter((t) => t.quickAction)
-    expect(quick).toHaveLength(1)
-    expect(quick[0].kind).toBe('stuck-hypothesis')
-    expect(quick[0].quickAction).toBe('hypothesis-to-review')
+    expect(quick.map((t) => [t.kind, t.quickAction])).toEqual([
+      ['stuck-hypothesis', 'hypothesis-to-review'],
+      ['unconfirmed-jtbd', 'jtbd-confirm'],
+    ])
   })
 
-  it('never offers a one-click confirm for an unconfirmed JTBD', () => {
-    // Confirming claims research backing; a button here would let the queue
-    // rubber-stamp the metric it exists to measure.
+  it('confirms an unconfirmed JTBD only through a research picker, never a bare button', () => {
+    // Confirming claims research backing; a one-click button here would let
+    // the queue rubber-stamp the metric it exists to measure. The picker asks
+    // which research first (фаза 25 плана 2.4), so the claim is made, not
+    // skipped — and the card stays one link away for everything else.
     const [group] = buildGapTasks(
       input({ unconfirmedJtbds: [{ id: 'j1', title: 'JTBD', product }] })
     )
-    expect(group.tasks[0].quickAction).toBeUndefined()
+    expect(group.tasks[0].quickAction).toBe('jtbd-confirm')
     expect(group.tasks[0].href).toBe('/jtbd/j1')
+    expect(group.tasks[0].actionLabel).toBe('Открыть')
+  })
+
+  it('carries the queue as `from` so every action can come back (фаза 25)', () => {
+    const returnTo = '/reports/gaps?productId=p1'
+    const groups = buildGapTasks(
+      input({
+        segmentsWithoutJtbd: [{ id: 's1', name: 'Банки', product }],
+        productsWithoutRecentResearch: [product],
+        stuckHypotheses: [{ id: 'h1', statement: 'Гипотеза', product }],
+        unconfirmedJtbds: [{ id: 'j1', title: 'JTBD', product }],
+      }),
+      { returnTo }
+    )
+    const hrefs = Object.fromEntries(groups.map((g) => [g.kind, g.tasks[0].href]))
+    const from = `from=${encodeURIComponent(returnTo)}`
+    // Form actions: `&` after the prefilled params; card actions: `?`.
+    expect(hrefs['segment-without-jtbd']).toBe(`/jtbd/new?productId=p1&segmentId=s1&${from}`)
+    expect(hrefs['product-without-research']).toBe(`/research/new?productId=p1&${from}`)
+    expect(hrefs['stuck-hypothesis']).toBe(`/hypotheses/h1?${from}`)
+    expect(hrefs['unconfirmed-jtbd']).toBe(`/jtbd/j1?${from}`)
+  })
+
+  it('names the product on every task, for the row pickers', () => {
+    const groups = buildGapTasks(
+      input({
+        segmentsWithoutJtbd: [{ id: 's1', name: 'Банки', product }],
+        unconfirmedJtbds: [{ id: 'j1', title: 'JTBD', product }],
+      })
+    )
+    for (const task of groups.flatMap((g) => g.tasks)) expect(task.productId).toBe('p1')
   })
 
   it('gives every task an id unique across kinds', () => {
@@ -144,5 +181,21 @@ describe('totalGapTasks', () => {
 
   it('is zero for an empty queue', () => {
     expect(totalGapTasks([])).toBe(0)
+  })
+})
+
+describe('gapsQueuePath', () => {
+  it('accepts only the queue itself, with or without a scope', () => {
+    expect(gapsQueuePath('/reports/gaps')).toBe('/reports/gaps')
+    expect(gapsQueuePath('/reports/gaps?productId=p1')).toBe('/reports/gaps?productId=p1')
+    expect(gapsQueuePath('/reports/gaps?productId=all')).toBe('/reports/gaps?productId=all')
+  })
+
+  it('rejects anything that is not the queue — the link is labelled «К очереди»', () => {
+    expect(gapsQueuePath('/reports/gapsx')).toBeNull()
+    expect(gapsQueuePath('/reports/segments-jtbd')).toBeNull()
+    expect(gapsQueuePath('https://evil.example/reports/gaps')).toBeNull()
+    expect(gapsQueuePath('/reports/gaps?x=\\evil')).toBeNull()
+    expect(gapsQueuePath(undefined)).toBeNull()
   })
 })

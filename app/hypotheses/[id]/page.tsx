@@ -38,6 +38,7 @@ import { ReadinessChecklist } from '@/components/hypotheses/readiness-checklist'
 import { EvidencePicker } from '@/components/hypotheses/evidence-picker'
 import { Badge } from '@/components/ui/badge'
 import { recordTitle } from '@/lib/record-title'
+import { gapsQueuePath } from '@/lib/gap-tasks'
 
 // Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
 // полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
@@ -63,7 +64,7 @@ export default async function HypothesisDetailPage({
   searchParams,
 }: {
   params: { id: string }
-  searchParams: { stance?: string }
+  searchParams: { stance?: string; from?: string }
 }) {
   const hypothesis = await prisma.hypothesis.findFirst({
     where: { id: params.id, userId: getCurrentUserId() },
@@ -129,6 +130,10 @@ export default async function HypothesisDetailPage({
     new Map(hypothesis.features.flatMap((f) => f.rtbs).map((rtb) => [rtb.id, rtb])).values()
   )
 
+  // Карточка, открытая из очереди «Пробелов», ведёт обратно в очередь (фаза 25
+  // плана 2.4) — то же, что contextLink у RecordPage на карточке задачи.
+  const backToQueueHref = gapsQueuePath(searchParams.from)
+
   const deleteHypothesisWithId = deleteHypothesis.bind(null, hypothesis.id)
   const toggleHypothesisPinnedWithId = toggleHypothesisPinned.bind(
     null,
@@ -155,6 +160,13 @@ export default async function HypothesisDetailPage({
         ]}
       />
       <div>
+        {backToQueueHref && (
+          <div className="mb-2">
+            <Link href={backToQueueHref} className="text-sm text-muted-foreground hover:underline">
+              ← К очереди
+            </Link>
+          </div>
+        )}
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h1 className="text-2xl font-bold">
             <InlineEditableField

@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test'
-import { confirmDelete, createProductViaUI, selectOptionRobust, uniqueName } from './helpers'
+import {
+  confirmDelete,
+  createProductViaUI,
+  selectOptionRobust,
+  selectRadixOption,
+  uniqueName,
+} from './helpers'
 
 test('add a roadmap item on /pm, see it grouped by quarter, then delete it', async ({ page }) => {
   const productName = uniqueName('Roadmap Product')
@@ -25,6 +31,36 @@ test('add a roadmap item on /pm, see it grouped by quarter, then delete it', asy
   await confirmDelete(page)
   await page.waitForURL(new RegExp(`/pm/roadmap\\?productId=${productId}`))
   await expect(page.getByText(itemTitle)).toHaveCount(0)
+})
+
+// Фаза 25 плана 2.4: связь «пункт ↔ фича» была единственной, ради которой
+// приходилось идти в форму редактирования. Теперь она в инлайн-форме и в
+// строке пункта — тем же инлайн-селектом, что связи инсайта.
+test('фича пункта роадмапа ставится и снимается без формы редактирования', async ({ page }) => {
+  const productName = uniqueName('Roadmap Feature Product')
+  const productUrl = await createProductViaUI(page, productName)
+  const productId = productUrl.split('/').pop()!
+
+  const featureName = uniqueName('Выпуск по QR')
+  await page.goto('/features/new')
+  await page.getByLabel('Название').fill(featureName)
+  await page.getByRole('button', { name: 'Создать' }).click()
+  await page.waitForURL(/\/features\/c[a-z0-9]{10,}$/)
+
+  await page.goto(`/pm/roadmap?productId=${productId}`)
+  await page.getByRole('button', { name: 'Добавить пункт' }).click()
+  const itemTitle = uniqueName('QR-выпуск в проде')
+  await page.getByPlaceholder('Название').fill(itemTitle)
+  await selectOptionRobust(page, page.getByLabel('Фича'), featureName)
+  await page.getByRole('button', { name: 'Добавить', exact: true }).click()
+
+  const row = page.locator('li').filter({ hasText: itemTitle })
+  await expect(row.getByRole('button', { name: featureName })).toBeVisible()
+
+  // И снять — тем же селектом в строке.
+  await row.getByRole('button', { name: featureName }).click()
+  await selectRadixOption(page, row.getByRole('combobox'), '— без фичи')
+  await expect(row.getByRole('button', { name: '+ фича' })).toBeVisible()
 })
 
 test('assigning a roadmap item owner shows their workload in the Команда section', async ({

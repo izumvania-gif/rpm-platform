@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { ChainRibbon } from '@/components/shared/chain-ribbon'
 import { RecordPage, RecordSection } from '@/components/shared/record-page'
+import { ConfirmWithResearch } from '@/components/jtbd/confirm-with-research'
 import { recordBlockers } from '@/lib/record-blockers'
+import { gapsQueuePath } from '@/lib/gap-tasks'
 import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 import { isStale } from '@/lib/utils'
 import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
@@ -60,6 +62,9 @@ export default async function JtbdDetailPage({
     searchParams.from === 'graph'
       ? `/jtbd/graph?productId=${searchParams.productId ?? jtbd.product.id}`
       : null
+  // Карточка, открытая из очереди «Пробелов», ведёт обратно в очередь (фаза 25
+  // плана 2.4): раньше, закрыв пробел здесь, очередь приходилось искать заново.
+  const backToQueueHref = gapsQueuePath(searchParams.from)
 
   return (
     <RecordPage
@@ -133,10 +138,16 @@ export default async function JtbdDetailPage({
         />
       }
       contextLink={
-        backToGraphHref && (
+        backToGraphHref ? (
           <Link href={backToGraphHref} className="text-sm text-muted-foreground hover:underline">
             ← Назад к графу
           </Link>
+        ) : (
+          backToQueueHref && (
+            <Link href={backToQueueHref} className="text-sm text-muted-foreground hover:underline">
+              ← К очереди
+            </Link>
+          )
         )
       }
       meta={
@@ -157,7 +168,20 @@ export default async function JtbdDetailPage({
             display="badge"
             badgeVariant="outline"
           />
-          {jtbd.confirmed && <Badge variant="green">Подтверждён</Badge>}
+          {jtbd.confirmed ? (
+            <Badge variant="green">Подтверждён</Badge>
+          ) : (
+            // На месте бейджа — действие, которое его ставит (фаза 25 плана
+            // 2.4): выбрать исследование и подтвердить, не уходя в форму. Блок
+            // «Что мешает» ниже ведёт сюда якорем и открывает пикер.
+            <ConfirmWithResearch
+              hashOpens
+              jtbdId={jtbd.id}
+              productId={jtbd.product.id}
+              currentResearchId={jtbd.researchId}
+              fullFormHref={`/jtbd/${jtbd.id}/edit`}
+            />
+          )}
           {isStale(jtbd.updatedAt) && (
             <Badge variant="outline" className="text-muted-foreground">
               Давно не проверялось

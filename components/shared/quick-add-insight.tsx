@@ -24,7 +24,18 @@ export function QuickAddInsight({
   jtbds: JTBD[]
   initialInsights: Insight[]
 }) {
-  const [insights, setInsights] = useState(initialInsights)
+  // Список — серверный список плюс добавленное здесь, а не копия в useState
+  // (план 2.4, найдено замером сценария «после звонка»): карточка разговора
+  // рядом с этой формой принимает подсказки «В инсайты» и делает
+  // router.refresh(), после которого сервер присылает новый initialInsights —
+  // а useState(initialInsights) брал проп один раз, и принятый инсайт не
+  // появлялся в списке до перезагрузки страницы, хотя счётчик в заголовке
+  // уже показывал единицу.
+  const [added, setAdded] = useState<Insight[]>([])
+  const insights = [
+    ...initialInsights,
+    ...added.filter((a) => !initialInsights.some((i) => i.id === a.id)),
+  ]
   const [text, setText] = useState('')
   const [segmentId, setSegmentId] = useState('')
   const [jtbdId, setJtbdId] = useState('')
@@ -46,7 +57,7 @@ export function QuickAddInsight({
         setError(result.error)
         return
       }
-      setInsights((prev) => [...prev, result.insight])
+      setAdded((prev) => [...prev, result.insight])
       setText('')
       setSegmentId('')
       setJtbdId('')

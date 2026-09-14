@@ -25,6 +25,9 @@ test('a transcript offers its quotes as insights, and accepting one saves it', a
 
   // Accepted suggestions stop being offered, and the insight is real.
   await expect(page.getByText('прямая речь в кавычках')).toHaveCount(0)
+  // …и сразу виден в списке инсайтов карточки, без перезагрузки (план 2.4):
+  // список читает серверные пропсы, а не копию в useState.
+  await expect(page.locator('main').getByTitle(quote)).toBeVisible()
   await page.goto('/insights')
   await expect(page.getByText(quote)).toBeVisible()
 })

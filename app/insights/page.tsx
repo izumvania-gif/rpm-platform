@@ -17,6 +17,7 @@ import { LinkBadge } from '@/components/knowledge/link-badge'
 import { insightLinkBadge } from '@/lib/knowledge-links'
 import { insightKeyPhrase } from '@/lib/key-phrase'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Инсайты' }
 
@@ -64,10 +65,10 @@ export default async function InsightsPage({ searchParams }: { searchParams: { s
         <div className="flex flex-wrap items-center gap-2">
           <QuickAddButton
             type="insight"
-            href="/insights/new?from=/insights"
+            href={newRecordHref('/insights')}
             label="Быстро добавить инсайт — одно поле, не уходя со страницы"
           />
-          <Link href="/insights/new?from=/insights" className={buttonVariants()}>
+          <Link href={newRecordHref('/insights')} className={buttonVariants()}>
             Новый инсайт
           </Link>
         </div>

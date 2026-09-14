@@ -11,6 +11,7 @@ import { hypothesisStatusLabels } from '@/lib/labels'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Гипотезы' }
 
@@ -39,10 +40,10 @@ export default async function HypothesesPage() {
         <div className="flex flex-wrap items-center gap-2">
           <QuickAddButton
             type="hypothesis"
-            href="/hypotheses/new?from=/hypotheses"
+            href={newRecordHref('/hypotheses')}
             label="Быстро добавить гипотезу — одно поле, не уходя со страницы"
           />
-          <Link href="/hypotheses/new?from=/hypotheses" className={buttonVariants()}>
+          <Link href={newRecordHref('/hypotheses')} className={buttonVariants()}>
             Новая гипотеза
           </Link>
         </div>

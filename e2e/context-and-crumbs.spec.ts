@@ -47,16 +47,9 @@ test('у гипотезы есть крошки: продукт / раздел',
   await page.goto('/hypotheses/new')
   await page.getByLabel('Формулировка').fill(statement)
   await page.getByRole('button', { name: 'Создать' }).click()
-  // Не `/hypotheses/[id]`: этому шаблону удовлетворяет и сам `/hypotheses/new`,
-  // на котором мы стоим, — ждём ухода с формы. Если создание вернуло в список,
-  // открываем карточку оттуда.
-  await page.waitForURL((u) => u.pathname !== '/hypotheses/new')
-  if (new URL(page.url()).pathname === '/hypotheses') {
-    // Карточка на канбане показывает ключевую фразу; полная формулировка —
-    // в `title` ссылки (тот же приём, что в accessibility.spec.ts).
-    await page.locator(`a[title="${statement}"]`).first().click()
-    await page.waitForURL((u) => /^\/hypotheses\/(?!new$)[0-9a-z]+$/.test(u.pathname))
-  }
+  // Создание приземляет на карточку (фаза 24 плана 2.4). `c[a-z0-9]{10,}`,
+  // а не `[^/]+`: последнему удовлетворяет и сам `/hypotheses/new`.
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
 
   const crumbs = page.getByRole('navigation', { name: 'Хлебные крошки' })
   await expect(crumbs.getByRole('link', { name: productName })).toBeVisible()

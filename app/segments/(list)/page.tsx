@@ -13,6 +13,7 @@ import { toggleSegmentPinned } from '@/lib/actions/segments'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Сегменты' }
 
@@ -52,10 +53,10 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
           </Link>
           <QuickAddButton
             type="segment"
-            href="/segments/new?from=/segments"
+            href={newRecordHref('/segments')}
             label="Быстро добавить сегмент — одно поле, не уходя со страницы"
           />
-          <Link href="/segments/new?from=/segments" className={buttonVariants()}>
+          <Link href={newRecordHref('/segments')} className={buttonVariants()}>
             Новый сегмент
           </Link>
         </div>

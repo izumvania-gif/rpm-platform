@@ -12,6 +12,7 @@ import { toggleCompetitorPinned } from '@/lib/actions/competitors'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Конкуренты' }
 
@@ -63,10 +64,10 @@ export default async function CompetitorsPage({
         <div className="flex flex-wrap items-center gap-2">
           <QuickAddButton
             type="competitor"
-            href="/competitors/new?from=/competitors"
+            href={newRecordHref('/competitors')}
             label="Быстро добавить конкурента — одно поле, не уходя со страницы"
           />
-          <Link href="/competitors/new?from=/competitors" className={buttonVariants()}>
+          <Link href={newRecordHref('/competitors')} className={buttonVariants()}>
             Новый конкурент
           </Link>
         </div>

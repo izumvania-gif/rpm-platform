@@ -26,6 +26,12 @@ export type CaptureTypeDef = {
   /** Spelled out per type: Russian agreement is gendered, so «Сегмент сохранёна» is what deriving it produces. */
   saved: string
   /**
+   * Where the created record's own page lives — «Открыть →» after saving
+   * (фаза 24 плана 2.4). A string prefix, not a function: this table is read
+   * by a Server Component too, and a function would not survive that boundary.
+   */
+  recordPath: string
+  /**
    * A second required field. Only JTBD has one, and that is the entire reason
    * it can be offered here at all: a category is required by the model, and a
    * JTBD saved with a junk placeholder category would pollute the coverage and
@@ -38,6 +44,7 @@ export type CaptureTypeDef = {
 export const CAPTURE_TYPES: CaptureTypeDef[] = [
   {
     value: 'insight',
+    recordPath: '/insights',
     label: 'Инсайт',
     placeholder: 'Цитата клиента или ключевой вывод',
     href: '/insights/new',
@@ -46,6 +53,7 @@ export const CAPTURE_TYPES: CaptureTypeDef[] = [
   },
   {
     value: 'hypothesis',
+    recordPath: '/hypotheses',
     label: 'Гипотеза',
     placeholder: 'Если …, то …',
     href: '/hypotheses/new',
@@ -54,6 +62,7 @@ export const CAPTURE_TYPES: CaptureTypeDef[] = [
   },
   {
     value: 'segment',
+    recordPath: '/segments',
     label: 'Сегмент',
     placeholder: 'Название сегмента',
     href: '/segments/new',
@@ -62,6 +71,7 @@ export const CAPTURE_TYPES: CaptureTypeDef[] = [
   },
   {
     value: 'jtbd',
+    recordPath: '/jtbd',
     label: 'JTBD',
     placeholder: 'Когда …, я хочу …, чтобы …',
     href: '/jtbd/new',
@@ -76,6 +86,7 @@ export const CAPTURE_TYPES: CaptureTypeDef[] = [
   },
   {
     value: 'feature',
+    recordPath: '/features',
     label: 'Фича',
     placeholder: 'Название фичи',
     href: '/features/new',
@@ -84,6 +95,7 @@ export const CAPTURE_TYPES: CaptureTypeDef[] = [
   },
   {
     value: 'rtb',
+    recordPath: '/marketing',
     label: 'Обещание',
     placeholder: 'Обещание, опирающееся на фичу',
     href: '/marketing/new',
@@ -92,6 +104,7 @@ export const CAPTURE_TYPES: CaptureTypeDef[] = [
   },
   {
     value: 'competitor',
+    recordPath: '/competitors',
     label: 'Конкурент',
     placeholder: 'Название конкурента',
     href: '/competitors/new',

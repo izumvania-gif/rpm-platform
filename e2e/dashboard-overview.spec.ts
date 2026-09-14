@@ -88,7 +88,7 @@ test('очередь решений молчит, пока гипотеза не
   await page.getByLabel('Формулировка гипотезы').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать', exact: true }).click()
-  await page.waitForURL(/\/hypotheses$/)
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
 
   await page.goto('/')
   // Гипотеза есть, но у неё нет ни критерия, ни доказательств, ни адресата —

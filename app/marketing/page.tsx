@@ -13,6 +13,7 @@ import { toggleRTBPinned } from '@/lib/actions/rtbs'
 import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Обещания' }
 
@@ -56,10 +57,10 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
         <div className="flex flex-wrap items-center gap-2">
           <QuickAddButton
             type="rtb"
-            href="/marketing/new?from=/marketing"
+            href={newRecordHref('/marketing')}
             label="Быстро добавить обещание — одно поле, не уходя со страницы"
           />
-          <Link href="/marketing/new?from=/marketing" className={buttonVariants()}>
+          <Link href={newRecordHref('/marketing')} className={buttonVariants()}>
             Новое обещание
           </Link>
         </div>

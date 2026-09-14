@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { gotoShortcuts } from '@/lib/keyboard-shortcuts-data'
+import { CREATE_LANDING, newRecordHref } from '@/lib/create-landing'
 
 const NEW_ROUTES: [string, string][] = [
   ['/products', '/products/new'],
@@ -81,9 +82,11 @@ export function KeyboardShortcuts() {
         )
         if (match) {
           e.preventDefault()
-          // С тем же `?from=`, что и кнопка «Новый …» на списке: иначе после
-          // сохранения хоткей уводил на карточку, а кнопка — в список (фаза 20).
-          router.push(`${match[1]}?from=${encodeURIComponent(match[0])}`)
+          // Туда же, куда кнопка «Новый …» на списке (фаза 20): приземление
+          // после сохранения решает таблица lib/create-landing.ts, и хоткей
+          // читает её же — иначе кнопка вернёт в список, а хоткей уведёт на
+          // карточку. Раздел вне таблицы (продукты) идёт на голую форму.
+          router.push(match[0] in CREATE_LANDING ? newRecordHref(match[0]) : match[1])
         }
         return
       }

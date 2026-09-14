@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { KnowledgeTabs } from '@/components/knowledge/knowledge-tabs'
 import { LinkBadge } from '@/components/knowledge/link-badge'
 import { conversationLinkBadge } from '@/lib/knowledge-links'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Разговоры' }
 
@@ -62,7 +63,7 @@ export default async function ConversationsPage({
           title="Разговоры"
           description={moduleByHref['/conversations'].description}
         />
-        <Link href="/conversations/new?from=/conversations" className={buttonVariants()}>
+        <Link href={newRecordHref('/conversations')} className={buttonVariants()}>
           Новый разговор
         </Link>
       </div>

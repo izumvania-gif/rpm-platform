@@ -47,7 +47,9 @@ export default async function SalesHubPage({
   const selectedProductId =
     (searchParams.productId && products.some((p) => p.id === searchParams.productId)
       ? searchParams.productId
-      : undefined) ?? (await getActiveProductId(userId)) ?? undefined
+      : undefined) ??
+    (await getActiveProductId(userId)) ??
+    undefined
 
   const q = (searchParams.q ?? '').trim()
 

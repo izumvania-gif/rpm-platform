@@ -375,9 +375,18 @@ export function InlineCreateRTB({
 
 export function InlineCreateInsight({
   productId,
+  segmentId,
+  jtbdId,
   onCreated,
 }: {
   productId: string
+  /**
+   * Сегмент и задача, уже известные вызывающему (фаза 24 плана 2.4): инсайт,
+   * созданный из пикера доказательств, раньше знал только продукт и гипотезу
+   * — и висел «ни с чем не связанным» на стороне базы знаний.
+   */
+  segmentId?: string | null
+  jtbdId?: string | null
   onCreated: (insight: Insight) => void
 }) {
   const [text, setText] = useState('')
@@ -393,7 +402,7 @@ export function InlineCreateInsight({
       canSubmit={text.trim() !== ''}
       onReset={() => setText('')}
       onSubmit={async () => {
-        const result = await createInsightQuick(productId, text)
+        const result = await createInsightQuick(productId, text, segmentId, jtbdId)
         if (!result.ok) return result.error
         onCreated(result.insight)
         return null

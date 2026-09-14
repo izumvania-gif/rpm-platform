@@ -2,12 +2,20 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import type { Insight, JTBD, Segment } from '@prisma/client'
+import {
+  InsightStance,
+  type Hypothesis,
+  type Insight,
+  type JTBD,
+  type Segment,
+} from '@prisma/client'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { createInsightQuick } from '@/lib/actions/insights'
-import { insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
+import { InlineEditableField } from '@/components/shared/inline-editable-field'
+import { createInsightQuick, updateInsightField } from '@/lib/actions/insights'
+import { hypothesisKeyPhrase, insightKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
+import { insightStanceLabels } from '@/lib/labels'
 
 export function QuickAddInsight({
   productId,
@@ -15,6 +23,7 @@ export function QuickAddInsight({
   conversationId,
   segments,
   jtbds,
+  hypotheses,
   initialInsights,
 }: {
   productId: string
@@ -22,6 +31,7 @@ export function QuickAddInsight({
   conversationId?: string
   segments: Segment[]
   jtbds: JTBD[]
+  hypotheses: Hypothesis[]
   initialInsights: Insight[]
 }) {
   // Список — серверный список плюс добавленное здесь, а не копия в useState
@@ -41,6 +51,28 @@ export function QuickAddInsight({
   const [jtbdId, setJtbdId] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+
+  // Пикеры в строках (фаза 24 плана 2.4). Замер сценария «после звонка»
+  // показал 11 переходов, и четыре из них — на каждый инсайт: чтобы привязать
+  // цитату к задаче или гипотезе, надо было открыть инсайт, перейти в форму,
+  // сохранить, вернуться. Здесь та же связь ставится на месте тем же
+  // updateInsightField, что и на карточке инсайта.
+  const jtbdOptions = [
+    { value: '', label: '— без задачи' },
+    ...jtbds.map((j) => ({ value: j.id, label: jtbdKeyPhrase(j.title) })),
+  ]
+  const jtbdLabels = Object.fromEntries(jtbds.map((j) => [j.id, jtbdKeyPhrase(j.title)]))
+  const hypothesisOptions = [
+    { value: '', label: '— без гипотезы' },
+    ...hypotheses.map((h) => ({ value: h.id, label: hypothesisKeyPhrase(h.statement) })),
+  ]
+  const hypothesisLabels = Object.fromEntries(
+    hypotheses.map((h) => [h.id, hypothesisKeyPhrase(h.statement)])
+  )
+  const stanceOptions = [
+    { value: '', label: 'Без стороны' },
+    ...Object.values(InsightStance).map((value) => ({ value, label: insightStanceLabels[value] })),
+  ]
 
   function submit() {
     if (!text.trim()) return
@@ -70,12 +102,49 @@ export function QuickAddInsight({
       {insights.length === 0 ? (
         <p className="text-sm text-muted-foreground">Инсайтов пока нет.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="divide-y">
           {insights.map((i) => (
-            <li key={i.id} className="text-sm">
+            <li key={i.id} className="space-y-1 py-2 text-sm first:pt-0 last:pb-0">
               <Link href={`/insights/${i.id}`} title={i.text} className="hover:underline">
                 {insightKeyPhrase(i.text)}
               </Link>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span>
+                  Задача:{' '}
+                  <InlineEditableField
+                    value={i.jtbdId ?? ''}
+                    type="select"
+                    options={jtbdOptions}
+                    labels={jtbdLabels}
+                    placeholder="+ задача"
+                    action={(value) => updateInsightField(i.id, 'jtbdId', value)}
+                  />
+                </span>
+                <span>
+                  Гипотеза:{' '}
+                  <InlineEditableField
+                    value={i.hypothesisId ?? ''}
+                    type="select"
+                    options={hypothesisOptions}
+                    labels={hypothesisLabels}
+                    placeholder="+ гипотеза"
+                    action={(value) => updateInsightField(i.id, 'hypothesisId', value)}
+                  />
+                </span>
+                {i.hypothesisId && (
+                  <span>
+                    Сторона:{' '}
+                    <InlineEditableField
+                      value={i.stance ?? ''}
+                      type="select"
+                      options={stanceOptions}
+                      labels={insightStanceLabels}
+                      placeholder="+ сторона"
+                      action={(value) => updateInsightField(i.id, 'stance', value)}
+                    />
+                  </span>
+                )}
+              </div>
             </li>
           ))}
         </ul>

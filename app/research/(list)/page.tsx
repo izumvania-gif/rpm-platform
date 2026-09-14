@@ -18,6 +18,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { KnowledgeTabs } from '@/components/knowledge/knowledge-tabs'
 import { LinkBadge } from '@/components/knowledge/link-badge'
 import { researchLinkBadge } from '@/lib/knowledge-links'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Исследования' }
 
@@ -75,7 +76,7 @@ export default async function ResearchPage({
           title="Исследования"
           description={moduleByHref['/research'].description}
         />
-        <Link href="/research/new?from=/research" className={buttonVariants()}>
+        <Link href={newRecordHref('/research')} className={buttonVariants()}>
           Новое исследование
         </Link>
       </div>

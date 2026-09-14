@@ -40,7 +40,7 @@ export default async function ConversationDetailPage({ params }: { params: { id:
 
   const activeProductId = await getActiveProductId(getCurrentUserId())
 
-  const [segments, jtbds] = await Promise.all([
+  const [segments, jtbds, hypotheses] = await Promise.all([
     prisma.segment.findMany({
       where: { productId: conversation.productId, userId },
       orderBy: { name: 'asc' },
@@ -48,6 +48,12 @@ export default async function ConversationDetailPage({ params }: { params: { id:
     prisma.jTBD.findMany({
       where: { productId: conversation.productId, userId },
       orderBy: { title: 'asc' },
+    }),
+    // Для пикеров в строках инсайтов (фаза 24 плана 2.4): после звонка каждый
+    // инсайт привязывается к задаче и гипотезе здесь же, а не через его форму.
+    prisma.hypothesis.findMany({
+      where: { productId: conversation.productId, userId },
+      orderBy: { createdAt: 'desc' },
     }),
   ])
 
@@ -179,6 +185,7 @@ export default async function ConversationDetailPage({ params }: { params: { id:
             conversationId={conversation.id}
             segments={segments}
             jtbds={jtbds}
+            hypotheses={hypotheses}
             initialInsights={conversation.insights}
           />
         </CardContent>

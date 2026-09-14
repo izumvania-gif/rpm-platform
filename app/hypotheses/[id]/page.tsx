@@ -422,6 +422,8 @@ export default async function HypothesisDetailPage({
           <EvidencePicker
             hypothesisId={hypothesis.id}
             productId={hypothesis.product.id}
+            segmentId={chainSegments[0]?.id ?? null}
+            jtbdId={hypothesis.jtbdId}
             fullFormHref={`/insights/new?productId=${hypothesis.product.id}&hypothesisId=${hypothesis.id}&from=/hypotheses/${hypothesis.id}`}
           />
         </CardContent>

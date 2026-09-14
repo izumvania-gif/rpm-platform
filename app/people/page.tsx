@@ -7,6 +7,7 @@ import { PinButton } from '@/components/shared/pin-button'
 import { PersonAvatar } from '@/components/shared/person-avatar'
 import { togglePersonPinned } from '@/lib/actions/people'
 import { EmptyState } from '@/components/shared/empty-state'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Люди' }
 
@@ -26,7 +27,7 @@ export default async function PeoplePage() {
           title="Люди"
           description="Справочник команды — кто чем занимается и за какие продукты отвечает"
         />
-        <Link href="/people/new?from=/people" className={buttonVariants()}>
+        <Link href={newRecordHref('/people')} className={buttonVariants()}>
           Новый человек
         </Link>
       </div>

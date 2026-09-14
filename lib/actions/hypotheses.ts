@@ -52,7 +52,7 @@ export async function createHypothesis(formData: FormData) {
   await assertOwned('product', parsed.data.productId, getCurrentUserId())
 
   const { tags, ...data } = parsed.data
-  await prisma.hypothesis.create({
+  const hypothesis = await prisma.hypothesis.create({
     data: {
       ...data,
       tags: toTagsArray(tags),
@@ -61,7 +61,11 @@ export async function createHypothesis(formData: FormData) {
     },
   })
   revalidatePath('/hypotheses')
-  redirect(safeRedirectPath(formData.get('redirectTo'), '/hypotheses'))
+  // На карточку, как у остальных моделей (фаза 24 плана 2.4): следующий шаг
+  // после создания — критерий проверки, а он на карточке. Доска остаётся за
+  // кнопкой со списка через `from`, если раздел решит вернуться туда
+  // (см. lib/create-landing.ts — сейчас гипотеза считается рабочим типом).
+  redirect(safeRedirectPath(formData.get('redirectTo'), `/hypotheses/${hypothesis.id}`))
 }
 
 export async function updateHypothesis(id: string, formData: FormData) {

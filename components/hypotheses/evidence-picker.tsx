@@ -28,10 +28,15 @@ import { attachEvidence, evidenceCandidates } from '@/lib/actions/evidence'
 export function EvidencePicker({
   hypothesisId,
   productId,
+  segmentId,
+  jtbdId,
   fullFormHref,
 }: {
   hypothesisId: string
   productId: string
+  /** Сегмент и задача гипотезы — достаются новому инсайту (фаза 24). */
+  segmentId?: string | null
+  jtbdId?: string | null
   /** Полная форма инсайта с уже проставленной гипотезой. */
   fullFormHref: string
 }) {
@@ -196,6 +201,8 @@ export function EvidencePicker({
           <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-2">
             <InlineCreateInsight
               productId={productId}
+              segmentId={segmentId}
+              jtbdId={jtbdId}
               onCreated={(insight) => attach(insight.id)}
             />
             <div className="flex items-center gap-3">

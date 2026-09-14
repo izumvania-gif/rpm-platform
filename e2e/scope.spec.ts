@@ -97,7 +97,7 @@ test('хоткей n ведёт на форму с возвратом в спи�
   await page.goto('/segments')
   await page.locator('body').click({ position: { x: 5, y: 5 } })
   await page.keyboard.press('n')
-  await page.waitForURL(/\/segments\/new\?from=%2Fsegments$/)
+  await page.waitForURL(/\/segments\/new\?from=(%2F|\/)segments$/)
 })
 
 test('/pm с несуществующим productId говорит об этом, а не подменяет молча', async ({ page }) => {

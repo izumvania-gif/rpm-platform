@@ -5,6 +5,7 @@ import { pluralizeRu } from '@/lib/plural'
 import { buttonVariants } from '@/components/ui/button'
 import { SectionHeading } from '@/components/shared/section-heading'
 import { EmptyState } from '@/components/shared/empty-state'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Департаменты' }
 
@@ -27,7 +28,7 @@ export default async function DepartmentsPage() {
           title="Департаменты"
           description="Стратегическая группировка продуктов для CPO — например MFA-продукты, Электронная подпись, IoT-безопасность"
         />
-        <Link href="/departments/new?from=/departments" className={buttonVariants()}>
+        <Link href={newRecordHref('/departments')} className={buttonVariants()}>
           Новый департамент
         </Link>
       </div>

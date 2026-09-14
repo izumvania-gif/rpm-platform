@@ -52,25 +52,51 @@ import {
  * erase them to a common shape, losing exactly the argument checking that
  * makes the JTBD category impossible to forget.
  */
-function createByType(type: CaptureType, productId: string, value: string, extra: string) {
+type CreateResult = { ok: true; id: string } | { ok: false; error: string }
+
+/**
+ * Один ответ на все семь экшенов: id созданной записи. Каждый createXQuick
+ * возвращает запись под своим именем (`insight`, `segment`, …); модалке нужен
+ * только id — для ссылки «Открыть →» после сохранения (фаза 24 плана 2.4).
+ */
+async function createByType(
+  type: CaptureType,
+  productId: string,
+  value: string,
+  extra: string
+): Promise<CreateResult> {
   switch (type) {
-    case 'insight':
-      return createInsightQuick(productId, value)
-    case 'hypothesis':
-      return createHypothesisQuick(productId, value)
-    case 'segment':
-      return createSegmentQuick(productId, value)
-    case 'jtbd':
+    case 'insight': {
+      const r = await createInsightQuick(productId, value)
+      return r.ok ? { ok: true, id: r.insight.id } : r
+    }
+    case 'hypothesis': {
+      const r = await createHypothesisQuick(productId, value)
+      return r.ok ? { ok: true, id: r.hypothesis.id } : r
+    }
+    case 'segment': {
+      const r = await createSegmentQuick(productId, value)
+      return r.ok ? { ok: true, id: r.segment.id } : r
+    }
+    case 'jtbd': {
       // SMALL_JOB is the schema's own default for jobType — the modal does not
       // invent a classification, it leaves the field at what a record created
       // anywhere else without an explicit choice would get.
-      return createJtbdQuick(productId, value, extra, 'SMALL_JOB')
-    case 'feature':
-      return createFeatureQuick(productId, value)
-    case 'rtb':
-      return createRTBQuick(productId, value)
-    case 'competitor':
-      return createCompetitorQuick(productId, value)
+      const r = await createJtbdQuick(productId, value, extra, 'SMALL_JOB')
+      return r.ok ? { ok: true, id: r.jtbd.id } : r
+    }
+    case 'feature': {
+      const r = await createFeatureQuick(productId, value)
+      return r.ok ? { ok: true, id: r.feature.id } : r
+    }
+    case 'rtb': {
+      const r = await createRTBQuick(productId, value)
+      return r.ok ? { ok: true, id: r.rtb.id } : r
+    }
+    case 'competitor': {
+      const r = await createCompetitorQuick(productId, value)
+      return r.ok ? { ok: true, id: r.competitor.id } : r
+    }
   }
 }
 
@@ -85,7 +111,7 @@ export function QuickCapture() {
   /** Set when opened from a «+» that already knows the product. */
   const [presetProductId, setPresetProductId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState<string | null>(null)
+  const [saved, setSaved] = useState<{ text: string; href: string } | null>(null)
   const [isPending, startTransition] = useTransition()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -160,11 +186,23 @@ export function QuickCapture() {
       setText('')
       setExtra('')
       setError(null)
-      setSaved(activeType.saved)
+      // Вместе со ссылкой на запись (фаза 24 плана 2.4): захват — одно поле,
+      // а связи (сегмент, задача, гипотеза) ставятся уже на карточке, и без
+      // ссылки дорога туда шла через список — «список → карточка → форма».
+      setSaved({ text: activeType.saved, href: `${activeType.recordPath}/${result.id}` })
       textareaRef.current?.focus()
       router.refresh()
     })
-  }, [text, extra, productId, type, activeType.extraField, activeType.saved, router])
+  }, [
+    text,
+    extra,
+    productId,
+    type,
+    activeType.extraField,
+    activeType.saved,
+    activeType.recordPath,
+    router,
+  ])
 
   useEffect(() => {
     if (!saved) return
@@ -288,7 +326,14 @@ export function QuickCapture() {
           </Link>
           {saved && (
             <span role="status" className="ml-auto text-xs text-muted-foreground">
-              {saved}
+              {saved.text}{' '}
+              <Link
+                href={saved.href}
+                onClick={() => setOpen(false)}
+                className="text-primary hover:underline"
+              >
+                Открыть →
+              </Link>
             </span>
           )}
         </div>

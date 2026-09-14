@@ -54,7 +54,12 @@ test('captured type switches between insight, hypothesis and segment', async ({ 
   const segmentName = uniqueName('Банки топ-30')
   await dialog.getByRole('textbox').fill(segmentName)
   await dialog.getByRole('button', { name: 'Сохранить' }).click()
-  await expect(page.getByRole('status')).toHaveText('Сегмент сохранён')
+  // Рядом со статусом — «Открыть →» на созданную запись (фаза 24 плана 2.4).
+  await expect(page.getByRole('status')).toContainText('Сегмент сохранён')
+  await expect(page.getByRole('status').getByRole('link', { name: 'Открыть →' })).toHaveAttribute(
+    'href',
+    /\/segments\/c[a-z0-9]{10,}$/
+  )
 
   await page.keyboard.press('Escape')
   await page.goto('/segments')

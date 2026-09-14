@@ -18,6 +18,7 @@ import { coveragePercent } from '@/lib/dashboard-metrics'
 import { EmptyState } from '@/components/shared/empty-state'
 import { jtbdKeyPhrase } from '@/lib/key-phrase'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'JTBD' }
 
@@ -51,10 +52,10 @@ export default async function JtbdPage() {
           <JtbdViewTabs active="list" />
           <QuickAddButton
             type="jtbd"
-            href="/jtbd/new?from=/jtbd"
+            href={newRecordHref('/jtbd')}
             label="Быстро добавить JTBD — одно поле, не уходя со страницы"
           />
-          <Link href="/jtbd/new?from=/jtbd" className={buttonVariants()}>
+          <Link href={newRecordHref('/jtbd')} className={buttonVariants()}>
             Новый JTBD
           </Link>
         </div>

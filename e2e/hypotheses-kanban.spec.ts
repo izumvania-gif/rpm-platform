@@ -10,7 +10,9 @@ test('drag a hypothesis card to a different status column', async ({ page }) => 
   await page.getByLabel('Формулировка гипотезы').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL('/hypotheses')
+  // Создание приземляет на карточку (фаза 24 плана 2.4); доска — отдельно.
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
+  await page.goto('/hypotheses')
 
   const card = page.locator('[draggable="true"]').filter({ has: byFullText(page, statement) })
   await expect(card).toBeVisible()

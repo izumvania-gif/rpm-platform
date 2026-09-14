@@ -1,16 +1,19 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { CREATE_LANDING, newRecordHref } from '@/lib/create-landing'
 
-// «У каждой формы `*/new` есть `from`» (фаза 23 аудита 2.3).
+// «У каждой формы `*/new` есть `from`» (фаза 23 аудита 2.3), и с фазы 24
+// плана 2.4 — «и у каждого раздела решено, куда приземляется «Создать»».
 //
 // Аудит нашёл две формы (человек и департамент), у которых `redirectTo` не
 // доходил до формы — на одной он стоял вне тега и рендерился как текст, на
 // другой список не передавал `from`. Ни один тест этого не ловил: каждая
 // форма проверяется своим спеком, а «правило для всех форм» не проверял никто.
 // Этот тест — то самое правило: страница создания читает `searchParams.from`
-// и отдаёт его форме как `redirectTo`, а «Новый …» на списке раздела несёт
-// `?from=/<раздел>`. Исключения — только с причиной.
+// и отдаёт его форме как `redirectTo`, а «Новый …» на списке раздела ведёт
+// ровно туда, куда говорит таблица `CREATE_LANDING` — пачковые типы с
+// `?from=`, рабочие без. Исключения — только с причиной.
 
 const ROOT = process.cwd()
 
@@ -84,12 +87,39 @@ describe('every create form can return where it came from', () => {
       expect(source).toMatch(/<\w+Form[\s\S]*?redirectTo=\{searchParams\.from\}[\s\S]*?\/>/)
     })
 
-    it(`the «Новый …» link on ${sectionOf(page)} carries ?from=`, () => {
+    it(`${sectionOf(page)} has a landing decision in CREATE_LANDING`, () => {
+      // Новый раздел с формой создания обязан решить, пачковый он или
+      // рабочий, — иначе кнопка «Новый …» унаследует чужое поведение молча.
+      expect(Object.keys(CREATE_LANDING)).toContain(sectionOf(page))
+    })
+
+    it(`the «Новый …» link on ${sectionOf(page)} lands where CREATE_LANDING says`, () => {
       const section = sectionOf(page)
       const listPage = listPageOf(section)
       expect(listPage, `у раздела ${section} нет страницы списка`).not.toBeNull()
       const source = readFileSync(listPage!, 'utf8')
-      expect(source).toContain(`${section}/new?from=${section}`)
+      // Ссылка собирается хелпером, а не пишется руками: тогда и `from`, и
+      // его отсутствие — следствие таблицы, а не памяти автора страницы.
+      expect(source).toContain(`newRecordHref('${section}')`)
+      // И у рабочего типа `from` на кнопке нет — иначе таблица врёт.
+      if (CREATE_LANDING[section] === 'record') {
+        expect(source).not.toContain(`${section}/new?from=`)
+      }
     })
   }
+})
+
+describe('newRecordHref', () => {
+  it('sends batch types back to the list and working types to the record', () => {
+    expect(newRecordHref('/segments')).toBe('/segments/new?from=/segments')
+    expect(newRecordHref('/conversations')).toBe('/conversations/new')
+  })
+
+  it('has no section in the table without a create page', () => {
+    for (const section of Object.keys(CREATE_LANDING)) {
+      expect(newPages, `${section} есть в таблице, но формы создания нет`).toContain(
+        `app${section}/new/page.tsx`
+      )
+    }
+  })
 })

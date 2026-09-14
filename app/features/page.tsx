@@ -12,6 +12,7 @@ import { FeatureFilterForm } from '@/components/forms/feature-filter-form'
 import { toggleFeaturePinned } from '@/lib/actions/features'
 import { moduleByHref } from '@/lib/module-meta'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
+import { newRecordHref } from '@/lib/create-landing'
 
 export const metadata = { title: 'Фичи' }
 
@@ -88,10 +89,10 @@ export default async function FeaturesPage({
         <div className="flex flex-wrap items-center gap-2">
           <QuickAddButton
             type="feature"
-            href="/features/new?from=/features"
+            href={newRecordHref('/features')}
             label="Быстро добавить фичу — одно поле, не уходя со страницы"
           />
-          <Link href="/features/new?from=/features" className={buttonVariants()}>
+          <Link href={newRecordHref('/features')} className={buttonVariants()}>
             Новая фича
           </Link>
         </div>

@@ -22,8 +22,9 @@ test('n creates a new record in a section that supports it', async ({ page }) =>
   await page.locator('body').click({ position: { x: 5, y: 5 } })
 
   await page.keyboard.press('n')
-  // С фазы 20 хоткей несёт `?from=` списка, как и кнопка «Новый …».
-  await page.waitForURL(/\/segments\/new\?from=%2Fsegments$/)
+  // С фазы 20 хоткей несёт `?from=` списка, как и кнопка «Новый …» — с фазы 24
+  // плана 2.4 буквально ту же строку из lib/create-landing.ts, без кодирования.
+  await page.waitForURL(/\/segments\/new\?from=(%2F|\/)segments$/)
 })
 
 test('shortcuts are ignored while typing in a text field', async ({ page }) => {

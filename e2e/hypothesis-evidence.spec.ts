@@ -17,10 +17,8 @@ test('an empty hypothesis is honest about having nothing to decide on', async ({
   await page.getByLabel('Формулировка гипотезы').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL('/hypotheses')
-
-  await page.getByTitle(statement).first().click()
-  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}/)
+  // Создание приземляет прямо на карточку (фаза 24 плана 2.4).
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
 
   // Ничего не заполнено: 0 из 4, и ни одного очка за пустоту.
   await expect(page.getByText('0 из 4')).toBeVisible()
@@ -56,9 +54,8 @@ test('linking an insight recounts the checklist and moves the balance', async ({
   await page.getByLabel('Формулировка гипотезы').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL('/hypotheses')
-  await page.getByTitle(statement).first().click()
-  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}/)
+  // Создание приземляет прямо на карточку (фаза 24 плана 2.4).
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
   const hypothesisUrl = page.url()
 
   await expect(page.getByText('0 из 4')).toBeVisible()
@@ -112,9 +109,8 @@ test('the evidence filter shows one side at a time', async ({ page }) => {
   await page.getByLabel('Формулировка гипотезы').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL('/hypotheses')
-  await page.getByTitle(statement).first().click()
-  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}/)
+  // Создание приземляет прямо на карточку (фаза 24 плана 2.4).
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
   const hypothesisUrl = page.url()
 
   const forQuote = uniqueName('«Визит в офис — главная причина, почему мы тянем»')
@@ -176,9 +172,8 @@ test('the picker attaches an insight that already exists, and stops offering it'
   await page.getByLabel('Формулировка гипотезы').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL('/hypotheses')
-  await page.getByTitle(statement).first().click()
-  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}/)
+  // Создание приземляет прямо на карточку (фаза 24 плана 2.4).
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
 
   await page.getByRole('button', { name: '+ Добавить доказательство' }).click()
   const panel = page.getByRole('group', { name: 'Добавить доказательство' })

@@ -33,6 +33,13 @@ test('дашборд считает цепочку и пробелы по акт
   await expect(
     page.getByTestId('dashboard-scope').getByRole('link', { name: /CPO/ })
   ).toHaveAttribute('href', '/cpo')
+
+  // Список считает тот же продукт, что и дашборд (фаза 23): «1» в цепочке —
+  // это ровно одна строка в /segments, а не одна из многих в базе.
+  await page.goto('/segments')
+  const rows = page.locator('main ul.divide-y > li')
+  await expect(rows).toHaveCount(1)
+  await expect(rows.first()).toContainText('Scope Segment')
 })
 
 test('«Пробелы» открываются по активному продукту, «Все продукты» — явный режим', async ({

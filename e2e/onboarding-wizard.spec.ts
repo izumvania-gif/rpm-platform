@@ -63,3 +63,38 @@ test('"Пропустить настройку" leaves the wizard for the produc
   await page.waitForURL(/\/products\/c[a-z0-9]{10,}$/)
   await expect(page.getByRole('heading', { name: productName })).toBeVisible()
 })
+
+test('сегмент из мастера не остаётся в «Пробелах» без задачи', async ({ page }) => {
+  // Аудит 2.3: мастер создавал сегмент, затем задачу — но не привязывал одну к
+  // другой, и первый же продукт открывал «Пробелы» со строкой «Сегменты без
+  // единого JTBD». С фазы 22 сегмент на шаге задач отмечен заранее; этот спек
+  // держит следствие: пройденный мастер не оставляет за собой этот пробел.
+  const productName = uniqueName('Gapless Wizard Product')
+  await page.goto('/products/new')
+  await page.getByLabel('Название').fill(productName)
+  await page.getByRole('button', { name: 'Создать и настроить →' }).click()
+  await page.waitForURL(/\/onboarding\/segments$/)
+  const productId = new URL(page.url()).pathname.split('/')[2]
+
+  const segmentName = uniqueName('Wizard Gapless Segment')
+  await page.getByPlaceholder('Например: Банки топ-30').fill(segmentName)
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  await expect(page.getByText(segmentName)).toBeVisible()
+
+  await page.getByRole('link', { name: 'Далее →' }).click()
+  await page.waitForURL(/\/onboarding\/jtbd$/)
+  await page
+    .getByPlaceholder('Когда …, я хочу …, чтобы …')
+    .fill(uniqueName('Когда истекает сертификат, я хочу продлить его сам'))
+  await page.getByPlaceholder('Категория').fill('Выпуск')
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  // Задача записана вместе с сегментом — это видно тут же, в строке списка.
+  await expect(
+    page.locator('li', { hasText: 'Выпуск' }).filter({ hasText: segmentName })
+  ).toBeVisible()
+
+  await page.goto(`/reports/gaps?productId=${productId}`)
+  await expect(page.getByText(`Очередь по продукту «${productName}»`)).toBeVisible()
+  await expect(page.getByText('Сегменты без единого JTBD')).toHaveCount(0)
+  await expect(page.getByText(segmentName)).toHaveCount(0)
+})

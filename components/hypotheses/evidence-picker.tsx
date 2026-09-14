@@ -74,13 +74,27 @@ export function EvidencePicker({
 
   // «К доказательствам» в чек-листе готовности — якорь сюда. Пустой список
   // доказательств не подсказывает, что делать; открытая панель — подсказывает.
+  //
+  // Два слушателя, а не один: `hashchange` ловит прямой переход по адресу с
+  // якорем, но клик по <Link href="#add-evidence"> внутри страницы идёт через
+  // pushState роутера Next, а pushState событие `hashchange` не поднимает —
+  // это и поймал E2E. Поэтому клик по любой ссылке на этот якорь слушается
+  // отдельно, на документе.
   useEffect(() => {
     const onHash = () => {
       if (window.location.hash === ADD_EVIDENCE_HASH) openPanel()
     }
+    const onClick = (event: MouseEvent) => {
+      const anchor = (event.target as HTMLElement | null)?.closest('a')
+      if (anchor && anchor.getAttribute('href') === ADD_EVIDENCE_HASH) openPanel()
+    }
     onHash()
     window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    document.addEventListener('click', onClick)
+    return () => {
+      window.removeEventListener('hashchange', onHash)
+      document.removeEventListener('click', onClick)
+    }
     // openPanel замыкает только сеттеры и hypothesisId — стабильные значения.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

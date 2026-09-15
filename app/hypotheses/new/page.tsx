@@ -15,6 +15,7 @@ export default async function NewHypothesisPage({
     from?: string
     error?: string
     productId?: string
+    researchId?: string
     jtbdId?: string
     segmentId?: string
     duplicateFrom?: string
@@ -72,6 +73,8 @@ export default async function NewHypothesisPage({
                   // этого текст, набранный в поиске или в быстром захвате, на
                   // пустой форме молча терялся (фаза 13).
                   statement: searchParams.statement,
+                  // С карточки исследования (фаза 26 плана 2.4).
+                  researchId: searchParams.researchId,
                 }
           }
           error={searchParams.error}

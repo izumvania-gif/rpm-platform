@@ -18,6 +18,7 @@ import {
   InlineCreateResearch,
   InlineCreateSegment,
 } from '@/components/shared/inline-create'
+import { MoreFields } from '@/components/forms/more-fields'
 import { hypothesisStatusLabels } from '@/lib/labels'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
@@ -140,29 +141,6 @@ export function HypothesisForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="status">Статус</Label>
-          <Select
-            id="status"
-            name="status"
-            defaultValue={defaultValues?.status ?? HypothesisStatus.DRAFT}
-          >
-            {Object.values(HypothesisStatus).map((status) => (
-              <option key={status} value={status}>
-                {hypothesisStatusLabels[status]}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="priority">Приоритет</Label>
-          <Input
-            id="priority"
-            name="priority"
-            type="number"
-            defaultValue={defaultValues?.priority ?? undefined}
-          />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="jtbdId">JTBD</Label>
           <Select
             id="jtbdId"
@@ -208,33 +186,69 @@ export function HypothesisForm({
             }}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="researchId">Исследование</Label>
-          <Select
-            id="researchId"
-            name="researchId"
-            value={researchId}
-            onChange={(e) => setResearchId(e.target.value)}
-          >
-            <option value="">Не указано</option>
-            {productResearches.map((r) => (
-              <option key={r.id} value={r.id}>
-                #{r.number} {r.title}
-              </option>
-            ))}
-          </Select>
-          <InlineCreateResearch
-            productId={productId}
-            onCreated={(research) => {
-              setLocalResearches((prev) => [...prev, research])
-              setResearchId(research.id)
-            }}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="tags">Теги (через запятую)</Label>
-          <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
-        </div>
+        {/* Статус, приоритет, исследование и теги — под «Дополнительно»
+            (фаза 26): новая гипотеза почти всегда «Черновик» без приоритета,
+            а статус меняется на доске. Открыто, если что-то из этого уже
+            задано — при редактировании или из ссылки. */}
+        <MoreFields
+          open={Boolean(
+            (defaultValues?.status && defaultValues.status !== HypothesisStatus.DRAFT) ||
+            defaultValues?.priority != null ||
+            defaultValues?.researchId ||
+            (defaultValues?.tags?.length ?? 0) > 0
+          )}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="status">Статус</Label>
+            <Select
+              id="status"
+              name="status"
+              defaultValue={defaultValues?.status ?? HypothesisStatus.DRAFT}
+            >
+              {Object.values(HypothesisStatus).map((status) => (
+                <option key={status} value={status}>
+                  {hypothesisStatusLabels[status]}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="priority">Приоритет</Label>
+            <Input
+              id="priority"
+              name="priority"
+              type="number"
+              defaultValue={defaultValues?.priority ?? undefined}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="researchId">Исследование</Label>
+            <Select
+              id="researchId"
+              name="researchId"
+              value={researchId}
+              onChange={(e) => setResearchId(e.target.value)}
+            >
+              <option value="">Не указано</option>
+              {productResearches.map((r) => (
+                <option key={r.id} value={r.id}>
+                  #{r.number} {r.title}
+                </option>
+              ))}
+            </Select>
+            <InlineCreateResearch
+              productId={productId}
+              onCreated={(research) => {
+                setLocalResearches((prev) => [...prev, research])
+                setResearchId(research.id)
+              }}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tags">Теги (через запятую)</Label>
+            <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
+          </div>
+        </MoreFields>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

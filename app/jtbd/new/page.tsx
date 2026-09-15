@@ -15,6 +15,7 @@ export default async function NewJtbdPage({
     from?: string
     error?: string
     productId?: string
+    researchId?: string
     duplicateFrom?: string
     // Set by the gaps queue (C3), which knows the segment whose missing JTBD
     // is the gap — arriving with it pre-ticked is the whole point of the link.
@@ -77,6 +78,8 @@ export default async function NewJtbdPage({
                   title: searchParams.title,
                   category: searchParams.category,
                   segmentIds: searchParams.segmentId ? [searchParams.segmentId] : undefined,
+                  // С карточки исследования (фаза 26 плана 2.4).
+                  researchId: searchParams.researchId,
                 }
           }
           error={searchParams.error}

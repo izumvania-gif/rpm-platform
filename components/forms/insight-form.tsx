@@ -20,6 +20,7 @@ import {
   InlineCreateResearch,
   InlineCreateSegment,
 } from '@/components/shared/inline-create'
+import { MoreFields } from '@/components/forms/more-fields'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 import { insightStanceLabels, insightStanceOrder } from '@/lib/labels'
 import { hypothesisKeyPhrase } from '@/lib/key-phrase'
@@ -180,44 +181,6 @@ export function InsightForm({
             }}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="researchId">Исследование</Label>
-          <Select
-            id="researchId"
-            name="researchId"
-            value={researchId}
-            onChange={(e) => setResearchId(e.target.value)}
-          >
-            <option value="">Не указано</option>
-            {productResearches.map((r) => (
-              <option key={r.id} value={r.id}>
-                #{r.number} {r.title}
-              </option>
-            ))}
-          </Select>
-          <InlineCreateResearch
-            productId={productId}
-            onCreated={(research) => {
-              setLocalResearches((prev) => [...prev, research])
-              setResearchId(research.id)
-            }}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="conversationId">Разговор</Label>
-          <Select
-            id="conversationId"
-            name="conversationId"
-            defaultValue={defaultValues?.conversationId ?? ''}
-          >
-            <option value="">Не указан</option>
-            {productConversations.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-              </option>
-            ))}
-          </Select>
-        </div>
         {/* Гипотеза и сторона — одна мысль, поэтому стоят рядом. Сторона
             спрашивается, а не выводится из текста: определить «за» или
             «против» по формулировке значило бы угадать за пользователя, а
@@ -248,10 +211,59 @@ export function InsightForm({
             ))}
           </Select>
         </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="tags">Теги (через запятую)</Label>
-          <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
-        </div>
+        {/* Источник и теги — реже, чем сегмент, задача и гипотеза: инсайт с
+            карточки разговора или исследования приходит с уже проставленным
+            источником, и тогда блок открыт (фаза 26). */}
+        <MoreFields
+          open={Boolean(
+            defaultValues?.researchId ||
+            defaultValues?.conversationId ||
+            (defaultValues?.tags?.length ?? 0) > 0
+          )}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="researchId">Исследование</Label>
+            <Select
+              id="researchId"
+              name="researchId"
+              value={researchId}
+              onChange={(e) => setResearchId(e.target.value)}
+            >
+              <option value="">Не указано</option>
+              {productResearches.map((r) => (
+                <option key={r.id} value={r.id}>
+                  #{r.number} {r.title}
+                </option>
+              ))}
+            </Select>
+            <InlineCreateResearch
+              productId={productId}
+              onCreated={(research) => {
+                setLocalResearches((prev) => [...prev, research])
+                setResearchId(research.id)
+              }}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="conversationId">Разговор</Label>
+            <Select
+              id="conversationId"
+              name="conversationId"
+              defaultValue={defaultValues?.conversationId ?? ''}
+            >
+              <option value="">Не указан</option>
+              {productConversations.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="tags">Теги (через запятую)</Label>
+            <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
+          </div>
+        </MoreFields>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

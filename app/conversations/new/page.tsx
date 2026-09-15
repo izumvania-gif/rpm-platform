@@ -15,6 +15,7 @@ export default async function NewConversationPage({
     from?: string
     error?: string
     productId?: string
+    researchId?: string
     duplicateFrom?: string
     // С карточки сегмента (секция «Разговоры», фаза 21): связь уже проставлена.
     segmentId?: string
@@ -58,6 +59,8 @@ export default async function NewConversationPage({
               : {
                   productId: searchParams.productId ?? activeProductId ?? undefined,
                   segmentId: searchParams.segmentId,
+                  // С карточки исследования (фаза 26 плана 2.4).
+                  researchId: searchParams.researchId,
                 }
           }
           error={searchParams.error}

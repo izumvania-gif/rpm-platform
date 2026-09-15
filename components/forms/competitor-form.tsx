@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
+import { MoreFields } from '@/components/forms/more-fields'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface CompetitorFormValues {
@@ -97,35 +98,51 @@ export function CompetitorForm({
             defaultValue={defaultValues?.positioning ?? ''}
           />
         </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="features">Фичи конкурента (через запятую)</Label>
-          <Input id="features" name="features" defaultValue={defaultValues?.features?.join(', ')} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="pricingModel">Модель ценообразования</Label>
-          <Input
-            id="pricingModel"
-            name="pricingModel"
-            defaultValue={defaultValues?.pricingModel ?? ''}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="companySize">Размер компании / стадия</Label>
-          <Input
-            id="companySize"
-            name="companySize"
-            defaultValue={defaultValues?.companySize ?? ''}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="lastCheckedAt">Дата последней проверки информации</Label>
-          <Input
-            id="lastCheckedAt"
-            name="lastCheckedAt"
-            type="date"
-            defaultValue={toDateInputValue(defaultValues?.lastCheckedAt)}
-          />
-        </div>
+        {/* Фичи, цена, размер и дата проверки — под «Дополнительно» (фаза 26):
+            конкурента заводят по названию и позиционированию, остальное
+            дописывают позже, часто с его карточки. */}
+        <MoreFields
+          open={Boolean(
+            (defaultValues?.features?.length ?? 0) > 0 ||
+            defaultValues?.pricingModel ||
+            defaultValues?.companySize ||
+            defaultValues?.lastCheckedAt
+          )}
+        >
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="features">Фичи конкурента (через запятую)</Label>
+            <Input
+              id="features"
+              name="features"
+              defaultValue={defaultValues?.features?.join(', ')}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pricingModel">Модель ценообразования</Label>
+            <Input
+              id="pricingModel"
+              name="pricingModel"
+              defaultValue={defaultValues?.pricingModel ?? ''}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="companySize">Размер компании / стадия</Label>
+            <Input
+              id="companySize"
+              name="companySize"
+              defaultValue={defaultValues?.companySize ?? ''}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="lastCheckedAt">Дата последней проверки информации</Label>
+            <Input
+              id="lastCheckedAt"
+              name="lastCheckedAt"
+              type="date"
+              defaultValue={toDateInputValue(defaultValues?.lastCheckedAt)}
+            />
+          </div>
+        </MoreFields>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

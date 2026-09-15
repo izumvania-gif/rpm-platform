@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { InlineCreateResearch, InlineCreateSegment } from '@/components/shared/inline-create'
+import { MoreFields } from '@/components/forms/more-fields'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 import { jtbdJobTypeDescriptions, jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 
@@ -143,29 +144,6 @@ export function JtbdForm({
             ))}
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="researchId">Исследование</Label>
-          <Select
-            id="researchId"
-            name="researchId"
-            value={researchId}
-            onChange={(e) => setResearchId(e.target.value)}
-          >
-            <option value="">Не указано</option>
-            {productResearches.map((r) => (
-              <option key={r.id} value={r.id}>
-                #{r.number} {r.title}
-              </option>
-            ))}
-          </Select>
-          <InlineCreateResearch
-            productId={productId}
-            onCreated={(research) => {
-              setLocalResearches((prev) => [...prev, research])
-              setResearchId(research.id)
-            }}
-          />
-        </div>
         <div className="space-y-2 sm:col-span-2">
           <Label>Сегменты</Label>
           <p className="text-xs text-muted-foreground">
@@ -207,28 +185,64 @@ export function JtbdForm({
             }}
           />
         </div>
-        <div className="flex items-center gap-2 sm:col-span-2">
-          <input
-            id="confirmed"
-            name="confirmed"
-            type="checkbox"
-            defaultChecked={defaultValues?.confirmed}
-            className="h-4 w-4 rounded border-input"
-          />
-          <Label htmlFor="confirmed">Подтверждено исследованием</Label>
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="description">Комментарий</Label>
-          <Textarea
-            id="description"
-            name="description"
-            defaultValue={defaultValues?.description ?? ''}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="tags">Теги (через запятую)</Label>
-          <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
-        </div>
+        {/* Исследование и флаг — под «Дополнительно» (фаза 26): подтверждение
+            ставится пикером на карточке задачи одним действием, а здесь
+            остаётся для правки остальных полей; комментарий и теги — реже
+            формулировки и сегментов. */}
+        <MoreFields
+          open={Boolean(
+            defaultValues?.researchId ||
+            defaultValues?.confirmed ||
+            defaultValues?.description ||
+            (defaultValues?.tags?.length ?? 0) > 0
+          )}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="researchId">Исследование</Label>
+            <Select
+              id="researchId"
+              name="researchId"
+              value={researchId}
+              onChange={(e) => setResearchId(e.target.value)}
+            >
+              <option value="">Не указано</option>
+              {productResearches.map((r) => (
+                <option key={r.id} value={r.id}>
+                  #{r.number} {r.title}
+                </option>
+              ))}
+            </Select>
+            <InlineCreateResearch
+              productId={productId}
+              onCreated={(research) => {
+                setLocalResearches((prev) => [...prev, research])
+                setResearchId(research.id)
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2 self-end pb-2">
+            <input
+              id="confirmed"
+              name="confirmed"
+              type="checkbox"
+              defaultChecked={defaultValues?.confirmed}
+              className="h-4 w-4 rounded border-input"
+            />
+            <Label htmlFor="confirmed">Подтверждено исследованием</Label>
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="description">Комментарий</Label>
+            <Textarea
+              id="description"
+              name="description"
+              defaultValue={defaultValues?.description ?? ''}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="tags">Теги (через запятую)</Label>
+            <Input id="tags" name="tags" defaultValue={defaultValues?.tags?.join(', ')} />
+          </div>
+        </MoreFields>
       </div>
       <SubmitButton>{submitLabel}</SubmitButton>
     </form>

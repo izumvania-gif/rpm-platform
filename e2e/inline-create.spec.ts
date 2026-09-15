@@ -21,6 +21,8 @@ test('a study can be created from inside the JTBD form, keeping what was typed',
   await page.getByLabel('Категория').fill('Выпуск')
 
   const researchTitle = uniqueName('Интервью с ИБ')
+  // Исследование на форме задачи — под «Дополнительно» (фаза 26 плана 2.4).
+  await page.getByText('Дополнительно', { exact: true }).click()
   await page.getByRole('button', { name: '+ Новое исследование' }).click()
   await page.getByPlaceholder('Название исследования').fill(researchTitle)
   // The type is asked, not defaulted — it drives the research cadence report.

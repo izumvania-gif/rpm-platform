@@ -16,9 +16,12 @@ import { Eyebrow } from '@/components/shared/eyebrow'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { QuickAddInsight } from '@/components/shared/quick-add-insight'
 import { InlineEditableField } from '@/components/shared/inline-editable-field'
-import { statusLabels, typeLabels } from '@/lib/labels'
+import { RecordSection } from '@/components/shared/record-page'
+import { ResearchLinkPicker } from '@/components/research/link-picker'
+import { hypothesisStatusLabels, statusLabels, typeLabels } from '@/lib/labels'
 import { isStale } from '@/lib/utils'
 import { recordTitle } from '@/lib/record-title'
+import { hypothesisKeyPhrase, jtbdKeyPhrase } from '@/lib/key-phrase'
 
 // Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
 // полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
@@ -32,7 +35,15 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
   const userId = getCurrentUserId()
   const research = await prisma.research.findFirst({
     where: { id: params.id, userId },
-    include: { product: true, insights: true },
+    include: {
+      product: true,
+      insights: true,
+      // Что опирается на исследование (фаза 26 плана 2.4): задачи, гипотезы и
+      // разговоры знали своё исследование, а карточка исследования — нет.
+      jtbds: { orderBy: { createdAt: 'desc' } },
+      hypotheses: { orderBy: { createdAt: 'desc' } },
+      conversations: { orderBy: { date: 'desc' } },
+    },
   })
 
   if (!research) notFound()
@@ -162,6 +173,99 @@ export default async function ResearchDetailPage({ params }: { params: { id: str
           />
         </p>
       </div>
+
+      {/* Что опирается на это исследование (фаза 26 плана 2.4, F6). Раньше
+          связь ставилась только из формы каждой записи, и после исследования
+          разобрать, какие задачи оно подтвердило, значило открыть их по одной.
+          Пикер — тот же паттерн, что «Добавить доказательство»: выбрать
+          существующую запись продукта или создать новую. Привязка задачи
+          ставит и флаг «подтверждена» — см. lib/actions/research-links.ts. */}
+      <RecordSection
+        title="Задачи, подтверждённые этим исследованием"
+        count={research.jtbds.length}
+        action={
+          <ResearchLinkPicker
+            researchId={research.id}
+            productId={research.productId}
+            kind="jtbd"
+            fullFormHref={`/jtbd/new?productId=${research.productId}&researchId=${research.id}&from=/research/${research.id}`}
+          />
+        }
+        empty="Ни одна задача клиента пока не опирается на это исследование."
+      >
+        <ul className="space-y-2">
+          {research.jtbds.map((jtbd) => (
+            <li key={jtbd.id} className="flex flex-wrap items-center gap-2 text-sm">
+              <Link href={`/jtbd/${jtbd.id}`} title={jtbd.title} className="hover:underline">
+                {jtbdKeyPhrase(jtbd.title)}
+              </Link>
+              {!jtbd.confirmed && (
+                <Badge variant="outline" className="text-muted-foreground">
+                  не отмечена подтверждённой
+                </Badge>
+              )}
+            </li>
+          ))}
+        </ul>
+      </RecordSection>
+
+      <RecordSection
+        title="Гипотезы"
+        count={research.hypotheses.length}
+        action={
+          <ResearchLinkPicker
+            researchId={research.id}
+            productId={research.productId}
+            kind="hypothesis"
+            fullFormHref={`/hypotheses/new?productId=${research.productId}&researchId=${research.id}&from=/research/${research.id}`}
+          />
+        }
+        empty="Ни одна гипотеза пока не опирается на это исследование."
+      >
+        <ul className="space-y-2">
+          {research.hypotheses.map((hypothesis) => (
+            <li key={hypothesis.id} className="flex flex-wrap items-center gap-2 text-sm">
+              <Link
+                href={`/hypotheses/${hypothesis.id}`}
+                title={hypothesis.statement}
+                className="hover:underline"
+              >
+                {hypothesisKeyPhrase(hypothesis.statement)}
+              </Link>
+              <span className="text-xs text-muted-foreground">
+                {hypothesisStatusLabels[hypothesis.status]}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </RecordSection>
+
+      <RecordSection
+        title="Разговоры"
+        count={research.conversations.length}
+        action={
+          <ResearchLinkPicker
+            researchId={research.id}
+            productId={research.productId}
+            kind="conversation"
+            fullFormHref={`/conversations/new?productId=${research.productId}&researchId=${research.id}&from=/research/${research.id}`}
+          />
+        }
+        empty="Ни один разговор пока не привязан к этому исследованию."
+      >
+        <ul className="space-y-2">
+          {research.conversations.map((conversation) => (
+            <li key={conversation.id} className="flex flex-wrap items-center gap-2 text-sm">
+              <Link href={`/conversations/${conversation.id}`} className="hover:underline">
+                {conversation.title}
+              </Link>
+              <span className="text-xs text-muted-foreground">
+                {conversation.date.toLocaleDateString('ru-RU')}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </RecordSection>
 
       <Card>
         <CardHeader className="border-l-4 border-primary">

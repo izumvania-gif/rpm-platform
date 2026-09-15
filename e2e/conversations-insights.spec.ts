@@ -18,6 +18,9 @@ test('a conversation links to an insight created from it', async ({ page }) => {
   await page.goto('/insights/new')
   await page.getByLabel('Цитата или вывод').fill(insightText)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
+  // Источник инсайта — под «Дополнительно» (фаза 26 плана 2.4): с карточки
+  // разговора он проставлен и блок открыт, с пустой формы его раскрывают.
+  await page.getByText('Дополнительно', { exact: true }).click()
   await selectRadixOption(page, page.getByLabel('Разговор'), convTitle)
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/insights\/c[a-z0-9]{10,}$/)

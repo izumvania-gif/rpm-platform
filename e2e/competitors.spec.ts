@@ -9,6 +9,8 @@ test('create a competitor and add/remove a news log entry', async ({ page }) => 
   await page.goto('/competitors/new')
   await page.getByLabel('Название').fill(competitorName)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
+  // Цена — под «Дополнительно» (фаза 26 плана 2.4).
+  await page.getByText('Дополнительно', { exact: true }).click()
   await page.getByLabel('Модель ценообразования').fill('Per seat')
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/competitors\/c[a-z0-9]{10,}$/)

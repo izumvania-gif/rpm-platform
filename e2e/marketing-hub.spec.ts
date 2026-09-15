@@ -21,6 +21,7 @@ test('shows the JTBD -> feature -> RTB chain for a segment, and upcoming roadmap
   await page.getByLabel('Категория').fill('Onboarding')
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel(segmentName).check()
+  await page.getByText('Дополнительно', { exact: true }).click()
   await page.getByLabel('Подтверждено исследованием').check()
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/jtbd\/(?!new)[^/]+$/)

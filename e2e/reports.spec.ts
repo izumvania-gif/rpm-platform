@@ -35,6 +35,9 @@ test('segments × JTBD matrix reflects a confirmed JTBD for its segment/category
   await page.getByLabel('Категория').fill(category)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByLabel(segmentName).check()
+  // Флаг — под «Дополнительно» (фаза 26 плана 2.4): на карточке его ставит
+  // пикер исследования, в форме он остался для правки остальных полей.
+  await page.getByText('Дополнительно', { exact: true }).click()
   await page.getByLabel('Подтверждено исследованием').check()
   await page.getByRole('button', { name: 'Создать' }).click()
   await page.waitForURL(/\/jtbd\/c[a-z0-9]{10,}$/)

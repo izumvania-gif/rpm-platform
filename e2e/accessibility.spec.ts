@@ -62,7 +62,9 @@ test('a kanban card can be opened and edited without a mouse', async ({ page }) 
   await page.getByLabel('Формулировка').fill(statement)
   await selectOptionRobust(page, page.getByLabel('Продукт', { exact: true }), productName)
   await page.getByRole('button', { name: 'Создать' }).click()
-  await page.waitForURL(/\/hypotheses\/[0-9a-z]+$/)
+  // Именно cuid: `[0-9a-z]+$` совпадал и с `/hypotheses/new`, ожидание
+  // проходило мгновенно, и `goto` ниже обрывал ещё не отправленную форму.
+  await page.waitForURL(/\/hypotheses\/c[a-z0-9]{10,}$/)
 
   await page.goto('/hypotheses')
   // The card shows the key phrase; the full statement lives in the title.

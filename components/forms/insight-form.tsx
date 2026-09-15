@@ -21,6 +21,8 @@ import {
   InlineCreateSegment,
 } from '@/components/shared/inline-create'
 import { MoreFields } from '@/components/forms/more-fields'
+import { Hint } from '@/components/ui/tooltip'
+import { glossaryHint } from '@/lib/glossary'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 import { insightStanceLabels, insightStanceOrder } from '@/lib/labels'
 import { hypothesisKeyPhrase } from '@/lib/key-phrase'
@@ -201,7 +203,10 @@ export function InsightForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="stance">Подтверждает или опровергает</Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="stance">Подтверждает или опровергает</Label>
+            <Hint text={glossaryHint('stance')} />
+          </div>
           <Select id="stance" name="stance" defaultValue={defaultValues?.stance ?? ''}>
             <option value="">Не выбрано</option>
             {insightStanceOrder.map((s) => (

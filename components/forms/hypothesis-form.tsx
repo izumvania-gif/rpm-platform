@@ -19,6 +19,8 @@ import {
   InlineCreateSegment,
 } from '@/components/shared/inline-create'
 import { MoreFields } from '@/components/forms/more-fields'
+import { Hint } from '@/components/ui/tooltip'
+import { glossaryHint } from '@/lib/glossary'
 import { hypothesisStatusLabels } from '@/lib/labels'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
@@ -112,7 +114,10 @@ export function HypothesisForm({
             отписки, а пустое поле честно говорит «критерия нет» и именно так
             и считается в чек-листе готовности. */}
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="validationCriterion">Критерий проверки</Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="validationCriterion">Критерий проверки</Label>
+            <Hint text={glossaryHint('validationCriterion')} />
+          </div>
           <Textarea
             id="validationCriterion"
             name="validationCriterion"

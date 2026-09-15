@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { InlineCreateResearch, InlineCreateSegment } from '@/components/shared/inline-create'
 import { MoreFields } from '@/components/forms/more-fields'
+import { Hint } from '@/components/ui/tooltip'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 import { jtbdJobTypeDescriptions, jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
 
@@ -95,7 +96,10 @@ export function JtbdForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="category">Категория</Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="category">Категория</Label>
+            <Hint text="Свободный текст с автодополнением; по категориям строится матрица Сегменты × JTBD" />
+          </div>
           <Input
             id="category"
             name="category"
@@ -229,6 +233,7 @@ export function JtbdForm({
               className="h-4 w-4 rounded border-input"
             />
             <Label htmlFor="confirmed">Подтверждено исследованием</Label>
+            <Hint text="Влияет на «Пробелы» и матрицу покрытия; на карточке задачи ставится вместе с исследованием одним действием" />
           </div>
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="description">Комментарий</Label>

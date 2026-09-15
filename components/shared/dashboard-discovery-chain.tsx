@@ -3,6 +3,7 @@ import { Link2 } from 'lucide-react'
 import type { ChainCounts } from '@/lib/discovery-chain'
 import { buildChainRows, chainIsEmpty } from '@/lib/discovery-chain'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
+import { Tooltip } from '@/components/ui/tooltip'
 
 // Five ratios against a limit → five meters, built exactly like the JTBD
 // coverage meter (dataviz skill, choosing-a-form.md). Deliberately NOT a
@@ -30,6 +31,7 @@ export function DashboardDiscoveryChain({ counts }: { counts: ChainCounts }) {
       icon={Link2}
       title="Цепочка дискавери"
       description="Сколько записей на каждом шаге связано с соседним звеном"
+      hint="Пять полосок, не воронка: каждая считается отдельно, наведите на звено, чтобы увидеть, что значит «связано»"
     >
       {chainIsEmpty(rows) ? (
         <p className="text-sm text-muted-foreground">
@@ -44,13 +46,13 @@ export function DashboardDiscoveryChain({ counts }: { counts: ChainCounts }) {
           {rows.map((row) => (
             <div key={row.key}>
               <div className="mb-1 flex items-baseline justify-between gap-3">
-                <Link
-                  href={row.href}
-                  className="truncate text-sm hover:underline"
-                  title={`Связано, если ${row.attachedTo}`}
-                >
-                  {row.label}
-                </Link>
+                {/* Что именно значит «связано» на этом шаге — подсказкой
+                    (фаза 27), а не `title`: её видит и клавиатура. */}
+                <Tooltip content={`Связано, если ${row.attachedTo}`}>
+                  <Link href={row.href} className="truncate text-sm hover:underline">
+                    {row.label}
+                  </Link>
+                </Tooltip>
                 <span className="shrink-0 font-mono text-xs text-muted-foreground">
                   {row.total === 0 ? 'нет записей' : `${row.attached} из ${row.total}`}
                 </span>

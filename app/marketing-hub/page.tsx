@@ -158,6 +158,7 @@ export default async function MarketingHubPage({
           <DashboardWidgetCard
             icon={Rocket}
             title="Скоро"
+            hint="Пункты роадмапа в работе и в плане; без дат — намеренно, чтобы не обещать сроки"
             description={`Роадмап продукта «${selectedSegment!.product.name}» — что скоро можно будет анонсировать`}
           >
             {upcoming.length === 0 ? (

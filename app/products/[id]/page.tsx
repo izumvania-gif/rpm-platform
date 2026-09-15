@@ -36,6 +36,7 @@ import { pmTabHref } from '@/lib/pm-nav'
 import { nextMilestone, roadmapStatusCounts } from '@/lib/product-delivery'
 import { roadmapStatusLabels, roadmapStatusOrder } from '@/lib/labels'
 import { PersonAvatar } from '@/components/shared/person-avatar'
+import { Hint, Tooltip } from '@/components/ui/tooltip'
 
 // Заголовок вкладки — имя записи (фаза 15). Один лёгкий запрос по нужному
 // полю, см. lib/record-title.ts; отсутствующую запись обработает сама страница.
@@ -302,6 +303,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <span className="text-xs uppercase tracking-wide">
             Публично (для дашборда компании):{' '}
           </span>
+          <Hint
+            text="Видно на дашборде компании без входа; остальные поля продукта туда не попадают"
+            className="mr-1"
+          />
           <InlineEditableField
             value={product.publicSummary ?? ''}
             type="textarea"
@@ -316,23 +321,29 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       <div className="flex flex-wrap items-start gap-2 print:hidden">
         {/* The canvas (C2) leads, because it is the one view that shows the
             whole chain at once rather than filling one more list. */}
-        <Link href={`/products/${product.id}/canvas`} className={buttonVariants({ size: 'sm' })}>
-          Холст продукта
-        </Link>
+        <Tooltip content="Держится ли цепочка сегмент → задача → гипотеза: канвас со связями; граф JTBD в разделе задач — о том, как задачи связаны между собой">
+          <Link href={`/products/${product.id}/canvas`} className={buttonVariants({ size: 'sm' })}>
+            Холст продукта
+          </Link>
+        </Tooltip>
         {/* Next to the canvas because it is the other half of the same job:
             the canvas draws the chain, this one fills it in in bulk. */}
-        <Link
-          href={`/products/${product.id}/links`}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
-        >
-          Связи
-        </Link>
-        <Link
-          href={`/inbox?productId=${product.id}`}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
-        >
-          Инбокс
-        </Link>
+        <Tooltip content="Четыре матрицы связей галочками, без форм">
+          <Link
+            href={`/products/${product.id}/links`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Связи
+          </Link>
+        </Tooltip>
+        <Tooltip content="Вставить заметки после встречи: каждая строка станет записью этого продукта">
+          <Link
+            href={`/inbox?productId=${product.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Инбокс
+          </Link>
+        </Tooltip>
         <BulkAddPanel productId={product.id} />
         <CsvImportPanel productId={product.id} />
         {/* Starter templates (A4) only while the product is still near-empty —

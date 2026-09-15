@@ -10,6 +10,7 @@ import { InlineEditableField } from '@/components/shared/inline-editable-field'
 import { ChainRibbon } from '@/components/shared/chain-ribbon'
 import { RecordPage, RecordSection } from '@/components/shared/record-page'
 import { ConfirmWithResearch } from '@/components/jtbd/confirm-with-research'
+import { Tooltip } from '@/components/ui/tooltip'
 import { recordBlockers } from '@/lib/record-blockers'
 import { gapsQueuePath } from '@/lib/gap-tasks'
 import { jtbdJobTypeLabels, jtbdJobTypeOrder } from '@/lib/jtbd-job-types'
@@ -169,7 +170,11 @@ export default async function JtbdDetailPage({
             badgeVariant="outline"
           />
           {jtbd.confirmed ? (
-            <Badge variant="green">Подтверждён</Badge>
+            <Tooltip content="Отмечено вручную или пикером; должно опираться на привязанное исследование">
+              <span tabIndex={0} className="inline-flex rounded-full">
+                <Badge variant="green">Подтверждён</Badge>
+              </span>
+            </Tooltip>
           ) : (
             // На месте бейджа — действие, которое его ставит (фаза 25 плана
             // 2.4): выбрать исследование и подтвердить, не уходя в форму. Блок

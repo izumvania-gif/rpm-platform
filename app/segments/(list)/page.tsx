@@ -14,6 +14,7 @@ import { moduleByHref } from '@/lib/module-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 import { newRecordHref } from '@/lib/create-landing'
+import { Tooltip } from '@/components/ui/tooltip'
 
 export const metadata = { title: 'Сегменты' }
 
@@ -48,9 +49,11 @@ export default async function SegmentsPage({ searchParams }: { searchParams: { s
           description={moduleByHref['/segments'].description}
         />
         <div className="flex flex-wrap gap-2">
-          <Link href="/reports/segments-jtbd" className={buttonVariants({ variant: 'outline' })}>
-            Матрица Сегменты × JTBD
-          </Link>
+          <Tooltip content="Строки — сегменты, столбцы — категории задач, в ячейке — подтверждено / всего">
+            <Link href="/reports/segments-jtbd" className={buttonVariants({ variant: 'outline' })}>
+              Матрица Сегменты × JTBD
+            </Link>
+          </Tooltip>
           <QuickAddButton
             type="segment"
             href={newRecordHref('/segments')}

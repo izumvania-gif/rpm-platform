@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Check, Circle, Minus } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
+import { Hint } from '@/components/ui/tooltip'
 import { ADD_EVIDENCE_HASH, type Readiness, type ReadinessKey } from '@/lib/hypothesis-readiness'
 
 // Чек-лист готовности к решению — вместе с кнопками «что с этим делать».
@@ -50,7 +51,7 @@ export function ReadinessChecklist({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm">
+      <p className="flex items-center gap-1.5 text-sm">
         <span className="font-mono text-lg font-bold tabular-nums">
           {readiness.met} из {readiness.total}
         </span>{' '}
@@ -59,6 +60,7 @@ export function ReadinessChecklist({
             ? '— всё на месте, гипотезу можно закрывать'
             : '— чего не хватает, чтобы закрыть гипотезу'}
         </span>
+        <Hint text="Четыре факта: критерий записан, привязано не меньше трёх доказательств, названы сегмент и задача, есть фича; у опровергнутой гипотезы фича не требуется" />
       </p>
       <ul className="space-y-1.5">
         {readiness.conditions.map((condition) => {

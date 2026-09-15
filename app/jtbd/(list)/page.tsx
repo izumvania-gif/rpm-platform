@@ -19,6 +19,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { jtbdKeyPhrase } from '@/lib/key-phrase'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 import { newRecordHref } from '@/lib/create-landing'
+import { Tooltip } from '@/components/ui/tooltip'
 
 export const metadata = { title: 'JTBD' }
 
@@ -68,12 +69,14 @@ export default async function JtbdPage() {
             записей · {coverage}% подтверждено исследованиями
           </p>
           <div className="flex flex-wrap gap-2">
-            <Link
-              href="/reports/segments-jtbd"
-              className={buttonVariants({ variant: 'outline', size: 'sm' })}
-            >
-              Матрица Сегменты × JTBD
-            </Link>
+            <Tooltip content="Строки — сегменты, столбцы — категории задач, в ячейке — подтверждено / всего">
+              <Link
+                href="/reports/segments-jtbd"
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                Матрица Сегменты × JTBD
+              </Link>
+            </Tooltip>
             <CsvExportButton
               filename="jtbd.csv"
               rows={jtbds.map((j) => ({

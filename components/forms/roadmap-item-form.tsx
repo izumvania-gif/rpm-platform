@@ -8,6 +8,7 @@ import { SubmitButton } from '@/components/shared/submit-button'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Hint } from '@/components/ui/tooltip'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { roadmapStatusLabels } from '@/lib/labels'
@@ -98,7 +99,10 @@ export function RoadmapItemForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="quarter">Квартал</Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="quarter">Квартал</Label>
+            <Hint text="Свободный текст, напр. 2026 Q3; по нему группируется список роадмапа" />
+          </div>
           <Input
             id="quarter"
             name="quarter"
@@ -107,7 +111,10 @@ export function RoadmapItemForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="visibility">Видимость</Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="visibility">Видимость</Label>
+            <Hint text="Публичный пункт виден на дашборде компании без входа — только название, статус и квартал, без описания и дат" />
+          </div>
           <Select
             id="visibility"
             name="visibility"

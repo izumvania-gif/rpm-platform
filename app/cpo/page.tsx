@@ -143,6 +143,7 @@ export default async function CpoViewPage({ searchParams }: { searchParams: { vi
         id="ecosystem"
         icon={GitMerge}
         title="Экосистема"
+        hint="Точное совпадение названий сегментов и категорий задач между продуктами; считается, не хранится"
         description="Вычисляемые пересечения между продуктами — по точному совпадению названия сегмента или категории JTBD (не хранится, не редактируется вручную)"
       >
         <div className="grid gap-4 sm:grid-cols-2">

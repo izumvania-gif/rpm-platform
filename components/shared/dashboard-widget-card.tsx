@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Hint } from '@/components/ui/tooltip'
 
 // Shared chrome for the Фаза 3 actionable/graph dashboard widgets — same
 // border-l-4 + title/description pattern already used by the Закреплённое
@@ -18,6 +19,7 @@ export function DashboardWidgetCard({
   icon: Icon,
   title,
   description,
+  hint,
   tone = 'primary',
   action,
   contentClassName,
@@ -27,6 +29,8 @@ export function DashboardWidgetCard({
   icon: LucideIcon
   title: string
   description?: string
+  /** Что здесь считается — значок ⓘ рядом с заголовком (фаза 27 плана 2.4). */
+  hint?: string
   tone?: 'primary' | 'secondary'
   action?: ReactNode
   contentClassName?: string
@@ -41,19 +45,24 @@ export function DashboardWidgetCard({
         )}
       >
         <div>
-          <CardTitle
-            className={cn(
-              'flex items-center gap-1.5',
-              tone === 'primary' ? 'text-base' : 'text-sm text-muted-foreground'
-            )}
-          >
-            <Icon
-              size={tone === 'primary' ? 15 : 13}
-              strokeWidth={1.75}
-              className={tone === 'primary' ? 'text-primary' : 'text-muted-foreground'}
-            />
-            {title}
-          </CardTitle>
+          {/* Значок — рядом с заголовком, не внутри: иначе он попал бы в
+              доступное имя заголовка. */}
+          <div className="flex items-center gap-1.5">
+            <CardTitle
+              className={cn(
+                'flex items-center gap-1.5',
+                tone === 'primary' ? 'text-base' : 'text-sm text-muted-foreground'
+              )}
+            >
+              <Icon
+                size={tone === 'primary' ? 15 : 13}
+                strokeWidth={1.75}
+                className={tone === 'primary' ? 'text-primary' : 'text-muted-foreground'}
+              />
+              {title}
+            </CardTitle>
+            {hint && <Hint text={hint} />}
+          </div>
           {description && <CardDescription>{description}</CardDescription>}
         </div>
         {action}

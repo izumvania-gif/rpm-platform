@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { MoreFields } from '@/components/forms/more-fields'
+import { Hint } from '@/components/ui/tooltip'
 import { getDefaultProductId, setDefaultProductId } from '@/lib/client-storage'
 
 export interface CompetitorFormValues {
@@ -134,7 +135,10 @@ export function CompetitorForm({
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="lastCheckedAt">Дата последней проверки информации</Label>
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="lastCheckedAt">Дата последней проверки информации</Label>
+              <Hint text="Через три месяца после этой даты карточка получит метку «давно не проверяли»" />
+            </div>
             <Input
               id="lastCheckedAt"
               name="lastCheckedAt"

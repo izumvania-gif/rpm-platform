@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { SiteNav } from '@/components/shared/site-nav'
 import { KeyboardShortcuts } from '@/components/shared/keyboard-shortcuts'
 import { QuickCapture } from '@/components/shared/quick-capture'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { getNavStage } from '@/lib/nav-stage'
 import { getProductContext, type ActiveProduct } from '@/lib/product-context.server'
 import { getCurrentUserId } from '@/lib/current-user'
@@ -94,21 +95,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           Перейти к содержимому
         </a>
-        <SiteNav
-          autoStage={autoStage}
-          products={productContext.products}
-          activeProductId={productContext.activeProductId}
-        />
-        <KeyboardShortcuts />
-        <QuickCapture />
-        {/* One wrapper here rather than an id on all 73 page-level <main>
-            elements: the target only has to exist once, and this cannot drift
-            out of sync when a new page is added. tabIndex={-1} is required —
-            without it several browsers scroll to the anchor but leave focus
-            behind in the nav, so the next Tab continues from the header. */}
-        <div id="main" tabIndex={-1} className="outline-none">
-          {children}
-        </div>
+        {/* Один провайдер подсказок на всё приложение (фаза 27 плана 2.4):
+            задержка и «быстрый повтор» между соседними подсказками общие. */}
+        <TooltipProvider>
+          <SiteNav
+            autoStage={autoStage}
+            products={productContext.products}
+            activeProductId={productContext.activeProductId}
+          />
+          <KeyboardShortcuts />
+          <QuickCapture />
+          {/* One wrapper here rather than an id on all 73 page-level <main>
+              elements: the target only has to exist once, and this cannot drift
+              out of sync when a new page is added. tabIndex={-1} is required —
+              without it several browsers scroll to the anchor but leave focus
+              behind in the nav, so the next Tab continues from the header. */}
+          <div id="main" tabIndex={-1} className="outline-none">
+            {children}
+          </div>
+        </TooltipProvider>
       </body>
     </html>
   )

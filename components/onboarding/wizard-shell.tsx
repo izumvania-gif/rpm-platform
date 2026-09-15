@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
+import { Hint, Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { WIZARD_STEPS } from './wizard-steps'
 
@@ -45,17 +46,20 @@ export function WizardShell({
             </li>
           ))}
         </ol>
-        <Link
-          href={`/products/${productId}`}
-          className="shrink-0 text-xs text-muted-foreground hover:underline"
-        >
-          Пропустить настройку →
-        </Link>
+        <Tooltip content="Прогресс не теряется: добавленное остаётся, шаги можно пройти позже из разделов">
+          <Link
+            href={`/products/${productId}`}
+            className="shrink-0 text-xs text-muted-foreground hover:underline"
+          >
+            Пропустить настройку →
+          </Link>
+        </Tooltip>
       </div>
 
       <div>
-        <p className="mb-1 font-mono text-xs uppercase tracking-wide text-muted-foreground">
+        <p className="mb-1 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wide text-muted-foreground">
           Шаг {activeIndex + 1} из {WIZARD_STEPS.length}
+          <Hint text="Шаги только добавляют записи; удалить лишнее — из раздела, обычной кнопкой «Удалить»" />
         </p>
         <h1 className="mb-1 text-2xl font-bold">{title}</h1>
         <p className="text-muted-foreground">{subtitle}</p>

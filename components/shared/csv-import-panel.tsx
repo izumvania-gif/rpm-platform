@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
@@ -98,9 +99,11 @@ export function CsvImportPanel({ productId }: { productId: string }) {
 
   if (!open) {
     return (
-      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
-        Импорт CSV
-      </Button>
+      <Tooltip content="Загрузить таблицу: колонки сопоставляются вручную, формат тот же, что у «Экспорт CSV»">
+        <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
+          Импорт CSV
+        </Button>
+      </Tooltip>
     )
   }
 

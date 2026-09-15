@@ -11,6 +11,7 @@ import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { AddActionPlanForm } from '@/components/shared/add-action-plan-form'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PmShell } from '@/components/pm/pm-shell'
+import { glossaryHint } from '@/lib/glossary'
 
 export const metadata = { title: 'Экшн-планы' }
 
@@ -39,6 +40,7 @@ export default async function PmActionPlansPage({
           id="action-plans"
           icon={ClipboardList}
           title="Экшн-планы"
+          hint={glossaryHint('actionPlan')}
           description="Заранее написанное «что делать» для предсказуемых нештатных ситуаций — открыть готовый план быстрее, чем придумывать реакцию в моменте"
           contentClassName="p-0"
           action={<AddActionPlanForm productId={product.id} people={people} />}

@@ -5,6 +5,7 @@ import { ResearchStatus, ResearchType, type Product } from '@prisma/client'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Hint } from '@/components/ui/tooltip'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { statusLabels, typeLabels } from '@/lib/labels'
@@ -95,7 +96,10 @@ export function ResearchForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="type">Тип</Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="type">Тип</Label>
+            <Hint text="Попадает в ритм исследований на дашборде и в метку «давно не обновлялось»" />
+          </div>
           <Select id="type" name="type" defaultValue={defaultValues?.type ?? ResearchType.MANUAL}>
             {Object.values(ResearchType).map((type) => (
               <option key={type} value={type}>

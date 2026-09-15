@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
+import { Hint } from '@/components/ui/tooltip'
 import type { Blocker } from '@/lib/record-blockers'
 
 // Блок «Что мешает» (фаза 8 редизайна 2.1).
@@ -33,14 +34,17 @@ export function RecordBlockers({ blockers }: { blockers: Blocker[] }) {
       className="rounded-lg border border-l-4 bg-card p-4"
       style={{ borderLeftColor: 'hsl(var(--signal-amber-border))' }}
     >
-      <h2
-        id="blockers-heading"
-        className="mb-3 flex items-center gap-2 text-sm font-semibold"
-        style={{ color: 'hsl(var(--signal-amber-text))' }}
-      >
-        <AlertTriangle size={15} aria-hidden />
-        Что мешает
-      </h2>
+      <div className="mb-3 flex items-center gap-2">
+        <h2
+          id="blockers-heading"
+          className="flex items-center gap-2 text-sm font-semibold"
+          style={{ color: 'hsl(var(--signal-amber-text))' }}
+        >
+          <AlertTriangle size={15} aria-hidden />
+          Что мешает
+        </h2>
+        <Hint text="Считается по полям этой записи; исправьте — блок исчезнет" />
+      </div>
       <ul className="space-y-2">
         {blockers.map((blocker) => (
           <li key={blocker.key} className="flex flex-wrap items-start justify-between gap-2">

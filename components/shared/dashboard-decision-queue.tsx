@@ -21,6 +21,7 @@ export function DashboardDecisionQueue({ items }: { items: DecisionItem[] }) {
       icon={Scale}
       title="Требуют решения"
       description="Гипотезы, у которых собрано всё нужное: критерий, доказательства, адресат и фича"
+      hint="Только гипотезы, у которых собраны все четыре условия; «почти готово» сюда не попадает"
       contentClassName={items.length > 0 ? 'p-0' : undefined}
       action={
         items.length > 0 ? (

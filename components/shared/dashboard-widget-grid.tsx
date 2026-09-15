@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp, GripVertical, Settings2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { useDialogFocus } from '@/components/shared/use-dialog-focus'
 import {
   dashboardWidgetDefs,
@@ -90,21 +91,21 @@ function PresetRow({
         {DASHBOARD_PRESETS.map((preset: DashboardPreset) => {
           const isActive = preset.id === active
           return (
-            <button
-              key={preset.id}
-              type="button"
-              title={preset.description}
-              aria-pressed={isActive}
-              onClick={() => onChange(applyPreset(preset))}
-              className={cn(
-                'rounded-md border px-2.5 py-1 text-xs transition-colors',
-                isActive
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:border-primary/50 hover:text-foreground'
-              )}
-            >
-              {preset.label}
-            </button>
+            <Tooltip key={preset.id} content={preset.description}>
+              <button
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => onChange(applyPreset(preset))}
+                className={cn(
+                  'rounded-md border px-2.5 py-1 text-xs transition-colors',
+                  isActive
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                )}
+              >
+                {preset.label}
+              </button>
+            </Tooltip>
           )
         })}
       </div>

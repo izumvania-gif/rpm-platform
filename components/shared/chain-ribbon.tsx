@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ChevronRight, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChainGapFiller } from '@/components/shared/chain-gap-filler'
+import { Hint, Tooltip } from '@/components/ui/tooltip'
 import type { ChainGapKind } from '@/lib/chain-gap'
 
 // The discovery chain for one record, in one line
@@ -54,8 +55,15 @@ export function ChainRibbon({ stages }: { stages: RibbonStage[] }) {
   return (
     <nav
       aria-label="Цепочка связей этой записи"
-      className="flex flex-wrap items-stretch gap-x-1 gap-y-2 text-xs"
+      className="flex flex-wrap items-center gap-x-1 gap-y-2 text-xs"
     >
+      {/* Порядок звеньев и смысл слотов — подсказкой (фаза 27): пунктирный
+          слот с «связать» ставит связь одним звеном здесь же, слот с
+          «добавить» на две ссылки дальше ведёт на форму — через фичу. */}
+      <Hint
+        text="Слева направо: сегмент → задача → гипотеза → фича → обещание; пунктирный слот — звена нет: «связать» ставит связь здесь, «добавить» — через промежуточное звено на форме"
+        className="mr-0.5 self-center"
+      />
       {stages.map((stage, index) => (
         <div key={stage.title} className="flex items-stretch gap-1">
           <div
@@ -81,13 +89,15 @@ export function ChainRibbon({ stages }: { stages: RibbonStage[] }) {
                 <span className="flex items-center gap-1 text-muted-foreground">
                   {stage.emptyLabel}
                   {stage.addHref && (
-                    <Link
-                      href={stage.addHref}
-                      className="inline-flex items-center gap-0.5 underline hover:no-underline"
-                    >
-                      <Plus size={11} aria-hidden />
-                      добавить
-                    </Link>
+                    <Tooltip content="На две ссылки дальше: связь идёт через фичу — выберите её на форме или на карточке фичи">
+                      <Link
+                        href={stage.addHref}
+                        className="inline-flex items-center gap-0.5 underline hover:no-underline"
+                      >
+                        <Plus size={11} aria-hidden />
+                        добавить
+                      </Link>
+                    </Tooltip>
                   )}
                 </span>
               )

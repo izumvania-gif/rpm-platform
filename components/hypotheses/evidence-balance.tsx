@@ -1,4 +1,5 @@
 import type { EvidenceBalance } from '@/lib/hypothesis-readiness'
+import { Hint } from '@/components/ui/tooltip'
 
 // Полоса баланса доказательств.
 //
@@ -25,8 +26,9 @@ export function EvidenceBalanceBar({ balance }: { balance: EvidenceBalance }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-4 text-sm">
-        <span className="font-medium text-[hsl(var(--signal-green-text))]">
+        <span className="flex items-center gap-1.5 font-medium text-[hsl(var(--signal-green-text))]">
           За: {balance.supports}
+          <Hint text="Доли считаются по инсайтам, занявшим сторону; без стороны — отдельно, не в полосе" />
         </span>
         <span className="font-medium text-[hsl(var(--signal-red-text))]">
           Против: {balance.contradicts}

@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Hint } from '@/components/ui/tooltip'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -188,6 +189,7 @@ export function InboxComposer({
                   <span className="w-36 shrink-0 truncate text-xs text-muted-foreground">
                     {item.reason}
                   </span>
+                  <Hint text="Тип угадан по форме строки (кавычки, «Когда …», «Если …»); поменяйте, если не так" />
                 </div>
               </li>
             ))}

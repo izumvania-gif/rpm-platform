@@ -16,6 +16,7 @@ import type { ActiveProduct } from '@/lib/product-context.server'
 import { PublicHeader } from '@/components/shared/public-header'
 import { RutokenLogo } from '@/components/shared/rutoken-logo'
 import { NavSheet } from '@/components/shared/nav-sheet'
+import { Tooltip } from '@/components/ui/tooltip'
 
 // Шапка в два ряда (фаза 6 редизайна 2.1).
 //
@@ -220,19 +221,23 @@ export function SiteNav({
             {/* Инбокс — способ попасть ВНУТРЬ данных, как поиск, а не ещё один
                 раздел, который надо заполнять. Поэтому он здесь, а не в
                 цепочке. */}
-            <Link
-              href="/inbox"
-              aria-label="Инбокс"
-              title="Инбокс — вставить заметки списком"
-              className={cn(
-                'hidden shrink-0 rounded-md border p-2 transition-colors sm:flex',
-                pathname === '/inbox'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'hover:border-primary/50 hover:bg-accent'
-              )}
+            <Tooltip
+              content="Инбокс: вставить заметки — каждая строка станет записью"
+              side="bottom"
             >
-              <InboxIcon size={16} strokeWidth={1.75} aria-hidden />
-            </Link>
+              <Link
+                href="/inbox"
+                aria-label="Инбокс"
+                className={cn(
+                  'hidden shrink-0 rounded-md border p-2 transition-colors sm:flex',
+                  pathname === '/inbox'
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'hover:border-primary/50 hover:bg-accent'
+                )}
+              >
+                <InboxIcon size={16} strokeWidth={1.75} aria-hidden />
+              </Link>
+            </Tooltip>
             <PersonaSwitcher />
             <KeyboardShortcutsOverlay />
             <ThemeToggle />
@@ -294,20 +299,24 @@ export function SiteNav({
           </nav>
 
           {offerToggle && (
-            <button
-              type="button"
-              onClick={() => choose(stage === 'basic' ? 'full' : 'basic')}
-              aria-label={toggleLabel}
-              title={
+            <Tooltip
+              side="bottom"
+              content={
                 stage === 'basic'
-                  ? 'Показать все разделы платформы'
-                  : 'Оставить в меню только начало цепочки'
+                  ? 'Показать все разделы меню'
+                  : 'Прячет пустые разделы меню; ничего не удаляется, раздел вернётся с первой записью'
               }
-              className="ml-auto hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-foreground xl:flex"
             >
-              <LayoutGrid size={14} strokeWidth={1.75} aria-hidden />
-              <span>{toggleLabel}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => choose(stage === 'basic' ? 'full' : 'basic')}
+                aria-label={toggleLabel}
+                className="ml-auto hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-foreground xl:flex"
+              >
+                <LayoutGrid size={14} strokeWidth={1.75} aria-hidden />
+                <span>{toggleLabel}</span>
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>

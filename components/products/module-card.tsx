@@ -5,6 +5,8 @@ import type { ModuleRows } from '@/lib/product-overview'
 import { attentionSummary } from '@/lib/product-overview'
 import { QuickAddButton } from '@/components/shared/quick-add-button'
 import type { CaptureType } from '@/lib/quick-capture'
+import { Hint, Tooltip } from '@/components/ui/tooltip'
+import { GLOSSARY_BY_MODULE, glossaryHint } from '@/lib/glossary'
 
 // One module of a product, as a glance rather than as a list.
 //
@@ -41,21 +43,34 @@ export function ProductModuleCard({
   attentionLabel: string
 }) {
   const verdict = attentionSummary(data, attentionLabel)
+  // Точное условие вердикта — те же пометки, что стоят у строк (фаза 27).
+  const verdictRule = Array.from(
+    new Set(data.rows.map((row) => row.attentionHint).filter((hint): hint is string => !!hint))
+  ).join('; ')
+  const term = GLOSSARY_BY_MODULE[allHref]
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-baseline justify-between gap-2 space-y-0 pb-3">
-        <CardTitle className="min-w-0 text-base font-semibold">
-          <Link href={allHref} className="hover:underline">
-            {title}
-          </Link>{' '}
-          <span className="font-normal text-muted-foreground">{data.total}</span>
+        <div className="flex min-w-0 items-baseline gap-1.5">
+          <CardTitle className="min-w-0 text-base font-semibold">
+            <Link href={allHref} className="hover:underline">
+              {title}
+            </Link>{' '}
+            <span className="font-normal text-muted-foreground">{data.total}</span>
+          </CardTitle>
+          {term && <Hint text={glossaryHint(term)} className="self-center" />}
           {verdict && (
-            <span className="ml-2 whitespace-nowrap text-xs font-normal text-[hsl(var(--signal-amber-text))]">
-              {verdict}
-            </span>
+            <Tooltip content={`Строки с пометкой: ${verdictRule || attentionLabel}`}>
+              <span
+                tabIndex={0}
+                className="whitespace-nowrap rounded text-xs font-normal text-[hsl(var(--signal-amber-text))]"
+              >
+                {verdict}
+              </span>
+            </Tooltip>
           )}
-        </CardTitle>
+        </div>
         <QuickAddButton type={addType} productId={productId} href={addHref} label={addLabel} />
       </CardHeader>
       <CardContent className="pt-0">

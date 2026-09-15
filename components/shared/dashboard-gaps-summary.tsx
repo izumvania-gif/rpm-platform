@@ -4,12 +4,15 @@ import type { GapsCounts } from '@/lib/dashboard-metrics'
 import { moduleByHref } from '@/lib/module-meta'
 import { DashboardWidgetCard } from '@/components/shared/dashboard-widget-card'
 import { buttonVariants } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 
 interface GapStat {
   href: string
   icon: LucideIcon
   label: string
   count: number
+  /** По какому правилу посчитано — подсказкой на плитке (фаза 27 плана 2.4). */
+  rule: string
 }
 
 // KPI row, not a chart — "a handful of headline numbers" per the dataviz
@@ -24,24 +27,28 @@ export function DashboardGapsSummary({ counts }: { counts: GapsCounts }) {
       icon: moduleByHref['/jtbd'].icon,
       label: 'JTBD без подтверждения',
       count: counts.unconfirmedJtbds,
+      rule: 'Задачи без флага «подтверждена исследованием»',
     },
     {
       href: '/reports/gaps',
       icon: moduleByHref['/segments'].icon,
       label: 'Сегменты без JTBD',
       count: counts.segmentsWithoutJtbd,
+      rule: 'Сегменты, к которым не привязана ни одна задача клиента',
     },
     {
       href: '/reports/gaps',
       icon: moduleByHref['/hypotheses'].icon,
       label: 'Гипотезы в черновике 14+ дней',
       count: counts.stuckHypotheses,
+      rule: 'Черновик старше 14 дней с момента создания',
     },
     {
       href: '/reports/gaps',
       icon: moduleByHref['/research'].icon,
       label: 'Продукты без свежих исследований',
       count: counts.productsWithoutRecentResearch,
+      rule: 'Ни одного исследования за последние 90 дней',
     },
   ]
   const totalGaps = stats.reduce((sum, s) => sum + s.count, 0)
@@ -71,32 +78,33 @@ export function DashboardGapsSummary({ counts }: { counts: GapsCounts }) {
             const Icon = stat.icon
             const hasGap = stat.count > 0
             return (
-              <Link
-                key={stat.label}
-                href={stat.href}
-                className="rounded-md border p-3 transition-colors hover:border-primary/50"
-              >
-                <div className="mb-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Icon size={12} strokeWidth={1.75} className="shrink-0" />
-                  <span className="truncate">{stat.label}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-2xl font-bold">{stat.count}</span>
-                  {hasGap ? (
-                    <CircleAlert
-                      size={14}
-                      className="text-[hsl(var(--signal-amber-border))]"
-                      aria-label="Требует внимания"
-                    />
-                  ) : (
-                    <CircleCheck
-                      size={14}
-                      className="text-[hsl(var(--signal-green-border))]"
-                      aria-label="Нет пробелов"
-                    />
-                  )}
-                </div>
-              </Link>
+              <Tooltip key={stat.label} content={stat.rule}>
+                <Link
+                  href={stat.href}
+                  className="rounded-md border p-3 transition-colors hover:border-primary/50"
+                >
+                  <div className="mb-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Icon size={12} strokeWidth={1.75} className="shrink-0" />
+                    <span className="truncate">{stat.label}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-2xl font-bold">{stat.count}</span>
+                    {hasGap ? (
+                      <CircleAlert
+                        size={14}
+                        className="text-[hsl(var(--signal-amber-border))]"
+                        aria-label="Требует внимания"
+                      />
+                    ) : (
+                      <CircleCheck
+                        size={14}
+                        className="text-[hsl(var(--signal-green-border))]"
+                        aria-label="Нет пробелов"
+                      />
+                    )}
+                  </div>
+                </Link>
+              </Tooltip>
             )
           })}
         </div>

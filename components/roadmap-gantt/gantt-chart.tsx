@@ -10,6 +10,7 @@ import { ru } from 'date-fns/locale'
 import { roadmapStatusLabels, roadmapStatusOrder, roadmapStatusTone } from '@/lib/labels'
 import { signalToneColors } from '@/lib/signal-colors'
 import { cn } from '@/lib/utils'
+import { Hint, Tooltip } from '@/components/ui/tooltip'
 import { updateRoadmapItemDates } from '@/lib/actions/roadmap'
 import {
   NO_TRACK_GROUP_LABEL,
@@ -349,7 +350,8 @@ export function GanttChart({
             drag?.mode === 'schedule' && 'border-primary'
           )}
         >
-          <p className="mb-2 text-xs text-muted-foreground">
+          <p className="mb-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <Hint text="Пункты без обеих дат: полосе на диаграмме нужны начало и конец, вехе — дата начала" />
             Не на диаграмме — {unscheduled.length}.{' '}
             {groups.length === 0
               ? 'Нажмите «с сегодня», чтобы поставить первый пункт на диаграмму'
@@ -382,19 +384,20 @@ export function GanttChart({
                     {/* The keyboard twin of the drag: without it the tray would
                         be a pointer-only feature, and the roadmap is the one
                         place a PM plans from a laptop on a call. */}
-                    <button
-                      type="button"
-                      // The chip captures the pointer to start a drag, which
-                      // would otherwise swallow this button's click entirely —
-                      // same guard the bar's edit link needs.
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() => schedule(item.id, item.isMilestone, new Date())}
-                      disabled={isSaving}
-                      title="Запланировать с сегодняшнего дня"
-                      className="shrink-0 rounded px-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      с сегодня
-                    </button>
+                    <Tooltip content="Поставить на диаграмму с сегодняшнего дня: две недели длительности, дорожку можно сменить перетаскиванием">
+                      <button
+                        type="button"
+                        // The chip captures the pointer to start a drag, which
+                        // would otherwise swallow this button's click entirely —
+                        // same guard the bar's edit link needs.
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={() => schedule(item.id, item.isMilestone, new Date())}
+                        disabled={isSaving}
+                        className="shrink-0 rounded px-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        с сегодня
+                      </button>
+                    </Tooltip>
                   </div>
                 </li>
               )

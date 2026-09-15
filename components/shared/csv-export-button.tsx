@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 
 function csvEscape(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`
@@ -15,26 +16,28 @@ export function CsvExportButton({
   filename: string
 }) {
   return (
-    <Button
-      type="button"
-      variant="outline"
-      disabled={rows.length === 0}
-      onClick={() => {
-        const headers = Object.keys(rows[0])
-        const lines = [
-          headers.join(','),
-          ...rows.map((row) => headers.map((h) => csvEscape(String(row[h] ?? ''))).join(',')),
-        ]
-        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = filename
-        a.click()
-        URL.revokeObjectURL(url)
-      }}
-    >
-      Экспорт CSV
-    </Button>
+    <Tooltip content="Выгружает то, что видно сейчас, с учётом фильтров">
+      <Button
+        type="button"
+        variant="outline"
+        disabled={rows.length === 0}
+        onClick={() => {
+          const headers = Object.keys(rows[0])
+          const lines = [
+            headers.join(','),
+            ...rows.map((row) => headers.map((h) => csvEscape(String(row[h] ?? ''))).join(',')),
+          ]
+          const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = filename
+          a.click()
+          URL.revokeObjectURL(url)
+        }}
+      >
+        Экспорт CSV
+      </Button>
+    </Tooltip>
   )
 }

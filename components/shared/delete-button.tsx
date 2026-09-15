@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, Link2Off, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { SubmitButton } from '@/components/shared/submit-button'
 import { getDeleteImpact } from '@/lib/actions/delete-impact'
 import { formatImpactCount, type DeleteImpact } from '@/lib/delete-impact'
@@ -59,19 +60,20 @@ export function DeleteButton({
   return (
     <>
       {appearance === 'icon' ? (
-        <Button
-          ref={triggerRef}
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 px-0 text-muted-foreground hover:text-destructive"
-          onClick={() => setOpen(true)}
-          aria-haspopup="dialog"
-          aria-label={label}
-          title={label}
-        >
-          <Trash2 size={15} aria-hidden />
-        </Button>
+        <Tooltip content={label}>
+          <Button
+            ref={triggerRef}
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 px-0 text-muted-foreground hover:text-destructive"
+            onClick={() => setOpen(true)}
+            aria-haspopup="dialog"
+            aria-label={label}
+          >
+            <Trash2 size={15} aria-hidden />
+          </Button>
+        </Tooltip>
       ) : (
         <Button
           ref={triggerRef}

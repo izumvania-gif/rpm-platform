@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { LayoutGrid } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 // 2.0 (plans/platform-views-plan.md §2) — role switching is a simulated lens
@@ -82,27 +83,32 @@ export function PersonaSwitcher() {
 
   return (
     <div ref={containerRef} className="relative">
-      <Button
-        ref={buttonRef}
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen((v) => !v)}
-        onKeyDown={(e) => {
-          if (e.key !== 'ArrowDown') return
-          e.preventDefault()
-          focusFirst.current = true
-          setOpen(true)
-        }}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label="Представления"
+      <Tooltip
+        side="bottom"
+        content="Страницы для других ролей: доставка, CPO, компания, маркетинг, продажи"
       >
-        <LayoutGrid size={14} />
-        {/* Ниже `sm` остаётся одна иконка: на 390px подпись растягивала
-            правую группу так, что та наезжала на логотип. */}
-        <span className="hidden sm:inline">Представления</span>
-      </Button>
+        <Button
+          ref={buttonRef}
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setOpen((v) => !v)}
+          onKeyDown={(e) => {
+            if (e.key !== 'ArrowDown') return
+            e.preventDefault()
+            focusFirst.current = true
+            setOpen(true)
+          }}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label="Представления"
+        >
+          <LayoutGrid size={14} />
+          {/* Ниже `sm` остаётся одна иконка: на 390px подпись растягивала
+              правую группу так, что та наезжала на логотип. */}
+          <span className="hidden sm:inline">Представления</span>
+        </Button>
+      </Tooltip>
       {open && (
         <div
           className={cn(

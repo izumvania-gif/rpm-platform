@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { createManyQuick } from '@/lib/actions/bulk'
@@ -65,9 +66,11 @@ export function BulkAddPanel({ productId }: { productId: string }) {
 
   if (!open) {
     return (
-      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
-        Добавить списком
-      </Button>
+      <Tooltip content="Вставить по одной записи в строке — до 200 за раз, одного типа">
+        <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
+          Добавить списком
+        </Button>
+      </Tooltip>
     )
   }
 
